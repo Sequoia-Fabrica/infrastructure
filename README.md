@@ -27,5 +27,5 @@ A beloved collection of pets. No cattle here.
                         dHHHb
                         .dFd|bHb.               o
             o       .dHFdH|HbTHb.          o /
-        \  Y  |  \__,dHHFdHH|HHhoHHb.__Krogg  Y
+        \  Y  |  \__,dHHFdHH|HHhoHHb.______|  Y
         ##########################################
