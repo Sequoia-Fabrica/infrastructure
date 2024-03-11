@@ -1,0 +1,44 @@
+---
+- name: Download SSH Keys from GitHub
+  connection: local
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Download SSH Keys from GitHub
+      ansible.builtin.include_role:
+        name: sequoia_fabrica
+        tasks_from: download_ssh_keys_from_github.yml
+
+- name: Setup servers
+  hosts:
+    - vm_hosts
+    - container_hosts
+  tasks:
+    - name: Common packages
+      ansible.builtin.include_role:
+        name: sequoia_fabrica
+        tasks_from: common_packages.yml
+    - name: Docker engine
+      ansible.builtin.include_role:
+        name: sequoia_fabrica
+        tasks_from: docker_engine.yml
+    - name: Setup users
+      ansible.builtin.include_role:
+        name: sequoia_fabrica
+        tasks_from: users.yml
+
+- name: Setup container_hosts as github runners
+  hosts: container_hosts
+  tasks:
+    - name: GitHub Runner
+      ansible.builtin.include_role:
+        name: sequoia_fabrica
+        tasks_from: github_runner.yml
+
+- name: Setup nursery with apps
+  hosts: nursery.xylem.sequoiafabrica.org
+  tasks:
+    - name: Setup nursery with apps
+      ansible.builtin.include_role:
+        name: sequoia_fabrica
+        tasks_from: nursery_apps.yml

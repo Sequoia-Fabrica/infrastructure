@@ -1,0 +1,17 @@
+---
+- name: Install docker engine
+  become: true
+  ansible.builtin.apt:
+    name: docker.io
+    state: present
+    update_cache: true
+
+- name: Configure docker engine
+  become: true
+  ansible.builtin.copy:
+    src: docker.daemon.json
+    dest: /etc/docker/daemon.json
+    owner: root
+    group: root
+    mode: ug=rw,o=r
+  notify: Restart docker

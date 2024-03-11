@@ -1,0 +1,13 @@
+---
+all:
+  hosts:
+    localhost:
+  children:
+    vm_hosts:
+      hosts:
+        soil.xylem.sequoiafabrica.org:
+          ansible_host: 192.168.88.5
+    container_hosts:
+      hosts:
+        nursery.xylem.sequoiafabrica.org:
+          ansible_host: 192.168.88.6

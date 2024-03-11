@@ -1,0 +1,18 @@
+---
+- name: Ensure /opt/sequoia.fabrica
+  become: true
+  ansible.builtin.file:
+    path: /opt/sequoia.fabrica
+    state: directory
+    owner: sequoia.fabrica
+    group: sequoia.fabrica
+    mode: ug=rwx,o=rx
+
+- name: Place ansible_vault_password file
+  become: true
+  ansible.builtin.copy:
+    dest: /opt/sequoia.fabrica/ansible_vault_password
+    content: "{{ ansible_vault_password }}"
+    owner: sequoia.fabrica
+    group: sequoia.fabrica
+    mode: ug=r,o=

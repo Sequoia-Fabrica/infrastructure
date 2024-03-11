@@ -1,0 +1,11 @@
+---
+- name: Restart docker
+  become: true
+  ansible.builtin.service:
+    name: docker
+    state: restarted
+
+- name: Reload prometheus
+  become: true
+  command: docker kill --signal=SIGHUP prometheus
+  changed_when: true

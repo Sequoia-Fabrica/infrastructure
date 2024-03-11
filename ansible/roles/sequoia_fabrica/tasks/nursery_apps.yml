@@ -1,0 +1,124 @@
+---
+- name: Ensure /opt/prometheus/data
+  become: true
+  ansible.builtin.file:
+    path: /opt/prometheus/data
+    state: directory
+    owner: nobody
+    group: nogroup
+    mode: ug=rwx,o=rx
+- name: Ensure /opt/prometheus/config
+  become: true
+  ansible.builtin.file:
+    path: /opt/prometheus/config
+    state: directory
+    owner: root
+    group: root
+    mode: ug=rwx,o=rx
+- name: Template /opt/prometheus/config/prometheus.yml
+  become: true
+  ansible.builtin.template:
+    src: prometheus.yml.j2
+    dest: /opt/prometheus/config/prometheus.yml
+    owner: root
+    group: root
+    mode: ug=rw,o=r
+  notify: Reload prometheus
+- name: Run prometheus
+  community.docker.docker_container:
+    name: prometheus
+    image: prom/prometheus
+    restart_policy: unless-stopped
+    ports:
+      - 9090:9090
+    mounts:
+      - type: bind
+        source: /opt/prometheus/config
+        target: /etc/prometheus
+      - type: bind
+        source: /opt/prometheus/data
+        target: /prometheus
+
+- name: Run node-exporter
+  become: true
+  community.docker.docker_container:
+    name: node-exporter
+    image: quay.io/prometheus/node-exporter:latest
+    command: --path.rootfs=/host
+    restart_policy: unless-stopped
+    network_mode: host
+    pid_mode: host
+    mounts:
+      - type: bind
+        source: /
+        target: /host
+        propagation: rslave
+        read_only: true
+
+- name: Ensure /opt/grafana/storage
+  become: true
+  ansible.builtin.file:
+    path: /opt/grafana/storage
+    state: directory
+    owner: nobody
+    group: nogroup
+    mode: ug=rwx,o=rx
+    recurse: true
+- name: Run grafana
+  community.docker.docker_container:
+    name: grafana
+    image: grafana/grafana-oss
+    restart_policy: unless-stopped
+    ports:
+      - 3000:3000
+    user: nobody:nogroup
+    mounts:
+      - type: bind
+        source: /opt/grafana/storage
+        target: /var/lib/grafana
+
+
+- name: Ensure /opt/frigate/config
+  become: true
+  ansible.builtin.file:
+    path: /opt/frigate/config
+    state: directory
+    owner: root
+    group: root
+    mode: ug=rwx,o=rx
+    recurse: true
+- name: Run frigate
+  community.docker.docker_container:
+    name: frigate
+    image: ghcr.io/blakeblackshear/frigate:stable
+    restart_policy: unless-stopped
+    network_mode: host
+    shm_size: 1G
+    env:
+      FRIGATE_RTSP_PASSWORD: "{{ frigate_rtsp_password }}"
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
+    mounts:
+      - type: tmpfs
+        target: /tmp/cache
+        tmpfs_size: 1G
+      - type: bind
+        source: /older-disk-data/frigate
+        target: /media/frigate
+      - type: bind
+        source: /opt/frigate/config
+        target: /config
+      - type: bind
+        source: /etc/localtime
+        target: /etc/localtime
+        read_only: true
+
+- name: Run prometheus-frigate-exporter
+  community.docker.docker_container:
+    name: prometheus_frigate_exporter
+    image: rhysbailey/prometheus-frigate-exporter
+    restart_policy: unless-stopped
+    ports:
+      - 9101:9100
+    env:
+      FRIGATE_STATS_URL: http://192.168.88.6:5000/api/stats

@@ -1,0 +1,54 @@
+---
+- name: "Sequoia Fabrica headless user: sequoia.fabrica"
+  become: true
+  ansible.builtin.user:
+    name: sequoia.fabrica
+    state: present
+    groups:
+      - sudo
+      - docker
+    append: true
+
+- name: "Sequoia Fabrica group: passwordless sudo"
+  become: true
+  community.general.sudoers:
+    name: sequoia.fabrica
+    state: present
+    group: sequoia.fabrica
+    commands: ALL
+    nopassword: true
+
+# This requires that the download_ssh_keys_from_github.yml task has run locally
+# already
+- name: "Sequoia Fabrica users: authorized_keys from github"
+  become: true
+  ansible.posix.authorized_key:
+    user: "{{ item.username }}"
+    state: present
+    key: "{{ lookup('file', (playbook_dir ~ '/.github_ssh_keys/' ~ item.github_username ~ '.keys')) }}"
+  when: item.github_username is defined and not ansible_check_mode
+  with_items:
+    - "{{ sequoia_fabrica_users }}"
+
+- name: "Sequoia Fabrica users: authorized_keys from keys_file"
+  become: true
+  ansible.posix.authorized_key:
+    user: "{{ item.username }}"
+    state: present
+    key: "{{ lookup('file', item.keys_file) }}"
+  when: item.keys_file is defined
+  with_items:
+    - "{{ sequoia_fabrica_users }}"
+
+- name: "Sequoia Fabrica Users: ensure user (Linux)"
+  become: true
+  ansible.builtin.user:
+    name: "{{ item.username }}"
+    groups:
+      - sudo
+      - docker
+      - sequoia.fabrica
+    append: true
+    state: present
+  with_items:
+    - "{{ sequoia_fabrica_users }}"
