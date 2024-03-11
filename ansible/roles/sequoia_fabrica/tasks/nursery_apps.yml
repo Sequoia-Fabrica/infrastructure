@@ -72,6 +72,8 @@
     ports:
       - 3000:3000
     user: nobody:nogroup
+    env:
+      GF_PANELS_DISABLE_SANITIZE_HTML: "true"
     mounts:
       - type: bind
         source: /opt/grafana/storage
