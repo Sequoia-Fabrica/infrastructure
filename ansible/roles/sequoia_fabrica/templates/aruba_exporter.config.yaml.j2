@@ -1,0 +1,19 @@
+---
+level: info
+timeout: 60
+batch_size: 10000
+username: {{ aruba_username }}
+password: {{ aruba_password }}
+# key_file: /path/to/key
+
+devices:
+  - host: 192.168.88.3
+  - host: 192.168.88.4
+
+features:
+  system: true
+  environment: true
+  interfaces: true
+  optics: true
+  routes: true
+  wireless: true
