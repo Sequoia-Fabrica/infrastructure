@@ -9,3 +9,9 @@
   become: true
   command: docker kill --signal=SIGHUP prometheus
   changed_when: true
+
+- name: Restart aruba_exporter
+  community.docker.docker_container:
+    name: aruba_exporter
+    restart: yes
+    recreate: yes

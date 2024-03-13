@@ -130,7 +130,6 @@
   ansible.builtin.file:
     path: /opt/aruba_exporter
     state: directory
-    recurse: true
     owner: root
     group: root
     mode: ugo=rwx
@@ -148,27 +147,24 @@
   community.docker.docker_image:
     name: aruba_exporter
     tag: latest
+    source: build
+    force_source: true
+    force_tag: true
     build:
       path: /opt/aruba_exporter/repo
   register: aruba_exporter_container_image
-- name: Check if aruba_exporter container is running
-  when: aruba_exporter_container_image.changed
-  community.docker.docker_container_info:
-    name: aruba_exporter
-  register: aruba_exporter_container_info
-- name: Restart aruba_exporter
-  when: aruba_exporter_container_info.exists
+  notify: Restart aruba_exporter
+- name: Run aruba_exporter
   community.docker.docker_container:
     name: aruba_exporter
     image: aruba_exporter:latest
     state: started
-    restart: yes
-    recreate: yes
     restart_policy: unless-stopped
+    command: "/go/aruba_exporter/aruba_exporter -config.file /opt/aruba_exporter/config.yaml"
     ports:
       - 9909:9909
     mounts:
       - type: bind
         source: /opt/aruba_exporter/config.yaml
-        target: /usr/src/app/config.yaml
+        target: /opt/aruba_exporter/config.yaml
         read_only: true

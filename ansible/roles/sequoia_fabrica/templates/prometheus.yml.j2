@@ -20,3 +20,8 @@ scrape_configs:
         apikey:
             - "{{ octoprint_api_keys['prusa_2'] }}"
     metrics_path: '/plugin/prometheus_exporter/metrics'
+  - job_name: aruba_exporter
+    scrape_interval: 5m
+    scrape_timeout: 4m
+    static_configs:
+      - targets: ["192.168.88.6:9909"]
