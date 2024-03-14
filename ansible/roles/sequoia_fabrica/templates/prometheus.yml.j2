@@ -3,17 +3,17 @@ global:
 scrape_configs:
   - job_name: node_exporter
     static_configs:
-      - targets: ['192.168.88.6:9100']
+      - targets: ['nursery.xylem.sequoiafabrica.org:9100']
   - job_name: frigate_exporter
     static_configs:
-      - targets: ["192.168.88.6:9101"]
+      - targets: ["nursery.xylem.sequoiafabrica.org:9101"]
   - job_name: asterisk
     static_configs:
-      - targets: ["192.168.88.6:8888"]
+      - targets: ["nursery.xylem.sequoiafabrica.org:8888"]
   - job_name: octoprint_prusa_2
     scrape_interval: 5s
     static_configs:
-      - targets: ["192.168.88.184"]
+      - targets: ["prusa-2.xylem.sequoiafabrica.org"]
         labels:
             octoprint_instance: "prusa-2"
     params:
@@ -24,4 +24,4 @@ scrape_configs:
     scrape_interval: 5m
     scrape_timeout: 4m
     static_configs:
-      - targets: ["192.168.88.6:9909"]
+      - targets: ["nursery.xylem.sequoiafabrica.org:9909"]

@@ -123,7 +123,7 @@
     ports:
       - 9101:9100
     env:
-      FRIGATE_STATS_URL: http://192.168.88.6:5000/api/stats
+      FRIGATE_STATS_URL: http://nursery.xylem.sequoiafabrica.org:5000/api/stats
 
 - name: Ensure /opt/aruba_exporter/repo
   become: true
