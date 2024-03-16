@@ -1,4 +1,44 @@
 ---
+- name: Install docker-compose-v2
+  become: true
+  ansible.builtin.apt:
+    name: docker-compose-v2
+
+- name: "Ensure /opt/authentik/{{ item }}"
+  become: true
+  ansible.builtin.file:
+    path: "/opt/authentik/{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: ug=rwx,o=rx
+  with_items:
+    - database
+    - redis
+    - media
+    - custom-templates
+    - certs
+- name: Template /opt/authentik/.env
+  become: true
+  ansible.builtin.template:
+    src: authentik.env.j2
+    dest: /opt/authentik/.env
+    owner: root
+    group: root
+    mode: ug=rw,o=
+- name: Template /opt/authentik/docker-compose.yml
+  become: true
+  ansible.builtin.template:
+    src: authentik.docker-compose.yml.j2
+    dest: /opt/authentik/docker-compose.yml
+    owner: root
+    group: root
+    mode: ug=rw,o=
+- name: Authentik docker-compose
+  become: true
+  community.docker.docker_compose_v2:
+    project_src: /opt/authentik
+
 - name: Ensure /opt/prometheus/data
   become: true
   ansible.builtin.file:
