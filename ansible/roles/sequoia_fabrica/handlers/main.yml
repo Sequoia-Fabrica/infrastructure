@@ -15,3 +15,9 @@
     name: aruba_exporter
     restart: yes
     recreate: yes
+
+- name: Restart frigate
+  community.docker.docker_container:
+    name: frigate
+    restart: yes
+  ignore_errors: true

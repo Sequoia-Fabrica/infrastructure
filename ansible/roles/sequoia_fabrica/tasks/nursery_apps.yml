@@ -88,6 +88,15 @@
     owner: root
     group: root
     mode: ug=rwx,o=rx
+- name: Place /opt/frigate/config/config.yml
+  become: true
+  ansible.builtin.template:
+    src: frigate.config.yml
+    dest: /opt/frigate/config/config.yml
+    owner: root
+    group: root
+    mode: ug=rw,o=
+  notify: Restart frigate
 - name: Ensure /opt/frigate/media
   become: true
   ansible.builtin.file:

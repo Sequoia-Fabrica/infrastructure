@@ -1,0 +1,77 @@
+## This file is managed by Ansible in the repo github.com/Sequoia-Fabrica/infrastructure
+## Send edits there, as local changes here may be replaced by an Ansible run
+
+mqtt:
+  enabled: false
+
+detectors:
+  coral_usb:
+    type: edgetpu
+    device: usb
+#  coral_pci:
+#    type: edgetpu
+#    device: pci
+
+go2rtc:
+  streams:
+    front_door:
+      - "rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.100:554/cam/realmonitor?channel=1&subtype=0"
+    side_door:
+      - "rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.101:554/cam/realmonitor?channel=1&subtype=0"
+    workshop:
+      - "rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.102:554/cam/realmonitor?channel=1&subtype=0"
+
+
+record:
+  enabled: true
+  expire_interval: 180
+  retain:
+    days: 2
+    mode: motion
+  events:
+    pre_capture: 5
+    post_capture: 5
+
+cameras:
+  front_door:
+    enabled: true
+    ffmpeg:
+      inputs:
+        - path: "rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.100:554/cam/realmonitor?channel=1&subtype=1"
+          roles:
+            - detect
+        - path: "rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.100:554/cam/realmonitor?channel=1&subtype=0"
+          roles:
+            - record
+    detect:
+      enabled: true
+    record:
+      enabled: true
+  side_door:
+    enabled: true
+    ffmpeg:
+      inputs:
+        - path: "rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.101:554/cam/realmonitor?channel=1&subtype=1"
+          roles:
+            - detect
+        - path: "rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.101:554/cam/realmonitor?channel=1&subtype=0"
+          roles:
+            - record
+    detect:
+      enabled: true
+    record:
+      enabled: true
+  workshop:
+    enabled: true
+    ffmpeg:
+      inputs:
+        - path: "rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.102:554/cam/realmonitor?channel=1&subtype=1"
+          roles:
+            - detect
+        - path: "rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.102:554/cam/realmonitor?channel=1&subtype=0"
+          roles:
+            - record
+    detect:
+      enabled: true
+    record:
+      enabled: true
