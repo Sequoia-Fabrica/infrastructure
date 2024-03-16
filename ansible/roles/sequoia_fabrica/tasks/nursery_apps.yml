@@ -114,6 +114,7 @@
     shm_size: 1G
     env:
       FRIGATE_RTSP_PASSWORD: "{{ frigate_rtsp_password }}"
+      FRIGATE_MQTT_PASSWORD: "{{ frigate_mqtt_password }}"
     devices:
       - /dev/bus/usb:/dev/bus/usb
     mounts:

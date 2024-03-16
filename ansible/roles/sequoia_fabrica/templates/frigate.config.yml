@@ -2,7 +2,11 @@
 ## Send edits there, as local changes here may be replaced by an Ansible run
 
 mqtt:
-  enabled: false
+  enabled: true
+  host: 192.168.88.254
+  port: 1883
+  user: mqtt
+  password: "{FRIGATE_MQTT_PASSWORD}"
 
 detectors:
   coral_usb:
