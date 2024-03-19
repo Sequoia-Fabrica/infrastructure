@@ -5,7 +5,9 @@ all:
   children:
     vm_hosts:
       hosts:
-        soil.xylem.sequoiafabrica.org:
+        soil:
+          ansible_host: soil.xylem.sequoiafabrica.org
     container_hosts:
       hosts:
-        nursery.xylem.sequoiafabrica.org:
+        nursery:
+          ansible_host: nursery.xylem.sequoiafabrica.org

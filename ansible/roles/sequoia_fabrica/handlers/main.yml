@@ -7,17 +7,17 @@
 
 - name: Reload prometheus
   become: true
-  command: docker kill --signal=SIGHUP prometheus
+  ansible.builtin.command: docker kill --signal=SIGHUP prometheus
   changed_when: true
 
 - name: Restart aruba_exporter
   community.docker.docker_container:
     name: aruba_exporter
-    restart: yes
-    recreate: yes
+    restart: true
+    recreate: true
 
 - name: Restart frigate
   community.docker.docker_container:
     name: frigate
-    restart: yes
+    restart: true
   ignore_errors: true

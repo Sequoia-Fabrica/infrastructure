@@ -1,12 +1,12 @@
 ---
-- name: "SFMIX Admin users: Ensure Github SSH keys directory"
+- name: "Admin users: Ensure Github SSH keys directory"
   delegate_to: localhost
   ansible.builtin.file:
     dest: "{{ (playbook_dir ~ '/.github_ssh_keys/') }}"
     state: directory
     mode: ug=rwx,o=rx
 
-- name: "SFMIX Admin users: Download keys from Github"
+- name: "Admin users: Download keys from Github"
   delegate_to: localhost
   ansible.builtin.get_url:
     url: "https://github.com/{{ item.github_username }}.keys"

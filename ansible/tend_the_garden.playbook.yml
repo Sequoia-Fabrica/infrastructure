@@ -14,6 +14,10 @@
     - vm_hosts
     - container_hosts
   tasks:
+    - name: MOTD
+      ansible.builtin.include_role:
+        name: sequoia_fabrica
+        tasks_from: motd.yml
     - name: Common packages
       ansible.builtin.include_role:
         name: sequoia_fabrica
@@ -36,7 +40,7 @@
         tasks_from: github_runner.yml
 
 - name: Setup nursery with apps
-  hosts: nursery.xylem.sequoiafabrica.org
+  hosts: nursery
   tasks:
     - name: Setup nursery with apps
       ansible.builtin.include_role:

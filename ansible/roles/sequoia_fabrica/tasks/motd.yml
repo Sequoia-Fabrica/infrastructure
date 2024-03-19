@@ -1,0 +1,14 @@
+---
+- name: Place /etc/motd
+  become: true
+  ansible.builtin.copy:
+    src: "{{ lookup('first_found', motd_files) }}"
+    dest: /etc/motd
+    owner: root
+    group: root
+    mode: ug=rw,o=r
+  vars:
+    motd_files:
+      files:
+        - "motd.{{ ansible_hostname }}.txt"
+        - "motd.txt"

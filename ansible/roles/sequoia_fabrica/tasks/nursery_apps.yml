@@ -4,6 +4,7 @@
   ansible.builtin.apt:
     name: docker-compose-v2
 
+## Authentik
 - name: "Ensure /opt/authentik/{{ item }}"
   become: true
   ansible.builtin.file:
@@ -34,11 +35,20 @@
     owner: root
     group: root
     mode: ug=rw,o=
+- name: Place /opt/authentik/media/sequoia_fabrica_tree.svg
+  become: true
+  ansible.builtin.copy:
+    src: sequoia_fabrica_tree.svg
+    dest: /opt/authentik/media/sequoia_fabrica_tree.svg
+    owner: root
+    group: root
+    mode: ug=rw,o=r
 - name: Authentik docker-compose
   become: true
   community.docker.docker_compose_v2:
     project_src: /opt/authentik
 
+## Prometheus
 - name: Ensure /opt/prometheus/data
   become: true
   ansible.builtin.file:
@@ -79,6 +89,7 @@
         source: /opt/prometheus/data
         target: /prometheus
 
+## node-exporter
 - name: Run node-exporter
   become: true
   community.docker.docker_container:
@@ -95,6 +106,7 @@
         propagation: rslave
         read_only: true
 
+## Grafana
 - name: Ensure /opt/grafana/storage
   become: true
   ansible.builtin.file:
@@ -119,7 +131,7 @@
         source: /opt/grafana/storage
         target: /var/lib/grafana
 
-
+## Frigate
 - name: Ensure /opt/frigate/config
   become: true
   ansible.builtin.file:
@@ -172,6 +184,7 @@
         target: /etc/localtime
         read_only: true
 
+## frigate-exporter
 - name: Run prometheus-frigate-exporter
   community.docker.docker_container:
     name: prometheus_frigate_exporter
@@ -182,6 +195,7 @@
     env:
       FRIGATE_STATS_URL: http://nursery.xylem.sequoiafabrica.org:5000/api/stats
 
+## aruba-exporter
 - name: Ensure /opt/aruba_exporter/repo
   become: true
   ansible.builtin.file:
@@ -191,9 +205,13 @@
     group: root
     mode: ugo=rwx
 - name: Template /opt/aruba_exporter/config.yaml
+  become: true
   ansible.builtin.template:
     src: aruba_exporter.config.yaml.j2
     dest: /opt/aruba_exporter/config.yaml
+    owner: root
+    group: root
+    mode: ug=rw,o=
 - name: Clone github.com:slashdoom/aruba_exporter
   ansible.builtin.git:
     repo: https://github.com/slashdoom/aruba_exporter
