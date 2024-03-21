@@ -133,6 +133,16 @@
     user: nobody:nogroup
     env:
       GF_PANELS_DISABLE_SANITIZE_HTML: "true"
+      GF_AUTH_GENERIC_OAUTH_ENABLED: "true"
+      GF_AUTH_GENERIC_OAUTH_NAME: "OAuth2"
+      GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP: "true"
+      GF_AUTH_GENERIC_OAUTH_CLIENT_ID: "{{ authentik.apps.grafana.client_id }}"
+      GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET: "{{ authentik.apps.grafana.client_secret }}"
+      GF_AUTH_GENERIC_OAUTH_SCOPES: "user:email"
+      GF_AUTH_GENERIC_OAUTH_AUTH_URL: "http://nursery.xylem.sequoiafabrica.org:9000/application/o/authorize/"
+      GF_AUTH_GENERIC_OAUTH_TOKEN_URL: "http://nursery.xylem.sequoiafabrica.org:9000/application/o/token/"
+      GF_AUTH_GENERIC_OAUTH_API_URL: "http://nursery.xylem.sequoiafabrica.org:9000/application/o/userinfo/"
+      GF_SERVER_ROOT_URL: "http://nursery.xylem.sequoiafabrica.org:3000/"
     mounts:
       - type: bind
         source: /opt/grafana/storage
