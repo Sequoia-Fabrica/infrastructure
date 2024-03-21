@@ -19,6 +19,13 @@
     - media
     - custom-templates
     - certs
+- name: Set permissions on /opt/authentik/redis
+  become: true
+  ansible.builtin.file:
+    path: "/opt/authentik/redis"
+    state: directory
+    owner: 999
+    group: 1000
 - name: Template /opt/authentik/.env
   become: true
   ansible.builtin.template:
