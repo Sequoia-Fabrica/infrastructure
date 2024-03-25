@@ -190,14 +190,6 @@
     group: root
     mode: ug=rw,o=
   notify: Restart frigate
-- name: Ensure /opt/frigate/media
-  become: true
-  ansible.builtin.file:
-    path: /opt/frigate/media
-    state: directory
-    owner: root
-    group: root
-    mode: ug=rwx,o=rx
 - name: Run frigate
   community.docker.docker_container:
     name: frigate
@@ -216,7 +208,7 @@
         target: /tmp/cache
         tmpfs_size: 1G
       - type: bind
-        source: /opt/frigate/media
+        source: /data-disk/frigate/media
         target: /media/frigate
       - type: bind
         source: /opt/frigate/config
