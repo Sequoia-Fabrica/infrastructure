@@ -18,8 +18,8 @@
   ansible.builtin.file:
     path: "/opt/authentik/database"
     state: directory
-    owner: root
-    group: root
+    owner: 70
+    group: 70
     mode: u=rwx,go=
 - name: "Ensure /opt/authentik/redis"
   become: true
@@ -34,7 +34,7 @@
   ansible.builtin.file:
     path: "/opt/authentik/redis"
     state: directory
-    owner: 1000
+    owner: 999
     group: 1000
     mode: ug=rwx,o=rx
 - name: "Ensure /opt/authentik/certs"
@@ -42,7 +42,7 @@
   ansible.builtin.file:
     path: "/opt/authentik/redis"
     state: directory
-    owner: 1000
+    owner: 999
     group: 1000
     mode: ug=rwx,o=rx
 - name: Template /opt/authentik/.env
