@@ -5,27 +5,46 @@
     name: docker-compose-v2
 
 ## Authentik
-- name: "Ensure /opt/authentik/{{ item }}"
+- name: "Ensure /opt/authentik/custom-templates"
   become: true
   ansible.builtin.file:
-    path: "/opt/authentik/{{ item }}"
+    path: "/opt/authentik/custom-templates"
     state: directory
     owner: root
     group: root
     mode: ug=rwx,o=rx
-  with_items:
-    - database
-    - redis
-    - media
-    - custom-templates
-    - certs
-- name: Set permissions on /opt/authentik/redis
+- name: "Ensure /opt/authentik/database"
+  become: true
+  ansible.builtin.file:
+    path: "/opt/authentik/database"
+    state: directory
+    owner: root
+    group: root
+    mode: u=rwx,go=
+- name: "Ensure /opt/authentik/redis"
   become: true
   ansible.builtin.file:
     path: "/opt/authentik/redis"
     state: directory
     owner: 999
     group: 1000
+    mode: ug=rwx,o=rx
+- name: "Ensure /opt/authentik/media"
+  become: true
+  ansible.builtin.file:
+    path: "/opt/authentik/redis"
+    state: directory
+    owner: 1000
+    group: 1000
+    mode: ug=rwx,o=rx
+- name: "Ensure /opt/authentik/certs"
+  become: true
+  ansible.builtin.file:
+    path: "/opt/authentik/redis"
+    state: directory
+    owner: 1000
+    group: 1000
+    mode: ug=rwx,o=rx
 - name: Template /opt/authentik/.env
   become: true
   ansible.builtin.template:
@@ -47,8 +66,8 @@
   ansible.builtin.copy:
     src: sequoia_fabrica_tree.svg
     dest: /opt/authentik/media/sequoia_fabrica_tree.svg
-    owner: root
-    group: root
+    owner: 1000
+    group: 1000
     mode: ug=rw,o=r
 - name: Authentik docker-compose
   become: true
