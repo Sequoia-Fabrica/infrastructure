@@ -210,6 +210,7 @@
       FRIGATE_MQTT_PASSWORD: "{{ frigate_mqtt_password }}"
     devices:
       - /dev/bus/usb:/dev/bus/usb
+      - /dev/apex_0:/dev/apex_0
     mounts:
       - type: tmpfs
         target: /tmp/cache

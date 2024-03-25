@@ -9,12 +9,12 @@ mqtt:
   password: "{FRIGATE_MQTT_PASSWORD}"
 
 detectors:
-  coral_usb:
-    type: edgetpu
-    device: usb
-#  coral_pci:
-#    type: edgetpu
-#    device: pci
+  # coral_usb:
+  #   type: edgetpu
+  #   device: usb
+ coral_pci:
+   type: edgetpu
+   device: pci
 
 go2rtc:
   streams:

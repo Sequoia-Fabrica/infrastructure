@@ -39,6 +39,13 @@
         name: sequoia_fabrica
         tasks_from: github_runner.yml
 
+- name: Amend the soil in nursery to make it fertile for planting Apps
+  hosts: nursery
+  tasks:
+    - name: Setup nursery
+      ansible.builtin.include_role:
+        name: sequoia_fabrica
+        tasks_from: nursery_setup.yml
 - name: Setup nursery with apps
   hosts: nursery
   tasks:

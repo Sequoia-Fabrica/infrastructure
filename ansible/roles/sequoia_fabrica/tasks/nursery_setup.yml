@@ -1,0 +1,19 @@
+---
+- name: Add the Google APT Key
+  become: true
+  ansible.builtin.apt_key:
+    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+    state: present
+- name: Install core-edgetpu-stable apt repo
+  become: true
+  ansible.builtin.apt_repository:
+    repo: "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main"
+    state: present
+- name: Install the coral edgetpu packages
+  become: true
+  ansible.builtin.apt:
+    name:
+      - gasket-dkms
+      - libedgetpu1-std
+    state: present
+    update_cache: true
