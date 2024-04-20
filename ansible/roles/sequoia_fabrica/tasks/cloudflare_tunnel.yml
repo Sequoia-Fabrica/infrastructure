@@ -14,7 +14,7 @@
   become: true
   ansible.builtin.apt:
     name: cloudflared
-    state: present
+    state: latest
     update_cache: true
 - name: Check for an existing cloudflared systemd service
   become: true
