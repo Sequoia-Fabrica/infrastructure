@@ -24,7 +24,8 @@ go2rtc:
       - "rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.101:554/cam/realmonitor?channel=1&subtype=0"
     workshop:
       - "rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.102:554/cam/realmonitor?channel=1&subtype=0"
-
+    fablab:
+      - "rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.103:554/cam/realmonitor?channel=1&subtype=0"
 
 record:
   enabled: true
@@ -73,6 +74,20 @@ cameras:
           roles:
             - detect
         - path: "rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.102:554/cam/realmonitor?channel=1&subtype=0"
+          roles:
+            - record
+    detect:
+      enabled: true
+    record:
+      enabled: true
+  fablab:
+    enabled: true
+    ffmpeg:
+      inputs:
+        - path: "rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.103:554/cam/realmonitor?channel=1&subtype=1"
+          roles:
+            - detect
+        - path: "rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.103:554/cam/realmonitor?channel=1&subtype=0"
           roles:
             - record
     detect:
