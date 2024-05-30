@@ -153,7 +153,7 @@
     env:
       GF_PANELS_DISABLE_SANITIZE_HTML: "true"
       GF_AUTH_GENERIC_OAUTH_ENABLED: "true"
-      GF_AUTH_GENERIC_OAUTH_NAME: "Authentik"
+      GF_AUTH_GENERIC_OAUTH_NAME: "Sequoia Garden Login"
       GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP: "true"
       GF_AUTH_GENERIC_OAUTH_CLIENT_ID: "{{ authentik.apps.grafana.client_id }}"
       GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET: "{{ authentik.apps.grafana.client_secret }}"
