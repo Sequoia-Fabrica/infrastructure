@@ -16,6 +16,8 @@
     name: cloudflared
     state: latest
     update_cache: true
+  notify:
+    - Restart cloudflared
 - name: Check for an existing cloudflared systemd service
   become: true
   ansible.builtin.systemd_service:
