@@ -162,7 +162,7 @@
       GF_AUTH_GENERIC_OAUTH_TOKEN_URL: "https://login.sequoia.garden/application/o/token/"
       GF_AUTH_GENERIC_OAUTH_API_URL: "https://login.sequoia.garden/application/o/userinfo/"
       GF_AUTH_SIGNOUT_REDIRECT_URL: "https://login.sequoia.garden/application/o/grafana/end-session/"
-      GF_SERVER_ROOT_URL: "http://nursery.xylem.sequoiafabrica.org:3000/"
+      GF_SERVER_ROOT_URL: "https://grafana.sequoia.garden/"
       # Optionally enable auto-login (bypasses Grafana login screen)
       # GF_AUTH_OAUTH_AUTO_LOGIN: "true"
       # Optionally map user groups to Grafana roles
