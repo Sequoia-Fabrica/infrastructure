@@ -200,6 +200,7 @@
   community.docker.docker_container:
     name: frigate
     image: ghcr.io/blakeblackshear/frigate:stable
+    pull: always
     restart_policy: unless-stopped
     network_mode: host
     shm_size: 1G
