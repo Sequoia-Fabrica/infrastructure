@@ -193,6 +193,7 @@
 - name: Create /data-disk/frigate/media
   become: true
   ansible.builtin.file:
+    path: /data-disk/frigate/media
     state: directory
     recurse: true
 - name: Run frigate
