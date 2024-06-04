@@ -190,6 +190,11 @@
     group: root
     mode: ug=rw,o=
   notify: Restart frigate
+- name: Create /data-disk/frigate/media
+  become: true
+  ansible.builtin.file:
+    state: directory
+    recurse: true
 - name: Run frigate
   community.docker.docker_container:
     name: frigate
