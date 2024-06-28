@@ -316,7 +316,7 @@
   become: true
   ansible.builtin.template:
     src: immich.env.j2
-    dest: "{{ immich.docker_compose_location }}"
+    dest: "{{ immich.docker_compose_location }}/.env"
     owner: root
     group: root
     mode: ug=rw,o=
