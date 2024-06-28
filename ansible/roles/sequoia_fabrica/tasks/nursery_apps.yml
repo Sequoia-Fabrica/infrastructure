@@ -284,3 +284,44 @@
         source: /opt/aruba_exporter/config.yaml
         target: /opt/aruba_exporter/config.yaml
         read_only: true
+
+## Immich
+- name: Create immich upload directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ immich.upload_location }}"
+    state: directory
+    mode: u=rwx,o=rx
+- name: Create immich database directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ immich.db_data_location }}"
+    state: directory
+    mode: u=rwx,o=rx
+- name: Create immich docker-compose directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ immich.docker_compose_location }}"
+    state: directory
+    mode: u=rwx,o=rx
+- name: Template immich docker-compose.yml
+  become: true
+  ansible.builtin.template:
+    src: immich.docker-compose.yml.j2
+    dest: "{{ immich.docker_compose_location }}/docker-compose.yml"
+    owner: root
+    group: root
+    mode: ug=rw,o=
+- name: Template immich docker-compose .env
+  become: true
+  ansible.builtin.template:
+    src: immich.env.j2
+    dest: "{{ immich.docker_compose_location }}"
+    owner: root
+    group: root
+    mode: ug=rw,o=
+- name: Immich docker-compose
+  become: true
+  community.docker.docker_compose_v2:
+    project_src: "{{ immich.docker_compose_location }}"
+  register: immich_docker_compose
