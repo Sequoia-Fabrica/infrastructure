@@ -164,9 +164,9 @@
       GF_AUTH_SIGNOUT_REDIRECT_URL: "https://login.sequoia.garden/application/o/grafana/end-session/"
       GF_SERVER_ROOT_URL: "https://grafana.sequoia.garden/"
       # Optionally enable auto-login (bypasses Grafana login screen)
-      # GF_AUTH_OAUTH_AUTO_LOGIN: "true"
+      GF_AUTH_OAUTH_AUTO_LOGIN: "true"
       # Optionally map user groups to Grafana roles
-      # GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH: "contains(groups, 'Grafana Admins') && 'Admin' || contains(groups, 'Grafana Editors') && 'Editor' || 'Viewer'"
+      GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH: "contains(groups, 'Grafana Admins') && 'Admin' || contains(groups, 'Grafana Editors') && 'Editor' || 'Viewer'"
     mounts:
       - type: bind
         source: /opt/grafana/storage
