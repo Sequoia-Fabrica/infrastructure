@@ -123,7 +123,7 @@ immich:
   docker_compose_location: /opt/immich
   upload_location: /data-disk/immich/upload
   db_data_location: /data-disk/immich/database
-  version: release
+  version: v1.107.2
   db_password: !vault |
           $ANSIBLE_VAULT;1.1;AES256
           39383434623337306333343235663361396633376363356462383763343135383230336566356533
