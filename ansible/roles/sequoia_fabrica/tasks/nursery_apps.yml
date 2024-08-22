@@ -325,3 +325,25 @@
   community.docker.docker_compose_v2:
     project_src: "{{ immich.docker_compose_location }}"
   register: immich_docker_compose
+
+## Docuseal
+- name: Create docuseal directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ docuseal.data_location }}"
+    state: directory
+    mode: u=rwx,o=rx
+- name: Run docuseal docker container
+  become: true
+  community.docker.docker_container:
+    name: docuseal
+    image: docuseal/docuseal:{{ docuseal.container_version }}
+    state: started
+    restart_policy: unless-stopped
+    ports:
+      - 3001:3000
+    mounts:
+      - type: bind
+        source: "{{ docuseal.data_location }}"
+        target: /data
+        read_only: false
