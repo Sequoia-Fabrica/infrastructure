@@ -369,10 +369,20 @@
     job: /opt/cloudflare_ddns_update.sh
 
 ## Run sequoia-fabrica/utilities webapp
+- name: Put repo deploy key
+  become: true
+  ansible.builtin.copy:
+    src: sequoia-fabrica_utilities_deploy.key
+    dest: /opt/seqfab_utilities.key
+    owner: root
+    group: root
+    mode: u=rw,go=
 - name: Clone sequoia-fabrica/utilities repo
   become: true
   ansible.builtin.git:
-    repo: https://github.com/sequoia-fabrica/utilities.git
+    accept_newhostkey: true
+    key_file: /opt/seqfab_utilities.key
+    repo: git@github.com:sequoia-fabrica/utilities.git
     dest: /opt/seqfab_utilities
     version: main
 - name: Build seqfab_utilities container image
@@ -383,6 +393,7 @@
     build:
       path: /opt/seqfab_utilities
     source: build
+    force_source: true
     push: false
 - name: Run the seqfab_utilities container
   become: true
