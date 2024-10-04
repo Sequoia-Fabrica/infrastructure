@@ -367,3 +367,29 @@
     name: cloudflare_ddns_update
     minute: "*/15"
     job: /opt/cloudflare_ddns_update.sh
+
+## Run sequoia-fabrica/utilities webapp
+- name: Clone sequoia-fabrica/utilities repo
+  become: true
+  ansible.builtin.git:
+    repo: https://github.com/sequoia-fabrica/utilities.git
+    dest: /opt/seqfab_utilities
+    version: main
+- name: Build seqfab_utilities container image
+  become: true
+  community.docker.docker_image:
+    name: seqfab_utilities
+    tag: main
+    build:
+      path: /opt/seqfab_utilities
+    source: build
+    push: false
+- name: Run the seqfab_utilities container
+  become: true
+  community.docker.docker_container:
+    name: seqfab_utilities
+    image: seqfab_utilities:main
+    state: started
+    restart_policy: unless-stopped
+    ports:
+      - 8000:8000
