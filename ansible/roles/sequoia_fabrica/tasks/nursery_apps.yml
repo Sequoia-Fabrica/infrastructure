@@ -375,7 +375,7 @@
     path: "{{ seqfab_utilities.db_data_location }}"
     state: directory
     mode: u=rwx,o=rx
-- name: Put repo deploy key
+- name: Place sequoia-fabrica/utilities repo deploy key
   become: true
   ansible.builtin.copy:
     src: sequoia-fabrica_utilities_deploy.key
@@ -391,8 +391,18 @@
     repo: git@github.com:sequoia-fabrica/utilities.git
     dest: /opt/seqfab_utilities
     version: main
+- name: Place /opt/seqfab_utilities.env
+  become: true
+  ansible.builtin.template:
+    src: seqfab_utilities.env.j2
+    dest: /opt/seqfab_utilities.env
+    owner: root
+    group: root
+    mode: u=rw,go=
 - name: Deploy seqfab_utilities with docker-compose
   become: true
   community.docker.docker_compose_v2:
     project_src: /opt/seqfab_utilities
+    env_files:
+      - /opt/seqfab_utilities.env
     state: present
