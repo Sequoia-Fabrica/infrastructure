@@ -369,7 +369,13 @@
     job: /opt/cloudflare_ddns_update.sh
 
 ## Run sequoia-fabrica/utilities webapp
-- name: Put repo deploy key
+- name: Create seqfab_utilities database directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ seqfab_utilities.db_data_location }}"
+    state: directory
+    mode: u=rwx,o=rx
+- name: Place sequoia-fabrica/utilities repo deploy key
   become: true
   ansible.builtin.copy:
     src: sequoia-fabrica_utilities_deploy.key
@@ -385,22 +391,18 @@
     repo: git@github.com:sequoia-fabrica/utilities.git
     dest: /opt/seqfab_utilities
     version: main
-- name: Build seqfab_utilities container image
+- name: Place /opt/seqfab_utilities.env
   become: true
-  community.docker.docker_image:
-    name: seqfab_utilities
-    tag: main
-    build:
-      path: /opt/seqfab_utilities
-    source: build
-    force_source: true
-    push: false
-- name: Run the seqfab_utilities container
+  ansible.builtin.template:
+    src: seqfab_utilities.env.j2
+    dest: /opt/seqfab_utilities.env
+    owner: root
+    group: root
+    mode: u=rw,go=
+- name: Deploy seqfab_utilities with docker-compose
   become: true
-  community.docker.docker_container:
-    name: seqfab_utilities
-    image: seqfab_utilities:main
-    state: started
-    restart_policy: unless-stopped
-    ports:
-      - 8000:8000
+  community.docker.docker_compose_v2:
+    project_src: /opt/seqfab_utilities
+    env_files:
+      - /opt/seqfab_utilities.env
+    state: present
