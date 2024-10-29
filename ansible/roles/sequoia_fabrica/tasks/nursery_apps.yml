@@ -405,4 +405,5 @@
     project_src: /opt/seqfab_utilities
     env_files:
       - /opt/seqfab_utilities.env
+    build: always
     state: present
