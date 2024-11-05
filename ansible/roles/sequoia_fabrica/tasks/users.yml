@@ -18,6 +18,19 @@
     commands: ALL
     nopassword: true
 
+- name: "Sequoia Fabrica Users: ensure user (Linux)"
+  become: true
+  ansible.builtin.user:
+    name: "{{ item.username }}"
+    groups:
+      - sudo
+      - docker
+      - sequoia.fabrica
+    append: true
+    state: present
+  with_items:
+    - "{{ sequoia_fabrica_users }}"
+
 # This requires that the download_ssh_keys_from_github.yml task has run locally
 # already
 - name: "Sequoia Fabrica users: authorized_keys from github"
@@ -37,18 +50,5 @@
     state: present
     key: "{{ lookup('file', item.keys_file) }}"
   when: item.keys_file is defined
-  with_items:
-    - "{{ sequoia_fabrica_users }}"
-
-- name: "Sequoia Fabrica Users: ensure user (Linux)"
-  become: true
-  ansible.builtin.user:
-    name: "{{ item.username }}"
-    groups:
-      - sudo
-      - docker
-      - sequoia.fabrica
-    append: true
-    state: present
   with_items:
     - "{{ sequoia_fabrica_users }}"
