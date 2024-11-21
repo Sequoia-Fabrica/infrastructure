@@ -1,10 +1,28 @@
 ---
+- name: Install apt gpg key
+  become: true
+  ansible.builtin.apt_key:
+    url: "https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg"
+    state: present
+
+- name: Install apt repository
+  become: true
+  ansible.builtin.apt_repository:
+    repo: "deb https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
+    state: present
+    update_cache: true
+
 - name: Install docker engine
   become: true
   ansible.builtin.apt:
-    name: docker.io
+    name: "{{ item }}"
     state: present
     update_cache: true
+  loop:
+    - docker-ce
+    - docker-ce-cli
+    - containerd.io
+    - docker-buildx-plugin
 
 - name: Configure docker engine
   become: true
