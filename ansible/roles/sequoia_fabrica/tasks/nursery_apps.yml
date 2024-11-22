@@ -389,7 +389,7 @@
     accept_newhostkey: true
     key_file: /opt/seqfab_utilities.key
     repo: git@github.com:sequoia-fabrica/utilities.git
-    dest: /opt/seqfab_utilities
+    dest: /opt/seqfab_utilities/bin
     version: main
 - name: Place /opt/seqfab_utilities.env
   become: true
@@ -402,7 +402,7 @@
 - name: Deploy seqfab_utilities with docker-compose
   become: true
   community.docker.docker_compose_v2:
-    project_src: /opt/seqfab_utilities
+    project_src: /opt/seqfab_utilities/bin
     env_files:
       - /opt/seqfab_utilities.env
     build: always
