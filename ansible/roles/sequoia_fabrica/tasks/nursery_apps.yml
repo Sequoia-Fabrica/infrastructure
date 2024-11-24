@@ -1,9 +1,4 @@
 ---
-- name: Install docker-compose-v2
-  become: true
-  ansible.builtin.apt:
-    name: docker-compose-v2
-
 ## Authentik
 - name: "Ensure /opt/authentik/custom-templates"
   become: true
@@ -195,7 +190,6 @@
   ansible.builtin.file:
     path: /data-disk/frigate/media
     state: directory
-    recurse: true
 - name: Run frigate
   community.docker.docker_container:
     name: frigate
