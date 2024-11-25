@@ -150,8 +150,8 @@ cloudflare_ddns_update:
           6464383437633939333766656264303638373336663863646438
 
 seqfab_utilities:
-  docker_compose_location: /opt/seqfab_utilities
-  db_data_location: /data-disk/seqfab_utilities/database
+  docker_compose_location: /opt/seqfab_utilities/utilities
+  db_data_location: /opt/seqfab_utilities/database
   # Mailchimp
   mailchimp_api_key: !vault |
             $ANSIBLE_VAULT;1.1;AES256
