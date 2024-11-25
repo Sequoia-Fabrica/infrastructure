@@ -373,7 +373,7 @@
   become: true
   ansible.builtin.copy:
     src: sequoia-fabrica_utilities_deploy.key
-    dest: /opt/seqfab_utilities.key
+    dest: /opt/seqfab_utilities/deploy_key
     owner: root
     group: root
     mode: u=rw,go=
@@ -381,24 +381,26 @@
   become: true
   ansible.builtin.git:
     accept_newhostkey: true
-    key_file: /opt/seqfab_utilities.key
+    key_file: /opt/seqfab_utilities/deploy_key
     repo: git@github.com:sequoia-fabrica/utilities.git
-    dest: /opt/seqfab_utilities
+    dest: /opt/seqfab_utilities/utilities
     version: main
-- name: Place /opt/seqfab_utilities.env
+    update: yes
+    force: no
+- name: Place /opt/seqfab_utilities/.env
   become: true
   ansible.builtin.template:
     src: seqfab_utilities.env.j2
-    dest: /opt/seqfab_utilities.env
+    dest: /opt/seqfab_utilities/.env
     owner: root
     group: root
     mode: u=rw,go=
 - name: Deploy seqfab_utilities with docker-compose
   become: true
   community.docker.docker_compose_v2:
-    project_src: /opt/seqfab_utilities
+    project_src: "{{ seqfab_utilities.docker_compose_location }}"
     env_files:
-      - /opt/seqfab_utilities.env
+      - /opt/seqfab_utilities/.env
     build: always
     state: present
 
