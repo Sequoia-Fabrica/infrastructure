@@ -452,3 +452,25 @@
       OLLAMA_BASE_URL: "http://beefy-gpu.cloudforest-perch.ts.net:11434"
       OPENID_PROVIDER_URL: "https://login.sequoia.garden/application/o/chat/.well-known/openid-configuration"
       OPENID_REDIRECT_URI: "https://chat.sequoia.garden/oauth/oidc/callback"
+
+# uptime-kuma
+- name: Create /opt/uptime-kuma/data
+  become: true
+  ansible.builtin.file:
+    path: /opt/uptime-kuma/data
+    state: directory
+    owner: root
+    group: root
+    mode: ug=rwx
+- name: Run uptime-kuma
+  become: true
+  community.docker.docker_container:
+    name: uptime-kuma
+    image: louislam/uptime-kuma:1
+    restart_policy: always
+    ports:
+      - 3002:3001
+    mounts:
+      - type: bind
+        source: /opt/uptime-kuma/data
+        target: /app/data
