@@ -1,0 +1,22 @@
+auth: false
+mqtt:
+  host: 192.168.88.254
+  username: mqtt
+  password: {{ frigate_mqtt_password }}
+  client_id: double-take
+frigate:
+  url: http://nursery.cloudforest-perch.ts.net:5000
+detectors:
+  compreface:
+    url: http://beefy-gpu.cloudforest-perch.ts.net:8000
+    key: {{ doubletake.compreface.recognition_key }}
+    timeout: 15
+    det_prob_threshold: 0.8
+    opencv_face_required: false
+    # comma-separated slugs of face plugins
+    # https://github.com/exadel-inc/CompreFace/blob/master/docs/Face-services-and-plugins.md)
+    # face_plugins: mask,gender,age
+    # only process images from specific cameras, if omitted then all cameras will be processed
+    # cameras:
+    #   - front-door
+    #   - garage
