@@ -27,3 +27,9 @@
   ansible.builtin.systemd_service:
     name: cloudflared.service
     state: restarted
+
+- name: Restart double-take
+  community.docker.docker_container:
+    name: double-take
+    restart: true
+  ignore_errors: true
