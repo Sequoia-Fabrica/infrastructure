@@ -386,12 +386,12 @@
     dest: /opt/seqfab_utilities/utilities
     version: main
     update: yes
-    force: no
-- name: Place /opt/seqfab_utilities/.env
+    force: yes
+- name: Place /opt/seqfab_utilities/utilities/.env
   become: true
   ansible.builtin.template:
     src: seqfab_utilities.env.j2
-    dest: /opt/seqfab_utilities/.env
+    dest: /opt/seqfab_utilities/utilities/.env
     owner: root
     group: root
     mode: u=rw,go=
@@ -399,8 +399,7 @@
   become: true
   community.docker.docker_compose_v2:
     project_src: "{{ seqfab_utilities.docker_compose_location }}"
-    env_files:
-      - /opt/seqfab_utilities/.env
+    remove_orphans: true
     build: always
     state: present
 
