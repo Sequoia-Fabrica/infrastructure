@@ -12,20 +12,20 @@ detectors:
   # coral_usb:
   #   type: edgetpu
   #   device: usb
- coral_pci:
-   type: edgetpu
-   device: pci
+  coral_pci:
+    type: edgetpu
+    device: pci
 
 go2rtc:
   streams:
     front_door:
-      - "rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.100:554/cam/realmonitor?channel=1&subtype=0"
+      - rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.100:554/cam/realmonitor?channel=1&subtype=0
     side_door:
-      - "rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.101:554/cam/realmonitor?channel=1&subtype=0"
+      - rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.101:554/cam/realmonitor?channel=1&subtype=0
     workshop:
-      - "rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.102:554/cam/realmonitor?channel=1&subtype=0"
+      - rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.102:554/cam/realmonitor?channel=1&subtype=0
     fablab:
-      - "rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.103:554/cam/realmonitor?channel=1&subtype=0"
+      - rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.103:554/cam/realmonitor?channel=1&subtype=0
 
 record:
   enabled: true
@@ -36,16 +36,29 @@ record:
   events:
     pre_capture: 5
     post_capture: 5
+  alerts:
+    retain:
+      days: 2
+      mode: motion
+    pre_capture: 5
+    post_capture: 5
+  detections:
+    retain:
+      days: 2
+      mode: motion
+    pre_capture: 5
+    post_capture: 5
+
 
 cameras:
   front_door:
     enabled: true
     ffmpeg:
       inputs:
-        - path: "rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.100:554/cam/realmonitor?channel=1&subtype=1"
+        - path: rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.100:554/cam/realmonitor?channel=1&subtype=1
           roles:
             - detect
-        - path: "rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.100:554/cam/realmonitor?channel=1&subtype=0"
+        - path: rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.100:554/cam/realmonitor?channel=1&subtype=0
           roles:
             - record
     detect:
@@ -56,10 +69,10 @@ cameras:
     enabled: true
     ffmpeg:
       inputs:
-        - path: "rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.101:554/cam/realmonitor?channel=1&subtype=1"
+        - path: rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.101:554/cam/realmonitor?channel=1&subtype=1
           roles:
             - detect
-        - path: "rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.101:554/cam/realmonitor?channel=1&subtype=0"
+        - path: rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.101:554/cam/realmonitor?channel=1&subtype=0
           roles:
             - record
     detect:
@@ -70,10 +83,10 @@ cameras:
     enabled: true
     ffmpeg:
       inputs:
-        - path: "rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.102:554/cam/realmonitor?channel=1&subtype=1"
+        - path: rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.102:554/cam/realmonitor?channel=1&subtype=1
           roles:
             - detect
-        - path: "rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.102:554/cam/realmonitor?channel=1&subtype=0"
+        - path: rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.102:554/cam/realmonitor?channel=1&subtype=0
           roles:
             - record
     detect:
@@ -84,10 +97,10 @@ cameras:
     enabled: true
     ffmpeg:
       inputs:
-        - path: "rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.103:554/cam/realmonitor?channel=1&subtype=1"
+        - path: rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.103:554/cam/realmonitor?channel=1&subtype=1
           roles:
             - detect
-        - path: "rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.103:554/cam/realmonitor?channel=1&subtype=0"
+        - path: rtsp://frigate:{FRIGATE_RTSP_PASSWORD}@192.168.44.103:554/cam/realmonitor?channel=1&subtype=0
           roles:
             - record
     detect:
