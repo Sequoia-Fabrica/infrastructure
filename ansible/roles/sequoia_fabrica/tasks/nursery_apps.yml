@@ -248,11 +248,13 @@
     group: root
     mode: ug=rw,o=
 - name: Clone github.com:slashdoom/aruba_exporter
+  become: true
   ansible.builtin.git:
     repo: https://github.com/slashdoom/aruba_exporter
     dest: /opt/aruba_exporter/repo
   register: aruba_exporter_git_repo
 - name: Rebuild aruba_exporter Docker image
+  become: true
   when: aruba_exporter_git_repo.changed
   community.docker.docker_image:
     name: aruba_exporter
@@ -265,6 +267,7 @@
   register: aruba_exporter_container_image
   notify: Restart aruba_exporter
 - name: Run aruba_exporter
+  become: true
   community.docker.docker_container:
     name: aruba_exporter
     image: aruba_exporter:latest
