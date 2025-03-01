@@ -8,6 +8,7 @@
       - sudo
       - docker
     append: true
+    shell: /bin/bash
 
 - name: "Sequoia Fabrica group: passwordless sudo"
   become: true
@@ -28,6 +29,7 @@
       - sequoia.fabrica
     append: true
     state: present
+    shell: /bin/bash
   with_items:
     - "{{ sequoia_fabrica_users }}"
 
