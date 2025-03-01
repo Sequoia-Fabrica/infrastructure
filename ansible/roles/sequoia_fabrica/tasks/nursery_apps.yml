@@ -512,5 +512,5 @@
         source: /data-disk/double-take
         target: /.storage
     ports:
-     - 3003:3000
-     - 3004:8080
+      - 3003:3000
+      - 3004:8080
