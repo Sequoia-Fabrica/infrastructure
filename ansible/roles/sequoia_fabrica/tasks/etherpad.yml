@@ -1,0 +1,40 @@
+---
+# Etherpad deployment
+- name: Create /opt/etherpad directories
+  become: true
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: ug=rwx,o=rx
+  loop:
+    - /opt/etherpad
+    - /opt/etherpad/data
+    - /opt/etherpad/postgres
+    - /opt/etherpad/nginx
+
+- name: Template /opt/etherpad/docker-compose.yml
+  become: true
+  ansible.builtin.template:
+    src: etherpad.docker-compose.yml.j2
+    dest: /opt/etherpad/docker-compose.yml
+    owner: root
+    group: root
+    mode: ug=rw,o=
+
+- name: Template NGINX configuration for Etherpad
+  become: true
+  ansible.builtin.template:
+    src: nginx-etherpad.conf.j2
+    dest: /opt/etherpad/nginx/default.conf
+    owner: root
+    group: root
+    mode: ug=rw,o=r
+
+- name: Deploy Etherpad with docker-compose
+  become: true
+  community.docker.docker_compose_v2:
+    project_src: /opt/etherpad
+    state: present
+  register: etherpad_docker_compose
