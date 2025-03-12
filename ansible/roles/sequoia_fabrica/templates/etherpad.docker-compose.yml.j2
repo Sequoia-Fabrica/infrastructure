@@ -1,0 +1,60 @@
+---
+version: '3'
+services:
+  etherpad:
+    image: etherpad/etherpad:latest
+    restart: unless-stopped
+    # Only expose to internal network, not publicly
+    expose:
+      - "9001"
+    networks:
+      - etherpad-network
+    volumes:
+      - /opt/etherpad/data:/opt/etherpad-lite/var
+    environment:
+      DB_TYPE: "{{ etherpad.db_type | default('postgres') }}"
+      DB_HOST: "{{ etherpad.db_host | default('etherpad-db') }}"
+      DB_PORT: "{{ etherpad.db_port | default('5432') }}"
+      DB_NAME: "{{ etherpad.db_name | default('etherpad') }}"
+      DB_USER: "{{ etherpad.db_user | default('etherpad') }}"
+      DB_PASS: "{{ etherpad.db_pass }}"
+      ADMIN_PASSWORD: "{{ etherpad.admin_password }}"
+      API_KEY: "{{ etherpad.api_key }}"
+      TITLE: "{{ etherpad.title | default('Sequoia Fabrica Etherpad') }}"
+      DEFAULT_PAD_TEXT: "{{ etherpad.default_pad_text | default('Welcome to Sequoia Fabrica Etherpad!') }}"
+      SKIN_NAME: "{{ etherpad.skin_name | default('colibris') }}"
+      TOOLBAR: "{{ etherpad.toolbar | default('bold italic underline strikethrough | alignLeft alignCenter alignRight alignJustify | orderList unorderedList | indent outdent | undo redo | link | timeslider') }}"
+      REQUIRE_SESSION: "{{ etherpad.require_session | default('false') }}"
+      EDIT_ONLY: "{{ etherpad.edit_only | default('false') }}"
+      TRUST_PROXY: "{{ etherpad.trust_proxy | default('true') }}"
+    depends_on:
+      - etherpad-db
+
+  etherpad-db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    networks:
+      - etherpad-network
+    volumes:
+      - /opt/etherpad/postgres:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: "{{ etherpad.db_user | default('etherpad') }}"
+      POSTGRES_PASSWORD: "{{ etherpad.db_pass }}"
+      POSTGRES_DB: "{{ etherpad.db_name | default('etherpad') }}"
+
+  # Proxy service to integrate with Authentik
+  etherpad-proxy:
+    image: nginx:alpine
+    restart: unless-stopped
+    ports:
+      - "{{ etherpad.proxy_port | default('9001') }}:80"
+    networks:
+      - etherpad-network
+    volumes:
+      - /opt/etherpad/nginx:/etc/nginx/conf.d
+    depends_on:
+      - etherpad
+
+networks:
+  etherpad-network:
+    driver: bridge

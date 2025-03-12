@@ -1,2 +1,21 @@
 ---
 sequoia_fabrica_users: []
+
+# etherpad configuration
+etherpad:
+  port: 9001
+  db_type: postgres
+  db_host: etherpad-db
+  db_port: 5432
+  db_name: etherpad
+  db_user: etherpad
+  db_pass: "changeme_in_group_vars"
+  admin_password: "changeme_in_group_vars"
+  api_key: "changeme_in_group_vars"
+  title: "Sequoia Fabrica Etherpad"
+  default_pad_text: "Welcome to Sequoia Fabrica Etherpad!"
+  skin_name: colibris
+  toolbar: "bold italic underline strikethrough | orderList unorderedList | indent outdent | undo redo | link "
+  require_session: false
+  edit_only: false
+  trust_proxy: true
