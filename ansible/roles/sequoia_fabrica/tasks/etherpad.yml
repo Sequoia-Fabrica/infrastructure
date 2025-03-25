@@ -32,6 +32,14 @@
     group: root
     mode: ug=rw,o=r
 
+- name: Create APIKEY.txt file
+  become: true
+  ansible.builtin.copy:
+    content: "{{ etherpad.api_key }}"
+    dest: /opt/etherpad/APIKEY.txt
+    mode: "u=rw,g=r,o=r"
+  no_log: true
+
 - name: Deploy Etherpad with docker-compose
   become: true
   community.docker.docker_compose_v2:
