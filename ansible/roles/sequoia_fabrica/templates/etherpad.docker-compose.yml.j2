@@ -1,5 +1,4 @@
 ---
-version: '3'
 services:
   etherpad:
     image: etherpad/etherpad:latest
@@ -11,6 +10,7 @@ services:
       - etherpad-network
     volumes:
       - /opt/etherpad/data:/opt/etherpad-lite/var
+      - /opt/etherpad/APIKEY.txt:/opt/etherpad-lite/APIKEY.txt:ro
     environment:
       DB_TYPE: "{{ etherpad.db_type | default('postgres') }}"
       DB_HOST: "{{ etherpad.db_host | default('etherpad-db') }}"
@@ -19,7 +19,7 @@ services:
       DB_USER: "{{ etherpad.db_user | default('etherpad') }}"
       DB_PASS: "{{ etherpad.db_pass }}"
       ADMIN_PASSWORD: "{{ etherpad.admin_password }}"
-      API_KEY: "{{ etherpad.api_key }}"
+      AUTHENTICATION_METHOD: "{{ etherpad.authentication_method | default('apikey') }}"
       TITLE: "{{ etherpad.title | default('Sequoia Fabrica Etherpad') }}"
       DEFAULT_PAD_TEXT: "{{ etherpad.default_pad_text | default('Welcome to Sequoia Fabrica Etherpad!') }}"
       SKIN_NAME: "{{ etherpad.skin_name | default('colibris') }}"

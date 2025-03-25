@@ -11,6 +11,7 @@ etherpad:
   db_user: etherpad
   db_pass: "changeme_in_group_vars"
   admin_password: "changeme_in_group_vars"
+  authentication_method: "api_key"
   api_key: "changeme_in_group_vars"
   title: "Sequoia Fabrica Etherpad"
   default_pad_text: "Welcome to Sequoia Fabrica Etherpad!"
