@@ -1,4 +1,13 @@
 ---
+- name: Create /opt/shlink
+  become: true
+  ansible.builtin.file:
+    path: /opt/shlink
+    state: directory
+    owner: root
+    group: root
+    mode: ug=rwx,o=rx
+
 - name: Get shlink image
   community.docker.docker_image:
     name: shlinkio/shlink:stable
@@ -9,6 +18,7 @@
     name: shlink
     image: shlink
     state: started
+    working_dir: /opt/shlink
     ports:
       - "8080:8080"
     env:
