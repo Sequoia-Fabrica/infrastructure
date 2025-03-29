@@ -61,3 +61,7 @@
       ansible.builtin.include_role:
         name: sequoia_fabrica
         tasks_from: etherpad.yml
+    - name: Setup Shlink
+      ansible.builtin.include_role:
+        name: sequoia_fabrica
+        tasks_from: shlink.yml
