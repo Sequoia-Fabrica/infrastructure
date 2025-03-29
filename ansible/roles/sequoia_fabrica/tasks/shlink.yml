@@ -1,0 +1,16 @@
+---
+- name: Get shlink image
+  community.docker.docker_image:
+    name: shlinkio/shlink:stable
+    source: pull
+
+- name: Run Shlink container
+  community.docker.docker_container:
+    name: shlink
+    image: shlink
+    state: started
+    ports:
+      - "8080:8080"
+    env:
+      DEFAULT_DOMAIN: go.sequoiafabrica.org
+      IS_HTTPS_ENABLED: true
