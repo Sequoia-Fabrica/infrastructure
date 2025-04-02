@@ -1,0 +1,26 @@
+---
+- name: Create /opt/shlink
+  become: true
+  ansible.builtin.file:
+    path: /opt/shlink
+    state: directory
+    owner: root
+    group: root
+    mode: ug=rwx,o=rx
+
+- name: Get shlink image
+  community.docker.docker_image:
+    name: "{{ shlink.image }}"
+    source: pull
+
+- name: Run Shlink container
+  community.docker.docker_container:
+    name: shlink
+    image: "{{ shlink.image }}"
+    state: started
+    restart_policy: unless-stopped
+    ports:
+      - "8080:8080"
+    env:
+      DEFAULT_DOMAIN: "{{ shlink.domain }}"
+      IS_HTTPS_ENABLED: "true"
