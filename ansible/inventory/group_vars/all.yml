@@ -10,6 +10,8 @@ sequoia_fabrica_users:
     github_username: jof
   - username: momja
     github_username: momja
+  - username: dbennett
+    github_username: ddbennet
 
 # Etherpad secrets - should be changed in production
 etherpad:
