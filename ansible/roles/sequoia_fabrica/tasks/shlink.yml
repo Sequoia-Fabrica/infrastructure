@@ -10,17 +10,18 @@
 
 - name: Get shlink image
   community.docker.docker_image:
-    name: shlinkio/shlink:stable
+    name: "{{ shlink.image }}"
     source: pull
 
 - name: Run Shlink container
   community.docker.docker_container:
     name: shlink
-    image: shlink
+    image: "{{ shlink.image }}"
     state: started
     working_dir: /opt/shlink
+    restart_policy: unless-stopped
     ports:
       - "8080:8080"
     env:
-      DEFAULT_DOMAIN: go.sequoiafabrica.org
+      DEFAULT_DOMAIN: "{{ shlink.domain }}"
       IS_HTTPS_ENABLED: true
