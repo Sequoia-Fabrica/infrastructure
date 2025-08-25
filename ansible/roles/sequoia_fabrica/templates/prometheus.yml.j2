@@ -28,3 +28,8 @@ scrape_configs:
     scrape_timeout: 4m
     static_configs:
       - targets: ["nursery.xylem.sequoiafabrica.org:9909"]
+  - job_name: sol_charge_controller
+    scrape_interval: 10s
+    scrape_timeout: 5s
+    static_configs:
+      - targets: ["sol.xylem.sequoiafabrica.org:9112"]
