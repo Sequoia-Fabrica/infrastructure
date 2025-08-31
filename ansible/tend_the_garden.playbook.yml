@@ -1,14 +1,4 @@
 ---
-- name: Download SSH Keys from GitHub
-  connection: local
-  hosts: localhost
-  gather_facts: false
-  tasks:
-    - name: Download SSH Keys from GitHub
-      ansible.builtin.include_role:
-        name: sequoia_fabrica
-        tasks_from: download_ssh_keys_from_github.yml
-
 - name: Setup servers
   hosts:
     - vm_hosts

@@ -40,7 +40,7 @@
   ansible.posix.authorized_key:
     user: "{{ item.username }}"
     state: present
-    key: "{{ lookup('file', (playbook_dir ~ '/.github_ssh_keys/' ~ item.github_username ~ '.keys')) }}"
+    key: "https://github.com/{{ item.github_username }}.keys"
   when: item.github_username is defined and not ansible_check_mode
   with_items:
     - "{{ sequoia_fabrica_users }}"
