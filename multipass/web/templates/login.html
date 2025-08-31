@@ -1,0 +1,95 @@
+{{define "content"}}
+<div class="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <div class="text-center">
+            <img class="mx-auto h-16 w-16" src="/static/images/logo.png" alt="{{.makerspace_name}}" onerror="this.style.display='none'">
+            <h2 class="mt-6 text-3xl font-extrabold text-gray-900">
+                Welcome to {{.makerspace_name}}
+            </h2>
+            <p class="mt-2 text-sm text-gray-600">
+                Access your digital membership card
+            </p>
+        </div>
+
+        <div class="bg-white py-8 px-6 shadow-lg rounded-lg sm:px-10">
+            <div class="text-center space-y-6">
+                <!-- Authentication Notice -->
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-blue-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                        </svg>
+                        <div class="text-left">
+                            <h3 class="text-sm font-medium text-blue-800">Authentication Required</h3>
+                            <p class="text-sm text-blue-700 mt-1">Please log in through your organization's SSO to access your digital membership card.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SSO Login Button -->
+                <div class="space-y-4">
+                    <button onclick="window.location.href='/card'" 
+                            class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors duration-200">
+                        <span class="absolute left-0 inset-y-0 flex items-center pl-3">
+                            <svg class="h-5 w-5 text-green-500 group-hover:text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z" clip-rule="evenodd"></path>
+                            </svg>
+                        </span>
+                        Continue to Digital ID Card
+                    </button>
+
+                    <p class="text-xs text-gray-500">
+                        You will be redirected to your organization's login page if you are not already authenticated.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features List -->
+        <div class="bg-gray-50 rounded-lg p-6">
+            <h3 class="text-lg font-medium text-gray-900 mb-4">Your Digital Membership Card</h3>
+            <ul class="space-y-3 text-sm text-gray-600">
+                <li class="flex items-center">
+                    <svg class="w-4 h-4 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                    Mobile-first design optimized for your phone
+                </li>
+                <li class="flex items-center">
+                    <svg class="w-4 h-4 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                    QR code for quick verification
+                </li>
+                <li class="flex items-center">
+                    <svg class="w-4 h-4 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                    Real-time access permissions
+                </li>
+                <li class="flex items-center">
+                    <svg class="w-4 h-4 text-green-500 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
+                    </svg>
+                    Works offline once loaded
+                </li>
+            </ul>
+        </div>
+
+        <!-- User Level Information -->
+        <div class="text-center">
+            <h4 class="text-sm font-medium text-gray-700 mb-3">Membership Levels</h4>
+            <div class="grid grid-cols-2 gap-3 text-xs">
+                <div class="bg-green-100 rounded-lg p-3">
+                    <div class="font-semibold text-green-800">Limited Volunteer</div>
+                    <div class="text-green-600 mt-1">Basic access & supervised equipment</div>
+                </div>
+                <div class="bg-blue-100 rounded-lg p-3">
+                    <div class="font-semibold text-blue-800">Full Member</div>
+                    <div class="text-blue-600 mt-1">Complete access & independent use</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{{end}}
