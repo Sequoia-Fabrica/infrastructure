@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"html/template"
+	"log"
 	"multipass/internal/config"
 	"multipass/internal/models"
 	"multipass/internal/utils"
@@ -50,6 +51,29 @@ func PublicCardHandler(c *gin.Context) {
 		}
 	}
 
+	// Get the full URL for QR code generation
+	scheme := "https"
+	if c.Request.TLS == nil {
+		scheme = "http"
+	}
+	baseURL := scheme + "://" + c.Request.Host
+
+	// Get token from query parameters
+	token := c.Query("token")
+
+	// Construct URL with token explicitly included
+	fullURL := baseURL + "/public/card?token=" + url.QueryEscape(token)
+
+	// Generate QR code as base64 data URI
+	qrCodeBase64, err := utils.GenerateQRCodeBase64(fullURL, 250)
+	if err != nil {
+		log.Printf("[ERROR] Failed to generate QR code: %v", err)
+		qrCodeBase64 = ""
+	}
+
+	// Convert to template.HTML to prevent escaping
+	qrCodeHTML := template.HTML("<img src=\"" + qrCodeBase64 + "\" alt=\"QR Code\" class=\"qr-code\">")
+
 	// Prepare template data
 	templateData := gin.H{
 		"title":           "Digital ID Card - " + cfg.MakerspaceName,
@@ -57,8 +81,9 @@ func PublicCardHandler(c *gin.Context) {
 		"membership":      membershipInfo,
 		"makerspace_name": cfg.MakerspaceName,
 		"logo_url":        cfg.LogoURL,
-		"qr_data":         c.Request.URL.String(), // Use the current URL as QR code data
-		"public_view":     true,                   // Flag to indicate this is a public view
+		"qr_code_html":    qrCodeHTML,          // Add QR code HTML
+		"qr_data":         fullURL,             // Keep the URL as data attribute for backward compatibility
+		"public_view":     true,                // Flag to indicate this is a public view
 	}
 
 	// Add debug info if available
@@ -130,7 +155,7 @@ func GenerateTokenLinkHandler(c *gin.Context) {
 	publicCardURL := baseURL + "/public/card?token=" + url.QueryEscape(token)
 
 	// Generate QR code as base64 data URI
-	qrCodeBase64, err := utils.GenerateQRCodeBase64(publicCardURL, 200)
+	qrCodeBase64, err := utils.GenerateQRCodeBase64(publicCardURL, 250)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate QR code"})
 		return
