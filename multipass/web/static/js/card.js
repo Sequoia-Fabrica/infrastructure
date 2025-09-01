@@ -2,7 +2,13 @@
 
 // Card interaction functions
 function toggleCard() {
-    const card = document.getElementById('id-card');
+    // Support both mobile and desktop card flipping
+    const mobileCard = document.querySelector('.mobile-card .card-inner');
+    const desktopCard = document.querySelector('.desktop-card .card-inner');
+
+    // Determine which card to flip based on viewport
+    const card = window.innerWidth <= 768 ? mobileCard : desktopCard;
+
     if (card) {
         card.classList.toggle('flipped');
         card.classList.add('card-flipping');
@@ -184,32 +190,57 @@ document.addEventListener('DOMContentLoaded', function() {
         generateQRPattern(qrData);
     }
 
-    // Add touch/swipe support for mobile cards
+    // Check viewport width and ensure correct card is displayed
+    function checkViewportWidth() {
+        const mobileCard = document.querySelector('.mobile-card');
+        const desktopCard = document.querySelector('.desktop-card');
+
+        if (window.innerWidth <= 768) {
+            if (mobileCard) mobileCard.style.display = 'block';
+            if (desktopCard) desktopCard.style.display = 'none';
+        } else {
+            if (mobileCard) mobileCard.style.display = 'none';
+            if (desktopCard) desktopCard.style.display = 'block';
+        }
+    }
+
+    // Initial check
+    checkViewportWidth();
+
+    // Add resize listener
+    window.addEventListener('resize', checkViewportWidth);
+
+    // Add touch/swipe support for cards
     let startX = 0;
     let startY = 0;
 
-    document.addEventListener('touchstart', function(e) {
-        startX = e.touches[0].clientX;
-        startY = e.touches[0].clientY;
-    });
+    // Target both mobile and desktop cards for touch events
+    const cardElements = document.querySelectorAll('.mobile-card, .desktop-card');
 
-    document.addEventListener('touchend', function(e) {
-        if (!startX || !startY) return;
+    cardElements.forEach(card => {
+        card.addEventListener('touchstart', function(e) {
+            startX = e.touches[0].clientX;
+            startY = e.touches[0].clientY;
+        });
 
-        const endX = e.changedTouches[0].clientX;
-        const endY = e.changedTouches[0].clientY;
+        card.addEventListener('touchend', function(e) {
+            if (!startX || !startY) return;
 
-        const diffX = startX - endX;
-        const diffY = startY - endY;
+            const endX = e.changedTouches[0].clientX;
+            const endY = e.changedTouches[0].clientY;
 
-        // Check if swipe was horizontal and significant
-        if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
-            // Swipe detected - toggle card
-            toggleCard();
-        }
+            const diffX = startX - endX;
+            const diffY = startY - endY;
 
-        startX = 0;
-        startY = 0;
+            // Check if swipe was horizontal and significant
+            if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
+                // Swipe detected - toggle card
+                toggleCard();
+            }
+
+            startX = 0;
+            startY = 0;
+        });
     });
 
     // Add keyboard shortcuts
@@ -235,10 +266,17 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Add accessibility announcements
-    const card = document.getElementById('id-card');
-    if (card) {
-        card.setAttribute('role', 'img');
-        card.setAttribute('aria-label', 'Digital membership card');
+    const mobileCard = document.querySelector('.mobile-card');
+    const desktopCard = document.querySelector('.desktop-card');
+
+    if (mobileCard) {
+        mobileCard.setAttribute('role', 'img');
+        mobileCard.setAttribute('aria-label', 'Digital membership card - mobile view');
+    }
+
+    if (desktopCard) {
+        desktopCard.setAttribute('role', 'img');
+        desktopCard.setAttribute('aria-label', 'Digital membership card - desktop view');
     }
 });
 
