@@ -1,0 +1,11 @@
+# Default group mapping configuration
+# Maps Authentik groups to access levels
+
+mappings:
+  volunteers-limited: "LimitedVolunteer"
+  Members: "FullMember"
+  staff: "Staff"
+  admin: "Admin"
+
+# Default access level if no matching groups found
+default_level: "NoAccess"

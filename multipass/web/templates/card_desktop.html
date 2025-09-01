@@ -50,6 +50,15 @@
                         {{if .user.Avatar}}
                         <img class="w-32 h-32 rounded-full border-4 border-white shadow-lg" 
                              src="{{.user.Avatar}}" alt="{{.user.GetFullName}}">
+                        {{else if .debug_mode}}
+                        {{if .debug_info.avatar}}
+                        <img class="w-32 h-32 rounded-full border-4 border-white shadow-lg" 
+                             src="{{.debug_info.avatar}}" alt="{{.user.GetFullName}}">
+                        {{else}}
+                        <div class="w-32 h-32 rounded-full border-4 border-white dark:border-gray-700 bg-white dark:bg-gray-700 flex items-center justify-center shadow-lg">
+                            <span class="text-4xl font-bold text-green-600 dark:text-green-400">{{.user.GetInitials}}</span>
+                        </div>
+                        {{end}}
                         {{else}}
                         <div class="w-32 h-32 rounded-full border-4 border-white dark:border-gray-700 bg-white dark:bg-gray-700 flex items-center justify-center shadow-lg">
                             <span class="text-4xl font-bold text-green-600 dark:text-green-400">{{.user.GetInitials}}</span>
