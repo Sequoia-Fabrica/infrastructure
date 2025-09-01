@@ -21,6 +21,7 @@ type Config struct {
 	Port        string
 	BindAddress string
 	Environment string
+	DebugMode   bool   // Enable debug logging
 
 	// Authentik integration
 	AuthentikURL        string
@@ -36,6 +37,7 @@ type Config struct {
 	// Security settings
 	CSRFEnabled bool
 	RateLimit   int
+	TokenSecret string // Secret key for HMAC token generation and verification
 }
 
 // Load loads configuration from environment variables
@@ -44,6 +46,7 @@ func Load() *Config {
 		Port:        getEnv("PORT", "3000"),
 		BindAddress: getEnv("BIND_ADDRESS", "0.0.0.0"),
 		Environment: getEnv("ENVIRONMENT", "development"),
+		DebugMode:   getBoolEnv("DEBUG_MODE", false),
 
 		AuthentikURL:        getEnv("AUTHENTIK_URL", "https://login.sequoia.garden"),
 		AuthentikAPIToken:   getEnv("AUTHENTIK_API_TOKEN", ""),
@@ -55,6 +58,17 @@ func Load() *Config {
 
 		CSRFEnabled: getBoolEnv("CSRF_ENABLED", true),
 		RateLimit:   getIntEnv("RATE_LIMIT", 100),
+		TokenSecret: getEnv("TOKEN_SECRET", ""),
+	}
+
+	// Check if Authentik API token is specified
+	if cfg.AuthentikAPIToken == "" {
+		log.Fatalf("Error: AUTHENTIK_API_TOKEN environment variable not specified")
+	}
+
+	// Check if token secret is specified
+	if cfg.TokenSecret == "" {
+		log.Fatalf("Error: TOKEN_SECRET environment variable not specified")
 	}
 
 	// Check if group mapping path is specified
