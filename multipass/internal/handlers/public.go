@@ -135,7 +135,7 @@ func GenerateTokenLinkHandler(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate QR code"})
 		return
 	}
-	
+
 	// Convert to template.HTML to prevent escaping
 	qrCodeHTML := template.HTML("<img src=\"" + qrCodeBase64 + "\" alt=\"QR Code\" class=\"qr-code\">")
 

@@ -20,7 +20,7 @@ func GenerateQRCodeBase64(data string, size int) (string, error) {
 
 	// Create a buffer to store the PNG image
 	buf := new(bytes.Buffer)
-	
+
 	// Get the image and encode it as PNG
 	img := qr.Image(size)
 	if err := png.Encode(buf, img); err != nil {
@@ -29,7 +29,7 @@ func GenerateQRCodeBase64(data string, size int) (string, error) {
 
 	// Encode the PNG image as base64
 	encoded := base64.StdEncoding.EncodeToString(buf.Bytes())
-	
+
 	// Return the base64 encoded image with the data URI scheme
 	return "data:image/png;base64," + encoded, nil
 }
