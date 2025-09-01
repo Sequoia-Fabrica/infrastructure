@@ -40,6 +40,7 @@ type UserProfile struct {
 	Phone       *string   `json:"phone,omitempty"`
 	MemberID    string    `json:"member_id"`
 	AccessLevel UserLevel `json:"access_level"`
+	AuthentikID string    `json:"authentik_id,omitempty"`
 }
 
 type UserFromHeaders struct {

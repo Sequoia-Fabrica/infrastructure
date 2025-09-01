@@ -126,6 +126,14 @@ func main() {
 	public := r.Group("/")
 	{
 		public.GET("/login", handlers.LoginHandler)
+		
+		// Public token-based routes
+		publicToken := public.Group("/public")
+		publicToken.Use(middleware.DebugAuthMiddleware()) // Add debug middleware
+		publicToken.Use(middleware.TokenAuthMiddleware()) // Add token auth middleware
+		{
+			publicToken.GET("/card", handlers.PublicCardHandler)
+		}
 	}
 
 	// Protected routes (require authentication)
@@ -143,6 +151,10 @@ func main() {
 
 		// Profile and API routes
 		protected.GET("/profile", handlers.ProfileHandler)
+		
+		// Token generation route
+		protected.GET("/generate-token", middleware.GenerateTokenHandler)
+		protected.GET("/share", handlers.GenerateTokenLinkHandler)
 	}
 
 	// API routes

@@ -1,15 +1,16 @@
 package handlers
 
 import (
-	"multipass/internal/middleware"
+	"multipass/internal/config"
 	"multipass/internal/models"
+	"multipass/internal/utils"
 	"net/http"
-	"time"
+	"net/url"
 
 	"github.com/gin-gonic/gin"
 )
 
-// CardHandler handles requests for the digital ID card
+// CardHandler handles requests for the digital ID card by generating a public share URL and redirecting to it
 func CardHandler(c *gin.Context) {
 	user, exists := c.Get("user")
 	if !exists {
@@ -19,44 +20,35 @@ func CardHandler(c *gin.Context) {
 
 	userProfile := user.(*models.UserProfile)
 
-	// Create membership info
-	membership := &models.MembershipInfo{
-		MembershipType:    userProfile.AccessLevel.String(),
-		Status:           models.StatusActive,
-		UserLevel:        userProfile.AccessLevel,
+	// Get config
+	cfg := config.Load()
+
+	// Check if token secret is configured
+	if cfg.TokenSecret == "" {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Token generation not configured"})
+		return
 	}
 
-	// Get debug info from context
-	templateData := gin.H{
-		"title":          "Digital ID Card - " + userProfile.GetFullName(),
-		"user":           userProfile,
-		"membership":     membership,
-		"makerspace_name": "Sequoia Fabrica",
-		"current_time":   time.Now().Format("January 2, 2006"),
-		"qr_data":        generateQRData(userProfile),
-	}
-
-	// Add debug info if available
-	if debugMode, _ := c.Get("debug_mode"); debugMode != nil && debugMode.(bool) {
-		templateData["debug_mode"] = true
-
-		// Get all debug info from middleware
-		debugInfo := middleware.GetDebugInfo(c)
-		if debugInfo != nil {
-			templateData["debug_info"] = debugInfo
-		}
-
-		// For backward compatibility
-		if debugHeaders, exists := c.Get("debug_headers"); exists {
-			templateData["debug_headers"] = debugHeaders
-		}
-		if debugGroups, exists := c.Get("debug_groups"); exists {
-			templateData["debug_groups"] = debugGroups
+	// Generate token using the user's Authentik ID or email
+	userID := userProfile.MemberID // Use MemberID which is now set to the numeric PK
+	if userID == "" || userID == "TBD" {
+		userID = userProfile.AuthentikID
+		if userID == "" {
+			userID = userProfile.Email
 		}
 	}
 
-	// Render unified responsive template
-	c.HTML(http.StatusOK, "card.html", templateData)
+	token, err := utils.GenerateToken(userID, userProfile.Email, cfg.TokenSecret)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate token"})
+		return
+	}
+
+	// Create public card URL with properly encoded token
+	publicCardURL := "/public/card?token=" + url.QueryEscape(token)
+
+	// Redirect to the public card URL
+	c.Redirect(http.StatusTemporaryRedirect, publicCardURL)
 }
 
 // isMobileUserAgent is deprecated - we now use responsive design with media queries
@@ -68,7 +60,19 @@ func isMobileUserAgent(userAgent string) bool {
 }
 
 // generateQRData generates QR code data for the user
-func generateQRData(user *models.UserProfile) string {
+// If token secret is configured, it will generate a secure token URL
+func generateQRData(user *models.UserProfile, cfg *config.Config) string {
+	// Check if token secret is configured
+	if cfg.TokenSecret != "" {
+		// Generate a secure token
+		token, err := utils.GenerateToken(user.Email, user.Email, cfg.TokenSecret)
+		if err == nil {
+			// Return a URL with the token
+			return "/public/card?token=" + token
+		}
+	}
+	
+	// Fallback to the old format if token generation fails
 	return "MEMBER:" + user.MemberID + ":" + user.Email
 }
 

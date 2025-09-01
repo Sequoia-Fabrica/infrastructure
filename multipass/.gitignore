@@ -80,3 +80,5 @@ package-lock.json
 
 # Tailwind CSS
 web/static/css/tailwind.css
+
+bin/
