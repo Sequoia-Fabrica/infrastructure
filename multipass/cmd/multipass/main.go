@@ -140,8 +140,6 @@ func main() {
 
 		// Card routes
 		protected.GET("/card", handlers.CardHandler)
-		protected.GET("/card/mobile", handlers.MobileCardHandler)
-		protected.GET("/card/desktop", handlers.DesktopCardHandler)
 
 		// Profile and API routes
 		protected.GET("/profile", handlers.ProfileHandler)
