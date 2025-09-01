@@ -11,28 +11,28 @@ import (
 
 // GroupMappingConfig defines the mapping between Authentik groups and access levels
 type GroupMappingConfig struct {
-	Mappings     map[string]string `yaml:"mappings"`     // Maps Authentik group names to access levels
+	Mappings     map[string]string `yaml:"mappings"`      // Maps Authentik group names to access levels
 	DefaultLevel string            `yaml:"default_level"` // Default access level if no matching groups found
 }
 
 // Config holds application configuration
 type Config struct {
 	// Server configuration
-	Port         string
-	BindAddress  string
-	Environment  string
+	Port        string
+	BindAddress string
+	Environment string
 
 	// Authentik integration
-	AuthentikURL         string
-	AuthentikAPIToken    string
-	TrustedProxyHeaders  bool
-	GroupMappingPath     string
-	GroupMappingConfig   *GroupMappingConfig
+	AuthentikURL        string
+	AuthentikAPIToken   string
+	TrustedProxyHeaders bool
+	GroupMappingPath    string
+	GroupMappingConfig  *GroupMappingConfig
 
 	// Application settings
 	MakerspaceName string
 	LogoURL        string
-	
+
 	// Security settings
 	CSRFEnabled bool
 	RateLimit   int
@@ -41,9 +41,9 @@ type Config struct {
 // Load loads configuration from environment variables
 func Load() *Config {
 	cfg := &Config{
-		Port:         getEnv("PORT", "3000"),
-		BindAddress:  getEnv("BIND_ADDRESS", "0.0.0.0"),
-		Environment:  getEnv("ENVIRONMENT", "development"),
+		Port:        getEnv("PORT", "3000"),
+		BindAddress: getEnv("BIND_ADDRESS", "0.0.0.0"),
+		Environment: getEnv("ENVIRONMENT", "development"),
 
 		AuthentikURL:        getEnv("AUTHENTIK_URL", "https://login.sequoia.garden"),
 		AuthentikAPIToken:   getEnv("AUTHENTIK_API_TOKEN", ""),
@@ -121,6 +121,7 @@ func LoadGroupMapping(configPath string) (*GroupMappingConfig, error) {
 	data, err := os.ReadFile(configPath)
 	if err != nil {
 		return nil, err
+
 	}
 
 	var config GroupMappingConfig

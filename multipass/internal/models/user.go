@@ -57,7 +57,7 @@ var GroupMapping = map[string]UserLevel{}
 func DetermineUserLevel(groups []string) UserLevel {
 	// Import config package
 	cfg := config.Load()
-	
+
 	// Check for highest privilege level first
 	for _, group := range groups {
 		if levelStr, exists := cfg.GroupMappingConfig.Mappings[group]; exists {
@@ -78,7 +78,7 @@ func DetermineUserLevel(groups []string) UserLevel {
 			}
 		}
 	}
-	
+
 	// Use default level from config
 	switch cfg.GroupMappingConfig.DefaultLevel {
 	case "NoAccess":
@@ -105,16 +105,16 @@ func (u *UserProfile) GetFullName() string {
 func (u *UserProfile) GetInitials() string {
 	parts := strings.Fields(u.FullName)
 	initials := ""
-	
+
 	// Get first letter of first name
 	if len(parts) > 0 && len(parts[0]) > 0 {
 		initials += string(parts[0][0])
 	}
-	
+
 	// Get first letter of last name (if available)
 	if len(parts) > 1 && len(parts[len(parts)-1]) > 0 {
 		initials += string(parts[len(parts)-1][0])
 	}
-	
+
 	return strings.ToUpper(initials)
 }

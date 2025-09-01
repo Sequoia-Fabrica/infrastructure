@@ -76,7 +76,7 @@ This starts both the application and Caddy reverse proxy with automatic HTTPS.
    ```bash
    # Build CSS once
    make css
-   
+
    # Or watch for CSS changes during development
    make css-watch
    ```
@@ -85,7 +85,7 @@ This starts both the application and Caddy reverse proxy with automatic HTTPS.
    ```bash
    # Run with pre-built CSS
    go run cmd/multipass/main.go
-   
+
    # Or use the dev command to build CSS and run
    make dev
    ```

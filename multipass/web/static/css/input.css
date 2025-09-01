@@ -82,16 +82,16 @@
   body {
     @apply bg-white;
   }
-  
+
   .id-card-desktop,
   .id-card-mobile {
     @apply shadow-none break-inside-avoid max-w-full;
   }
-  
+
   .no-print {
     @apply hidden;
   }
-  
+
   /* Ensure card fits on page */
   .id-card-desktop {
     width: 100%;

@@ -19,7 +19,7 @@ func CardHandler(c *gin.Context) {
 	}
 
 	userProfile := user.(*models.UserProfile)
-	
+
 	// Create membership info
 	membership := &models.MembershipInfo{
 		MembershipType:    userProfile.AccessLevel.String(),
@@ -30,7 +30,7 @@ func CardHandler(c *gin.Context) {
 	// Determine template based on user agent
 	userAgent := c.GetHeader("User-Agent")
 	template := "card_desktop.html"
-	
+
 	// Simple mobile detection
 	if isMobileUserAgent(userAgent) {
 		template = "card_mobile.html"
@@ -45,17 +45,17 @@ func CardHandler(c *gin.Context) {
 		"current_time":   time.Now().Format("January 2, 2006"),
 		"qr_data":        generateQRData(userProfile),
 	}
-	
+
 	// Add debug info if available
 	if debugMode, _ := c.Get("debug_mode"); debugMode != nil && debugMode.(bool) {
 		templateData["debug_mode"] = true
-		
+
 		// Get all debug info from middleware
 		debugInfo := middleware.GetDebugInfo(c)
 		if debugInfo != nil {
 			templateData["debug_info"] = debugInfo
 		}
-		
+
 		// For backward compatibility
 		if debugHeaders, exists := c.Get("debug_headers"); exists {
 			templateData["debug_headers"] = debugHeaders
@@ -92,17 +92,17 @@ func MobileCardHandler(c *gin.Context) {
 		"current_time":   time.Now().Format("January 2, 2006"),
 		"qr_data":        generateQRData(userProfile),
 	}
-	
+
 	// Add debug info if available
 	if debugMode, _ := c.Get("debug_mode"); debugMode != nil && debugMode.(bool) {
 		templateData["debug_mode"] = true
-		
+
 		// Get all debug info from middleware
 		debugInfo := middleware.GetDebugInfo(c)
 		if debugInfo != nil {
 			templateData["debug_info"] = debugInfo
 		}
-		
+
 		// For backward compatibility
 		if debugHeaders, exists := c.Get("debug_headers"); exists {
 			templateData["debug_headers"] = debugHeaders
@@ -131,7 +131,7 @@ func DesktopCardHandler(c *gin.Context) {
 	}
 
 	// Debug logging
-	log.Printf("[DEBUG] Rendering desktop card for user: %s (Level: %s)", 
+	log.Printf("[DEBUG] Rendering desktop card for user: %s (Level: %s)",
 		userProfile.GetFullName(), userProfile.AccessLevel.String())
 
 	// Get debug info from context
@@ -143,17 +143,17 @@ func DesktopCardHandler(c *gin.Context) {
 		"current_time":   time.Now().Format("January 2, 2006"),
 		"qr_data":        generateQRData(userProfile),
 	}
-	
+
 	// Add debug info if available
 	if debugMode, _ := c.Get("debug_mode"); debugMode != nil && debugMode.(bool) {
 		templateData["debug_mode"] = true
-		
+
 		// Get all debug info from middleware
 		debugInfo := middleware.GetDebugInfo(c)
 		if debugInfo != nil {
 			templateData["debug_info"] = debugInfo
 		}
-		
+
 		// For backward compatibility
 		if debugHeaders, exists := c.Get("debug_headers"); exists {
 			templateData["debug_headers"] = debugHeaders
@@ -173,7 +173,7 @@ func isMobileUserAgent(userAgent string) bool {
 		"Mobile", "Android", "iPhone", "iPad", "iPod",
 		"BlackBerry", "Windows Phone", "Opera Mini",
 	}
-	
+
 	for _, keyword := range mobileKeywords {
 		if contains(userAgent, keyword) {
 			return true
@@ -189,9 +189,9 @@ func generateQRData(user *models.UserProfile) string {
 
 // contains checks if a string contains a substring (case-insensitive)
 func contains(s, substr string) bool {
-	return len(s) >= len(substr) && 
-		   (s == substr || 
-		    (len(substr) > 0 && 
-		     (s[:len(substr)] == substr || 
+	return len(s) >= len(substr) &&
+		   (s == substr ||
+		    (len(substr) > 0 &&
+		     (s[:len(substr)] == substr ||
 		      contains(s[1:], substr))))
 }

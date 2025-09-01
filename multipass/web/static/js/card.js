@@ -6,7 +6,7 @@ function toggleCard() {
     if (card) {
         card.classList.toggle('flipped');
         card.classList.add('card-flipping');
-        
+
         setTimeout(() => {
             card.classList.remove('card-flipping');
         }, 600);
@@ -32,7 +32,7 @@ function shareCard() {
 // Fallback share function
 function fallbackShare() {
     const url = window.location.href;
-    
+
     // Try to copy to clipboard
     if (navigator.clipboard) {
         navigator.clipboard.writeText(url).then(() => {
@@ -53,16 +53,16 @@ function showShareModal(url) {
         <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md mx-4">
             <h3 class="text-lg font-semibold mb-4 dark:text-white">Share Your Digital ID</h3>
             <div class="mb-4">
-                <input type="text" value="${url}" readonly 
-                       class="w-full p-2 border rounded text-sm bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600" 
+                <input type="text" value="${url}" readonly
+                       class="w-full p-2 border rounded text-sm bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600"
                        onclick="this.select()">
             </div>
             <div class="flex justify-end space-x-2">
-                <button onclick="this.closest('.fixed').remove()" 
+                <button onclick="this.closest('.fixed').remove()"
                         class="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
                     Close
                 </button>
-                <button onclick="copyToClipboard('${url}'); this.closest('.fixed').remove();" 
+                <button onclick="copyToClipboard('${url}'); this.closest('.fixed').remove();"
                         class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
                     Copy
                 </button>
@@ -92,10 +92,10 @@ function printCard() {
     // Hide action buttons for printing
     const buttons = document.querySelectorAll('button');
     buttons.forEach(btn => btn.classList.add('no-print'));
-    
+
     // Trigger print
     window.print();
-    
+
     // Restore buttons after print dialog
     setTimeout(() => {
         buttons.forEach(btn => btn.classList.remove('no-print'));
@@ -124,9 +124,9 @@ function showNotification(message, type = 'success') {
         type === 'success' ? 'bg-green-600' : 'bg-red-600'
     }`;
     notification.textContent = message;
-    
+
     document.body.appendChild(notification);
-    
+
     // Fade out after 3 seconds
     setTimeout(() => {
         notification.style.opacity = '0';
@@ -153,15 +153,15 @@ function generateQRPattern(data) {
 function createSimplePattern(data) {
     const size = 8;
     let pattern = '';
-    
+
     // Generate a simple checkered pattern based on data hash
     const hash = simpleHash(data);
-    
+
     for (let i = 0; i < size * size; i++) {
         const isBlack = (hash >> (i % 32)) & 1;
         pattern += `<div class="${isBlack ? 'bg-gray-900' : 'bg-white dark:bg-gray-300'}"></div>`;
     }
-    
+
     return pattern;
 }
 
@@ -183,35 +183,35 @@ document.addEventListener('DOMContentLoaded', function() {
     if (qrData) {
         generateQRPattern(qrData);
     }
-    
+
     // Add touch/swipe support for mobile cards
     let startX = 0;
     let startY = 0;
-    
+
     document.addEventListener('touchstart', function(e) {
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
     });
-    
+
     document.addEventListener('touchend', function(e) {
         if (!startX || !startY) return;
-        
+
         const endX = e.changedTouches[0].clientX;
         const endY = e.changedTouches[0].clientY;
-        
+
         const diffX = startX - endX;
         const diffY = startY - endY;
-        
+
         // Check if swipe was horizontal and significant
         if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 50) {
             // Swipe detected - toggle card
             toggleCard();
         }
-        
+
         startX = 0;
         startY = 0;
     });
-    
+
     // Add keyboard shortcuts
     document.addEventListener('keydown', function(e) {
         switch(e.key) {
@@ -233,7 +233,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 break;
         }
     });
-    
+
     // Add accessibility announcements
     const card = document.getElementById('id-card');
     if (card) {

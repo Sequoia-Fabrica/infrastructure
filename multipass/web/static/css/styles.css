@@ -74,18 +74,18 @@
     body {
         background: white !important;
     }
-    
+
     .id-card-desktop,
     .id-card-mobile {
         box-shadow: none !important;
         break-inside: avoid;
         max-width: 100% !important;
     }
-    
+
     .no-print {
         display: none !important;
     }
-    
+
     /* Ensure card fits on page */
     .id-card-desktop {
         width: 100%;
@@ -100,7 +100,7 @@
         margin: 0 auto;
         max-width: 95vw;
     }
-    
+
     .id-card-desktop {
         display: none;
     }
@@ -153,11 +153,11 @@
     .id-card-desktop {
         border: 2px solid #000;
     }
-    
+
     .text-gray-600 {
         color: #000 !important;
     }
-    
+
     .text-gray-500 {
         color: #333 !important;
     }
@@ -170,19 +170,19 @@
         background: #1f2937;
         color: #f9fafb;
     }
-    
+
     .bg-gray-50 {
         background-color: #374151 !important;
     }
-    
+
     .text-gray-900 {
         color: #f9fafb !important;
     }
-    
+
     .text-gray-600 {
         color: #d1d5db !important;
     }
-    
+
     .border-gray-200 {
         border-color: #4b5563 !important;
     }
