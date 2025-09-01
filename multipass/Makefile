@@ -10,7 +10,12 @@ run: build
 
 # Run in development mode
 dev: css
-	GROUP_MAPPING_CONFIG="./config/group_mapping.yaml" go run cmd/multipass/main.go
+	$(info Running in development mode...)
+	GROUP_MAPPING_CONFIG="./config/group_mapping.yaml" \
+	TOKEN_SECRET="secret" \
+	AUTHENTIK_API_TOKEN="example" \
+	AUTHENTIK_URL="https://login.sequoia.garden" \
+	go run cmd/multipass/main.go
 
 # Install dependencies
 install:
