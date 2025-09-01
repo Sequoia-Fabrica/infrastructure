@@ -16,8 +16,7 @@ func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Extract user data from Authentik headers
 		email := c.GetHeader("X-Authentik-Email")
-		firstName := c.GetHeader("X-Authentik-Given-Name")
-		lastName := c.GetHeader("X-Authentik-Family-Name")
+		fullName := c.GetHeader("X-Authentik-Name")
 		groupsHeader := c.GetHeader("X-Authentik-Groups")
 
 		// If no email, user is not authenticated
@@ -53,8 +52,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		// Create user profile
 		userProfile := &models.UserProfile{
 			Email:       email,
-			FirstName:   firstName,
-			LastName:    lastName,
+			FullName:    fullName,
 			Groups:      groups,
 			MemberID:    generateMemberID(email),
 			AccessLevel: models.DetermineUserLevel(groups),

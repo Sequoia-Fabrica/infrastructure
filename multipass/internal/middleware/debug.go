@@ -23,8 +23,7 @@ func DebugAuthMiddleware() gin.HandlerFunc {
 			// Add mock Authentik headers for testing
 			testEmail := "test.user@example.com"
 			c.Request.Header.Set("X-Authentik-Email", testEmail)
-			c.Request.Header.Set("X-Authentik-Given-Name", "Test")
-			c.Request.Header.Set("X-Authentik-Family-Name", "User")
+			c.Request.Header.Set("X-Authentik-Name", "Test User")
 			
 			// Use the Members group from group_mapping.yaml
 			c.Request.Header.Set("X-Authentik-Groups", "Members")
@@ -42,10 +41,9 @@ func DebugAuthMiddleware() gin.HandlerFunc {
 		if debugMode || cfg.IsDevelopment() {
 			// Collect all headers for debugging
 			debugInfo := map[string]string{
-				"X-Authentik-Email":      c.GetHeader("X-Authentik-Email"),
-				"X-Authentik-Given-Name": c.GetHeader("X-Authentik-Given-Name"),
-				"X-Authentik-Family-Name": c.GetHeader("X-Authentik-Family-Name"),
-				"X-Authentik-Groups":    c.GetHeader("X-Authentik-Groups"),
+				"X-Authentik-Email": c.GetHeader("X-Authentik-Email"),
+				"X-Authentik-Name":  c.GetHeader("X-Authentik-Name"),
+				"X-Authentik-Groups": c.GetHeader("X-Authentik-Groups"),
 			}
 			
 			// Add debug info to context for templates
@@ -53,10 +51,9 @@ func DebugAuthMiddleware() gin.HandlerFunc {
 			c.Set("debug_headers", debugInfo)
 			
 			// Log debug information
-			log.Printf("[DEBUG] Headers: Email=%s, Name=%s %s, Groups=%s", 
+			log.Printf("[DEBUG] Headers: Email=%s, Name=%s, Groups=%s", 
 				debugInfo["X-Authentik-Email"],
-				debugInfo["X-Authentik-Given-Name"],
-				debugInfo["X-Authentik-Family-Name"],
+				debugInfo["X-Authentik-Name"],
 				debugInfo["X-Authentik-Groups"])
 			
 			// Parse groups for debugging

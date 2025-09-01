@@ -86,8 +86,7 @@ The application retrieves user information directly from Authentik via SSO claim
 ```go
 type UserProfile struct {
     Email       string   `json:"email"`
-    FirstName   string   `json:"first_name"`
-    LastName    string   `json:"last_name"`
+    FullName    string   `json:"full_name"`
     Groups      []string `json:"groups"`          // Membership types from Authentik groups
     Avatar      *string  `json:"avatar,omitempty"` // Profile image URL from Authentik
     Phone       *string  `json:"phone,omitempty"`
@@ -180,8 +179,6 @@ Authentik reverse proxy provides user data via headers:
 Authentik reverse proxy provides user data via HTTP headers:
 - `X-Authentik-Email`: User email address
 - `X-Authentik-Name`: Full name
-- `X-Authentik-Given-Name`: First name
-- `X-Authentik-Family-Name`: Last name
 - `X-Authentik-Username`: Username
 - `X-Authentik-Groups`: Comma-separated group list
 - `X-Authentik-User-Id`: Authentik user ID
@@ -189,9 +186,8 @@ Authentik reverse proxy provides user data via HTTP headers:
 ### Header Processing
 ```go
 type UserFromHeaders struct {
-    Email     string   `json:"email"`
-    FirstName string   `json:"first_name"`
-    LastName  string   `json:"last_name"`
+    Email    string   `json:"email"`
+    FullName string   `json:"full_name"`
     Username  string   `json:"username"`
     UserID    string   `json:"user_id"`
     Groups    []string `json:"groups"`

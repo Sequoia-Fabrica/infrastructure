@@ -34,8 +34,7 @@ func (ul UserLevel) String() string {
 
 type UserProfile struct {
 	Email       string    `json:"email"`
-	FirstName   string    `json:"first_name"`
-	LastName    string    `json:"last_name"`
+	FullName    string    `json:"full_name"`
 	Groups      []string  `json:"groups"`
 	Avatar      *string   `json:"avatar,omitempty"`
 	Phone       *string   `json:"phone,omitempty"`
@@ -44,12 +43,11 @@ type UserProfile struct {
 }
 
 type UserFromHeaders struct {
-	Email     string   `json:"email"`
-	FirstName string   `json:"first_name"`
-	LastName  string   `json:"last_name"`
-	Username  string   `json:"username"`
-	UserID    string   `json:"user_id"`
-	Groups    []string `json:"groups"`
+	Email    string   `json:"email"`
+	FullName string   `json:"full_name"`
+	Username string   `json:"username"`
+	UserID   string   `json:"user_id"`
+	Groups   []string `json:"groups"`
 }
 
 // Group mapping will be loaded from config file
@@ -100,17 +98,23 @@ func DetermineUserLevel(groups []string) UserLevel {
 
 // GetFullName returns the user's full name
 func (u *UserProfile) GetFullName() string {
-	return strings.TrimSpace(u.FirstName + " " + u.LastName)
+	return u.FullName
 }
 
 // GetInitials returns the user's initials
 func (u *UserProfile) GetInitials() string {
+	parts := strings.Fields(u.FullName)
 	initials := ""
-	if len(u.FirstName) > 0 {
-		initials += string(u.FirstName[0])
+	
+	// Get first letter of first name
+	if len(parts) > 0 && len(parts[0]) > 0 {
+		initials += string(parts[0][0])
 	}
-	if len(u.LastName) > 0 {
-		initials += string(u.LastName[0])
+	
+	// Get first letter of last name (if available)
+	if len(parts) > 1 && len(parts[len(parts)-1]) > 0 {
+		initials += string(parts[len(parts)-1][0])
 	}
+	
 	return strings.ToUpper(initials)
 }

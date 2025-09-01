@@ -112,8 +112,7 @@ This starts both the application and Caddy reverse proxy with automatic HTTPS.
 Multipass expects the following headers from Authentik reverse proxy:
 
 - `X-Authentik-Email`: User email address
-- `X-Authentik-Given-Name`: First name
-- `X-Authentik-Family-Name`: Last name
+- `X-Authentik-Name`: Full name
 - `X-Authentik-Username`: Username
 - `X-Authentik-Groups`: Comma-separated group list
 - `X-Authentik-User-Id`: Authentik user ID
