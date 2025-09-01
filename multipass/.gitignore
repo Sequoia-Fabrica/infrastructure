@@ -73,3 +73,10 @@ web/static/uploads/
 
 # Cache directories
 .cache/
+
+# Node.js
+node_modules/
+package-lock.json
+
+# Tailwind CSS
+web/static/css/tailwind.css

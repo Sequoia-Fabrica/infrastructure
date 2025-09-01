@@ -1,0 +1,111 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles for Multipass Digital ID Cards */
+@layer components {
+  /* Card animations and transitions */
+  .id-card-mobile,
+  .id-card-desktop {
+    @apply transition-all duration-300 ease-in-out;
+  }
+
+  /* Mobile card specific styles */
+  .id-card-mobile {
+    @apply bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-xl;
+  }
+
+  .id-card-mobile:hover {
+    @apply transform -translate-y-0.5 shadow-2xl;
+  }
+
+  /* Desktop card specific styles */
+  .id-card-desktop {
+    @apply bg-white dark:bg-gray-800 shadow-xl;
+  }
+
+  /* QR Code styling */
+  .qr-code {
+    @apply [image-rendering:pixelated] [image-rendering:crisp-edges];
+  }
+
+  /* Status indicators */
+  .status-active {
+    @apply bg-gradient-to-r from-green-500 to-green-600 text-white;
+  }
+
+  .status-inactive {
+    @apply bg-gradient-to-r from-red-500 to-red-600 text-white;
+  }
+
+  /* User level badges */
+  .level-volunteer {
+    @apply bg-gradient-to-r from-green-500 to-green-600;
+  }
+
+  .level-member {
+    @apply bg-gradient-to-r from-blue-500 to-blue-600;
+  }
+
+  .level-staff {
+    @apply bg-gradient-to-r from-purple-500 to-purple-600;
+  }
+
+  .level-admin {
+    @apply bg-gradient-to-r from-amber-500 to-amber-600;
+  }
+
+  /* Loading states */
+  .loading {
+    @apply opacity-70 pointer-events-none relative;
+  }
+
+  .loading::after {
+    content: '';
+    @apply absolute top-1/2 left-1/2 w-5 h-5 -mt-2.5 -ml-2.5 border-2 border-green-500 rounded-full border-t-transparent animate-spin;
+  }
+}
+
+/* Card flip animation */
+@keyframes cardFlip {
+  0% { transform: rotateY(0deg); }
+  50% { transform: rotateY(90deg); }
+  100% { transform: rotateY(180deg); }
+}
+
+.card-flipping {
+  animation: cardFlip 0.6s ease-in-out;
+}
+
+/* Print styles */
+@media print {
+  body {
+    @apply bg-white;
+  }
+  
+  .id-card-desktop,
+  .id-card-mobile {
+    @apply shadow-none break-inside-avoid max-w-full;
+  }
+  
+  .no-print {
+    @apply hidden;
+  }
+  
+  /* Ensure card fits on page */
+  .id-card-desktop {
+    width: 100%;
+    max-width: 85.6mm; /* Credit card width */
+    height: 53.98mm;   /* Credit card height */
+  }
+}
+
+/* Accessibility improvements */
+@media (prefers-reduced-motion: reduce) {
+  .id-card-mobile,
+  .id-card-desktop,
+  .card-flipping,
+  .loading::after {
+    @apply animate-none transition-none;
+  }
+}

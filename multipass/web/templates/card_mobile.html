@@ -2,7 +2,7 @@
 <div class="px-4 py-6">
     <!-- Mobile ID Card -->
     <div class="max-w-sm mx-auto">
-        <div class="bg-white rounded-2xl shadow-xl overflow-hidden id-card-mobile" id="id-card">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-xl overflow-hidden id-card-mobile" id="id-card">
             <!-- Card Header -->
             <div class="bg-gradient-to-r from-green-600 to-green-700 px-6 py-4">
                 <div class="flex items-center justify-between">
@@ -23,14 +23,14 @@
             <div class="px-6 py-6 text-center">
                 <div class="relative inline-block">
                     {{if .user.Avatar}}
-                    <img class="w-24 h-24 rounded-full border-4 border-gray-200 shadow-sm" 
+                    <img class="w-24 h-24 rounded-full border-4 border-gray-200 dark:border-gray-700 shadow-sm" 
                          src="{{.user.Avatar}}" alt="{{.user.GetFullName}}">
                     {{else}}
-                    <div class="w-24 h-24 rounded-full border-4 border-gray-200 bg-gray-100 flex items-center justify-center">
-                        <span class="text-2xl font-bold text-gray-600">{{.user.GetInitials}}</span>
+                    <div class="w-24 h-24 rounded-full border-4 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                        <span class="text-2xl font-bold text-gray-600 dark:text-gray-300">{{.user.GetInitials}}</span>
                     </div>
                     {{end}}
-                    <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white flex items-center justify-center">
+                    <div class="absolute -bottom-1 -right-1 w-6 h-6 bg-green-500 rounded-full border-2 border-white dark:border-gray-700 flex items-center justify-center">
                         <svg class="w-3 h-3 text-white" fill="currentColor" viewBox="0 0 20 20">
                             <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
                         </svg>
@@ -41,31 +41,31 @@
             <!-- Member Information -->
             <div class="px-6 pb-6 space-y-4">
                 <div class="text-center">
-                    <h2 class="text-2xl font-bold text-gray-900">{{.user.GetFullName}}</h2>
-                    <p class="text-gray-600 font-medium">{{.membership.MembershipType}}</p>
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">{{.user.GetFullName}}</h2>
+                    <p class="text-gray-600 dark:text-gray-300 font-medium">{{.membership.MembershipType}}</p>
                 </div>
 
                 <!-- Member Details -->
                 <div class="space-y-3">
-                    <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                        <span class="text-gray-600 font-medium">Member ID</span>
-                        <span class="font-mono text-sm bg-gray-100 px-2 py-1 rounded">{{.user.MemberID}}</span>
+                    <div class="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
+                        <span class="text-gray-600 dark:text-gray-300 font-medium">Member ID</span>
+                        <span class="font-mono text-sm bg-gray-100 dark:bg-gray-700 dark:text-gray-300 px-2 py-1 rounded">{{.user.MemberID}}</span>
                     </div>
                     
-                    <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                        <span class="text-gray-600 font-medium">Status</span>
-                        <span class="text-green-600 font-semibold">{{.membership.Status.String}}</span>
+                    <div class="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
+                        <span class="text-gray-600 dark:text-gray-300 font-medium">Status</span>
+                        <span class="text-green-600 dark:text-green-400 font-semibold">{{.membership.Status.String}}</span>
                     </div>
 
-                    <div class="flex justify-between items-center py-2 border-b border-gray-100">
-                        <span class="text-gray-600 font-medium">Access Level</span>
-                        <span class="text-sm text-gray-800">{{.membership.GetAccessLevel}}</span>
+                    <div class="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
+                        <span class="text-gray-600 dark:text-gray-300 font-medium">Access Level</span>
+                        <span class="text-sm text-gray-800 dark:text-gray-300">{{.membership.GetAccessLevel}}</span>
                     </div>
                 </div>
 
                 <!-- QR Code -->
                 <div class="text-center mt-6">
-                    <div class="inline-block p-4 bg-white border-2 border-gray-200 rounded-lg">
+                    <div class="inline-block p-4 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-lg">
                         <div class="w-20 h-20 bg-gray-900 rounded grid grid-cols-8 gap-px p-1" data-qr="{{.qr_data}}">
                             <!-- Simple QR code pattern placeholder -->
                             <div class="bg-white"></div>
@@ -79,13 +79,13 @@
                             <!-- Continue pattern... -->
                         </div>
                     </div>
-                    <p class="text-xs text-gray-500 mt-2">Scan for verification</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Scan for verification</p>
                 </div>
             </div>
 
             <!-- Card Footer -->
-            <div class="px-6 py-4 bg-gray-50 border-t">
-                <div class="flex justify-between items-center text-xs text-gray-500">
+            <div class="px-6 py-4 bg-gray-50 dark:bg-gray-700 border-t dark:border-gray-700">
+                <div class="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
                     <span>Valid: {{.current_time}}</span>
                     <span>Digital ID</span>
                 </div>
@@ -100,7 +100,7 @@
             </button>
             
             <button onclick="shareCard()" 
-                    class="w-full bg-gray-100 text-gray-700 py-3 px-4 rounded-lg font-semibold hover:bg-gray-200 transition-colors">
+                    class="w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-3 px-4 rounded-lg font-semibold hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
                 Share Digital ID
             </button>
         </div>
