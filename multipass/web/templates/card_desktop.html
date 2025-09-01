@@ -1,13 +1,13 @@
 {{define "content"}}
 <!-- START DEBUG MESSAGE -->
-{{if .debug_mode}}
+<!-- {{if .debug_mode}}
 <div class="bg-red-500 text-white p-4 mb-4 rounded">
     <h3 class="font-bold">DEBUG MODE</h3>
     <div class="mt-2">
         <p><strong>Headers:</strong></p>
         <ul class="list-disc ml-5">
             <li>Email: {{index .debug_headers "X-Authentik-Email"}}</li>
-            <li>Name: {{index .debug_headers "X-Authentik-Given-Name"}} {{index .debug_headers "X-Authentik-Family-Name"}}</li>
+            <li>Name: {{index .debug_headers "X-Authentik-Name"}}</li>
             <li>Groups: {{index .debug_headers "X-Authentik-Groups"}}</li>
         </ul>
         <p class="mt-2"><strong>Parsed Groups:</strong></p>
@@ -21,7 +21,7 @@
         <p class="mt-2"><strong>Access Level:</strong> {{.user.AccessLevel}} ({{.user.AccessLevel.String}})</p>
     </div>
 </div>
-{{end}}
+{{end}} -->
 <!-- END DEBUG MESSAGE -->
 <div class="px-4 py-6">
     <!-- Desktop ID Card -->
