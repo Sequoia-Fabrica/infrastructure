@@ -27,4 +27,5 @@ css-watch: install
 # Clean build artifacts
 clean:
 	rm -rf bin/
+	rm -rf node_modules/
 	rm -f web/static/css/tailwind.css
