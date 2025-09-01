@@ -1,6 +1,27 @@
 {{define "content"}}
 <!-- START DEBUG MESSAGE -->
-<div class="bg-red-500 text-white p-4 mb-4 rounded">DEBUG MODE: This is a static debug message</div>
+{{if .debug_mode}}
+<div class="bg-red-500 text-white p-4 mb-4 rounded">
+    <h3 class="font-bold">DEBUG MODE</h3>
+    <div class="mt-2">
+        <p><strong>Headers:</strong></p>
+        <ul class="list-disc ml-5">
+            <li>Email: {{index .debug_headers "X-Authentik-Email"}}</li>
+            <li>Name: {{index .debug_headers "X-Authentik-Given-Name"}} {{index .debug_headers "X-Authentik-Family-Name"}}</li>
+            <li>Groups: {{index .debug_headers "X-Authentik-Groups"}}</li>
+        </ul>
+        <p class="mt-2"><strong>Parsed Groups:</strong></p>
+        <ul class="list-disc ml-5">
+            {{range .debug_groups}}
+            <li>{{.}}</li>
+            {{else}}
+            <li>No groups found</li>
+            {{end}}
+        </ul>
+        <p class="mt-2"><strong>Access Level:</strong> {{.user.AccessLevel}} ({{.user.AccessLevel.String}})</p>
+    </div>
+</div>
+{{end}}
 <!-- END DEBUG MESSAGE -->
 <div class="px-4 py-6">
     <!-- Desktop ID Card -->
@@ -12,9 +33,11 @@
                     <div class="text-center mb-6">
                         <h1 class="text-xl font-bold mb-2">{{.makerspace_name}}</h1>
                         <div class="text-green-100">
-                            {{if eq .membership.UserLevel 0}}
+                            {{if eq .user.AccessLevel 0}}
+                                <span class="bg-red-500 px-3 py-1 rounded-full text-sm">NO ACCESS</span>
+                            {{else if eq .user.AccessLevel 1}}
                                 <span class="bg-green-500 px-3 py-1 rounded-full text-sm">VOLUNTEER</span>
-                            {{else if eq .membership.UserLevel 1}}
+                            {{else if eq .user.AccessLevel 2}}
                                 <span class="bg-blue-500 px-3 py-1 rounded-full text-sm">MEMBER</span>
                             {{else}}
                                 <span class="bg-purple-500 px-3 py-1 rounded-full text-sm">{{.user.AccessLevel.String | upper}}</span>

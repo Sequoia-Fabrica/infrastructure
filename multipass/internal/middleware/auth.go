@@ -29,11 +29,21 @@ func AuthMiddleware() gin.HandlerFunc {
 		// Parse groups
 		var groups []string
 		if groupsHeader != "" {
-			groups = strings.Split(groupsHeader, ",")
+			// First try splitting by pipe, which is what we see in the actual headers
+			if strings.Contains(groupsHeader, "|") {
+				groups = strings.Split(groupsHeader, "|")
+			} else {
+				// Fall back to comma if no pipes found
+				groups = strings.Split(groupsHeader, ",")
+			}
+			
 			// Trim whitespace from group names
 			for i, group := range groups {
 				groups[i] = strings.TrimSpace(group)
 			}
+			
+			// Log the parsed groups for debugging
+			fmt.Printf("[AUTH] Parsed groups: %v\n", groups)
 		}
 
 		// Create user profile

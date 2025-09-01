@@ -36,14 +36,28 @@ func CardHandler(c *gin.Context) {
 		template = "card_mobile.html"
 	}
 
-	c.HTML(http.StatusOK, template, gin.H{
+	// Get debug info from context
+	templateData := gin.H{
 		"title":          "Digital ID Card - " + userProfile.GetFullName(),
 		"user":           userProfile,
 		"membership":     membership,
 		"makerspace_name": "Sequoia Fabrica",
 		"current_time":   time.Now().Format("January 2, 2006"),
 		"qr_data":        generateQRData(userProfile),
-	})
+	}
+	
+	// Add debug info if available
+	if debugMode, _ := c.Get("debug_mode"); debugMode != nil && debugMode.(bool) {
+		templateData["debug_mode"] = true
+		if debugHeaders, exists := c.Get("debug_headers"); exists {
+			templateData["debug_headers"] = debugHeaders
+		}
+		if debugGroups, exists := c.Get("debug_groups"); exists {
+			templateData["debug_groups"] = debugGroups
+		}
+	}
+
+	c.HTML(http.StatusOK, template, templateData)
 }
 
 // MobileCardHandler explicitly serves mobile card layout
@@ -62,14 +76,28 @@ func MobileCardHandler(c *gin.Context) {
 		AccessPermissions: getAccessPermissions(userProfile.AccessLevel),
 	}
 
-	c.HTML(http.StatusOK, "card_mobile.html", gin.H{
+	// Get debug info from context
+	templateData := gin.H{
 		"title":          "Digital ID Card - " + userProfile.GetFullName(),
 		"user":           userProfile,
 		"membership":     membership,
 		"makerspace_name": "Sequoia Fabrica",
 		"current_time":   time.Now().Format("January 2, 2006"),
 		"qr_data":        generateQRData(userProfile),
-	})
+	}
+	
+	// Add debug info if available
+	if debugMode, _ := c.Get("debug_mode"); debugMode != nil && debugMode.(bool) {
+		templateData["debug_mode"] = true
+		if debugHeaders, exists := c.Get("debug_headers"); exists {
+			templateData["debug_headers"] = debugHeaders
+		}
+		if debugGroups, exists := c.Get("debug_groups"); exists {
+			templateData["debug_groups"] = debugGroups
+		}
+	}
+
+	c.HTML(http.StatusOK, "card_mobile.html", templateData)
 }
 
 // DesktopCardHandler explicitly serves desktop card layout
@@ -92,7 +120,7 @@ func DesktopCardHandler(c *gin.Context) {
 	log.Printf("[DEBUG] Rendering desktop card for user: %s (Level: %s)", 
 		userProfile.GetFullName(), userProfile.AccessLevel.String())
 
-	// Add debug info to template data
+	// Get debug info from context
 	templateData := gin.H{
 		"title":          "Digital ID Card - " + userProfile.GetFullName(),
 		"user":           userProfile,
@@ -100,7 +128,17 @@ func DesktopCardHandler(c *gin.Context) {
 		"makerspace_name": "Sequoia Fabrica",
 		"current_time":   time.Now().Format("January 2, 2006"),
 		"qr_data":        generateQRData(userProfile),
-		"debug":          true,
+	}
+	
+	// Add debug info if available
+	if debugMode, _ := c.Get("debug_mode"); debugMode != nil && debugMode.(bool) {
+		templateData["debug_mode"] = true
+		if debugHeaders, exists := c.Get("debug_headers"); exists {
+			templateData["debug_headers"] = debugHeaders
+		}
+		if debugGroups, exists := c.Get("debug_groups"); exists {
+			templateData["debug_groups"] = debugGroups
+		}
 	}
 
 	// Render the template

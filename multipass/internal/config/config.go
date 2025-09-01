@@ -1,9 +1,19 @@
 package config
 
 import (
+	"fmt"
+	"log"
 	"os"
 	"strconv"
+
+	"gopkg.in/yaml.v3"
 )
+
+// GroupMappingConfig defines the mapping between Authentik groups and access levels
+type GroupMappingConfig struct {
+	Mappings     map[string]string `yaml:"mappings"`     // Maps Authentik group names to access levels
+	DefaultLevel string            `yaml:"default_level"` // Default access level if no matching groups found
+}
 
 // Config holds application configuration
 type Config struct {
@@ -13,9 +23,11 @@ type Config struct {
 	Environment  string
 
 	// Authentik integration
-	AuthentikURL      string
-	AuthentikAPIToken string
-	TrustedProxyHeaders bool
+	AuthentikURL         string
+	AuthentikAPIToken    string
+	TrustedProxyHeaders  bool
+	GroupMappingPath     string
+	GroupMappingConfig   *GroupMappingConfig
 
 	// Application settings
 	MakerspaceName string
@@ -28,7 +40,7 @@ type Config struct {
 
 // Load loads configuration from environment variables
 func Load() *Config {
-	return &Config{
+	cfg := &Config{
 		Port:         getEnv("PORT", "3000"),
 		BindAddress:  getEnv("BIND_ADDRESS", "0.0.0.0"),
 		Environment:  getEnv("ENVIRONMENT", "development"),
@@ -36,6 +48,7 @@ func Load() *Config {
 		AuthentikURL:        getEnv("AUTHENTIK_URL", "https://login.sequoia.garden"),
 		AuthentikAPIToken:   getEnv("AUTHENTIK_API_TOKEN", ""),
 		TrustedProxyHeaders: getBoolEnv("TRUSTED_PROXY_HEADERS", true),
+		GroupMappingPath:    getEnv("GROUP_MAPPING_CONFIG", "./config/group_mapping.yaml"),
 
 		MakerspaceName: getEnv("MAKERSPACE_NAME", "Sequoia Fabrica"),
 		LogoURL:        getEnv("MAKERSPACE_LOGO_URL", "/static/images/logo.png"),
@@ -43,6 +56,21 @@ func Load() *Config {
 		CSRFEnabled: getBoolEnv("CSRF_ENABLED", true),
 		RateLimit:   getIntEnv("RATE_LIMIT", 100),
 	}
+
+	// Check if group mapping path is specified
+	if cfg.GroupMappingPath == "" {
+		log.Fatalf("Error: GROUP_MAPPING_CONFIG environment variable not specified")
+	}
+
+	// Load group mapping configuration
+	groupConfig, err := LoadGroupMapping(cfg.GroupMappingPath)
+	if err != nil {
+		// All errors (including file not found) are fatal
+		log.Fatalf("Error loading group mapping config from %s: %v", cfg.GroupMappingPath, err)
+	}
+	cfg.GroupMappingConfig = groupConfig
+
+	return cfg
 }
 
 // getEnv gets environment variable with default fallback
@@ -86,4 +114,30 @@ func (c *Config) IsProduction() bool {
 // GetServerAddress returns the full server bind address
 func (c *Config) GetServerAddress() string {
 	return c.BindAddress + ":" + c.Port
+}
+
+// LoadGroupMapping loads group mapping configuration from a YAML file
+func LoadGroupMapping(configPath string) (*GroupMappingConfig, error) {
+	data, err := os.ReadFile(configPath)
+	if err != nil {
+		return nil, err
+	}
+
+	var config GroupMappingConfig
+	err = yaml.Unmarshal(data, &config)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check if mappings is empty
+	if len(config.Mappings) == 0 {
+		return nil, fmt.Errorf("no group mappings found in config file: %s", configPath)
+	}
+
+	// Set default level to NoAccess if not specified
+	if config.DefaultLevel == "" {
+		config.DefaultLevel = "NoAccess"
+	}
+
+	return &config, nil
 }
