@@ -2,6 +2,9 @@
 
 A Go-based web application that serves as a digital ID card system for makerspace members, integrating with Authentik SSO for authentication and providing mobile-first digital membership cards.
 
+## Release
+A container image is built in GitHub Actions. Subsequently, the ansible YAML is updated.
+
 ## Features
 
 - **Digital ID Cards**: Responsive membership cards that adapt to any device

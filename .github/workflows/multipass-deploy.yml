@@ -75,8 +75,8 @@ jobs:
         run: |
           VERSION="${{ needs.build-and-push.outputs.version }}"
           
-          # Update the multipass container version in ansible variables
-          sed -i "s/container_version: .*/container_version: \"$VERSION\"/" \
+          # Update only the multipass container version in ansible variables
+          sed -i '/^multipass:/,/^[a-zA-Z]/ s/container_version: .*/container_version: "'"$VERSION"'"/' \
             ansible/inventory/group_vars/all.yml
 
       - name: Commit and push changes
