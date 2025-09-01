@@ -163,7 +163,7 @@ immich:
 
 docuseal:
   data_location: /opt/docuseal/data
-  container_version: "20250901-210833-f65c55c"
+  container_version: "1.6.9"
 
 cloudflare_ddns_update:
   auth_email: seqfab.infra@gmail.com
