@@ -163,7 +163,7 @@ immich:
 
 docuseal:
   data_location: /opt/docuseal/data
-  container_version: 1.6.9
+  container_version: "20250901-210833-f65c55c"
 
 cloudflare_ddns_update:
   auth_email: seqfab.infra@gmail.com
@@ -293,7 +293,7 @@ shlink:
   domain: go.sequoiafabrica.org
 
 multipass:
-  container_version: "latest"
+  container_version: "20250901-210833-f65c55c"
   port: 3005
   data_location: "/opt/multipass"
   authentik_url: "https://login.sequoia.garden"
