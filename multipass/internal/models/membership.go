@@ -29,7 +29,6 @@ func (ms MembershipStatus) String() string {
 type MembershipInfo struct {
 	MembershipType    string           `json:"membership_type"`
 	Status            MembershipStatus `json:"status"`
-	AccessPermissions []string         `json:"access_permissions"`
 	UserLevel         UserLevel        `json:"user_level"`
 	JoinDate          *time.Time       `json:"join_date,omitempty"`
 	ExpiryDate        *time.Time       `json:"expiry_date,omitempty"`
@@ -44,13 +43,13 @@ func (m *MembershipInfo) IsActive() bool {
 func (m *MembershipInfo) GetAccessLevel() string {
 	switch m.UserLevel {
 	case NoAccess:
-		return "No access to workspace or equipment"
+		return "No access to workspace"
 	case LimitedVolunteer:
-		return "Basic workspace access, supervised equipment use"
+		return "Basic workspace access with supervision"
 	case FullMember:
-		return "Full workspace access, independent equipment use"
+		return "Full workspace access"
 	case Staff:
-		return "Staff privileges, equipment training, administrative access"
+		return "Staff privileges and administrative access"
 	case Admin:
 		return "Full administrative access"
 	default:
