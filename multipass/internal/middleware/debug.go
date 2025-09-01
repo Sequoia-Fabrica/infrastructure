@@ -41,8 +41,8 @@ func DebugAuthMiddleware() gin.HandlerFunc {
 		if debugMode || cfg.IsDevelopment() {
 			// Collect all headers for debugging
 			debugInfo := map[string]string{
-				"X-Authentik-Email": c.GetHeader("X-Authentik-Email"),
-				"X-Authentik-Name":  c.GetHeader("X-Authentik-Name"),
+				"X-Authentik-Email":  c.GetHeader("X-Authentik-Email"),
+				"X-Authentik-Name":   c.GetHeader("X-Authentik-Name"),
 				"X-Authentik-Groups": c.GetHeader("X-Authentik-Groups"),
 			}
 

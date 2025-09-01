@@ -33,14 +33,18 @@ func (ul UserLevel) String() string {
 }
 
 type UserProfile struct {
-	Email       string    `json:"email"`
-	FullName    string    `json:"full_name"`
-	Groups      []string  `json:"groups"`
-	Avatar      *string   `json:"avatar,omitempty"`
-	Phone       *string   `json:"phone,omitempty"`
-	MemberID    string    `json:"member_id"`
-	AccessLevel UserLevel `json:"access_level"`
-	AuthentikID string    `json:"authentik_id,omitempty"`
+	Email            string    `json:"email"`
+	FullName         string    `json:"full_name"`
+	Groups           []string  `json:"groups"`
+	Avatar           *string   `json:"avatar,omitempty"`
+	Phone            *string   `json:"phone,omitempty"`
+	MemberID         string    `json:"member_id"`
+	AccessLevel      UserLevel `json:"access_level"`
+	AuthentikID      string    `json:"authentik_id,omitempty"`
+	MemberSince      string    `json:"member_since,omitempty"`
+	MembershipType   string    `json:"membership_type,omitempty"`
+	ExpiryDate       string    `json:"expiry_date,omitempty"`
+	MembershipStatus string    `json:"membership_status,omitempty"`
 }
 
 type UserFromHeaders struct {

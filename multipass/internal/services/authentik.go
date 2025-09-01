@@ -24,14 +24,15 @@ type AuthentikClient struct {
 
 // AuthentikUserResponse represents the response from Authentik's user API
 type AuthentikUserResponse struct {
-	ID        int      `json:"pk"`
-	Username  string   `json:"username"`
-	Name      string   `json:"name"`
-	Email     string   `json:"email"`
-	IsActive  bool     `json:"is_active"`
-	LastLogin string   `json:"last_login"`
-	Groups    []string `json:"groups"`
-	Avatar    string   `json:"avatar"`
+	ID         int                    `json:"pk"`
+	Username   string                 `json:"username"`
+	Name       string                 `json:"name"`
+	Email      string                 `json:"email"`
+	IsActive   bool                   `json:"is_active"`
+	LastLogin  string                 `json:"last_login"`
+	Groups     []string               `json:"groups"`
+	Avatar     string                 `json:"avatar"`
+	Attributes map[string]interface{} `json:"attributes"`
 }
 
 // NewAuthentikClient creates a new Authentik API client
@@ -230,6 +231,12 @@ func (ac *AuthentikClient) GetUserByEmail(email string) (*models.UserProfile, er
 		return createUserProfileFromAuthentikUser(ac, authUser)
 	}
 
+	// Check if we have any results
+	if len(paginatedResponse.Results) == 0 {
+		log.Printf("[ERROR] No user found with email: %s in paginated response", email)
+		return nil, errors.New("user not found")
+	}
+
 	// Get first user from paginated response
 	authUser := paginatedResponse.Results[0]
 	log.Printf("[DEBUG] Found user by email in paginated response: %s (ID: %d)", authUser.Name, authUser.ID)
@@ -262,6 +269,36 @@ func createUserProfileFromAuthentikUser(ac *AuthentikClient, authUser AuthentikU
 	// Add avatar if available
 	if authUser.Avatar != "" {
 		userProfile.Avatar = &authUser.Avatar
+	}
+
+	// Extract user attributes/metadata
+	if authUser.Attributes != nil {
+		// Log available attributes for debugging
+		log.Printf("[DEBUG] User attributes for %s: %v", authUser.Email, authUser.Attributes)
+
+		// Extract member_since if available
+		if memberSince, ok := authUser.Attributes["member_since"].(string); ok {
+			log.Printf("[DEBUG] Found member_since attribute: %s", memberSince)
+			userProfile.MemberSince = memberSince
+		}
+		
+		// Extract membership_type if available
+		if membershipType, ok := authUser.Attributes["membership_type"].(string); ok {
+			log.Printf("[DEBUG] Found membership_type attribute: %s", membershipType)
+			userProfile.MembershipType = membershipType
+		}
+		
+		// Extract expiry_date if available
+		if expiryDate, ok := authUser.Attributes["expiry_date"].(string); ok {
+			log.Printf("[DEBUG] Found expiry_date attribute: %s", expiryDate)
+			userProfile.ExpiryDate = expiryDate
+		}
+		
+		// Extract membership_status if available
+		if status, ok := authUser.Attributes["membership_status"].(string); ok {
+			log.Printf("[DEBUG] Found membership_status attribute: %s", status)
+			userProfile.MembershipStatus = status
+		}
 	}
 
 	return userProfile, nil

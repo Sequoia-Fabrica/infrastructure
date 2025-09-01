@@ -5,6 +5,7 @@ import (
 	"log"
 	"multipass/internal/config"
 	"multipass/internal/models"
+	"multipass/internal/services"
 	"multipass/internal/utils"
 	"net/http"
 	"net/url"
@@ -33,14 +34,19 @@ func PublicCardHandler(c *gin.Context) {
 	// Load config
 	cfg := config.Load()
 
-	// Build membership info (simplified version)
-	// In a real implementation, this would be fetched from a database or service
-	membershipInfo := &models.MembershipInfo{
-		MembershipType: "Digital Member",
-		Status:         models.StatusActive,
-		UserLevel:      user.AccessLevel,
-		JoinDate:       getDefaultJoinDate(),
-		ExpiryDate:     getDefaultExpiryDate(),
+	// Get membership info from the membership service
+	membershipService := services.NewMembershipService()
+	membershipInfo, err := membershipService.GetMembershipInfo(user)
+	if err != nil {
+		log.Printf("[ERROR] Failed to retrieve membership info: %v", err)
+		// Fall back to default membership info if service fails
+		membershipInfo = &models.MembershipInfo{
+			MembershipType: "Digital Member",
+			Status:         models.StatusActive,
+			UserLevel:      user.AccessLevel,
+			JoinDate:       getDefaultJoinDate(),
+			ExpiryDate:     getDefaultExpiryDate(),
+		}
 	}
 
 	// Get debug info if available
@@ -74,6 +80,18 @@ func PublicCardHandler(c *gin.Context) {
 	// Convert to template.HTML to prevent escaping
 	qrCodeHTML := template.HTML("<img src=\"" + qrCodeBase64 + "\" alt=\"QR Code\" class=\"qr-code\">")
 
+	// Format dates for display
+	joinDateStr := "Unknown"
+	expiryDateStr := "Unknown"
+	
+	if membershipInfo.JoinDate != nil {
+		joinDateStr = membershipInfo.JoinDate.Format("Jan 2, 2006")
+	}
+	
+	if membershipInfo.ExpiryDate != nil {
+		expiryDateStr = membershipInfo.ExpiryDate.Format("Jan 2, 2006")
+	}
+	
 	// Prepare template data
 	templateData := gin.H{
 		"title":           "Digital ID Card - " + cfg.MakerspaceName,
@@ -84,6 +102,9 @@ func PublicCardHandler(c *gin.Context) {
 		"qr_code_html":    qrCodeHTML,          // Add QR code HTML
 		"qr_data":         fullURL,             // Keep the URL as data attribute for backward compatibility
 		"public_view":     true,                // Flag to indicate this is a public view
+		"current_time":    time.Now().Format("Jan 2, 2006 15:04:05"),  // Current time for reference
+		"join_date":       joinDateStr,         // Member since date
+		"expiry_date":     expiryDateStr,       // Membership expiry date
 	}
 
 	// Add debug info if available
