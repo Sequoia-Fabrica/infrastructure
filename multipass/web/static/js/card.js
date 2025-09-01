@@ -50,16 +50,16 @@ function showShareModal(url) {
     const modal = document.createElement('div');
     modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
     modal.innerHTML = `
-        <div class="bg-white rounded-lg p-6 max-w-md mx-4">
-            <h3 class="text-lg font-semibold mb-4">Share Your Digital ID</h3>
+        <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md mx-4">
+            <h3 class="text-lg font-semibold mb-4 dark:text-white">Share Your Digital ID</h3>
             <div class="mb-4">
                 <input type="text" value="${url}" readonly 
-                       class="w-full p-2 border rounded text-sm bg-gray-50" 
+                       class="w-full p-2 border rounded text-sm bg-gray-50 dark:bg-gray-700 dark:text-gray-300 dark:border-gray-600" 
                        onclick="this.select()">
             </div>
             <div class="flex justify-end space-x-2">
                 <button onclick="this.closest('.fixed').remove()" 
-                        class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded">
+                        class="px-4 py-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded">
                     Close
                 </button>
                 <button onclick="copyToClipboard('${url}'); this.closest('.fixed').remove();" 
@@ -159,7 +159,7 @@ function createSimplePattern(data) {
     
     for (let i = 0; i < size * size; i++) {
         const isBlack = (hash >> (i % 32)) & 1;
-        pattern += `<div class="${isBlack ? 'bg-gray-900' : 'bg-white'}"></div>`;
+        pattern += `<div class="${isBlack ? 'bg-gray-900' : 'bg-white dark:bg-gray-300'}"></div>`;
     }
     
     return pattern;

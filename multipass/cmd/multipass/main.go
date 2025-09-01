@@ -11,7 +11,62 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gin-contrib/multitemplate"
 )
+
+// createTemplateRenderer creates a custom HTML renderer that properly handles template inheritance
+func createTemplateRenderer() multitemplate.Renderer {
+	r := multitemplate.NewRenderer()
+	templateDir := "web/templates"
+
+	// Define template functions
+	funcMap := template.FuncMap{
+		"upper": strings.ToUpper,
+	}
+
+	// Get all template files
+	templateFiles, err := filepath.Glob(filepath.Join(templateDir, "*.html"))
+	if err != nil {
+		log.Fatal("Failed to load templates:", err)
+	}
+
+	// Find base template
+	var baseFile string
+	for _, file := range templateFiles {
+		if filepath.Base(file) == "base.html" {
+			baseFile = file
+			break
+		}
+	}
+
+	if baseFile == "" {
+		log.Fatal("Base template not found")
+	}
+
+	// Add each template with base
+	for _, file := range templateFiles {
+		fileName := filepath.Base(file)
+		if fileName == "base.html" {
+			continue
+		}
+		
+		// Load both templates together
+		tmplFiles := []string{baseFile, file}
+		
+		// Create a new template instance for each page
+		tmpl, err := template.New(filepath.Base(baseFile)).Funcs(funcMap).ParseFiles(tmplFiles...)
+		if err != nil {
+			log.Fatalf("Failed to parse template %s: %v", fileName, err)
+		}
+		
+		// Add to renderer with the full filename
+		r.Add(fileName, tmpl)
+		
+		log.Printf("Added template: %s", fileName)
+	}
+
+	return r
+}
 
 func main() {
 	// Load configuration
@@ -32,9 +87,8 @@ func main() {
 		},
 	})
 
-	// Load HTML templates
-	templatePath := filepath.Join("web", "templates", "*.html")
-	r.LoadHTMLGlob(templatePath)
+	// Load HTML templates with proper inheritance
+	r.HTMLRender = createTemplateRenderer()
 
 	// Serve static files
 	r.Static("/static", "./web/static")
@@ -76,6 +130,7 @@ func main() {
 
 	// Protected routes (require authentication)
 	protected := r.Group("/")
+	protected.Use(middleware.DebugAuthMiddleware()) // Add debug middleware before auth
 	protected.Use(middleware.AuthMiddleware())
 	{
 		// Root route redirects to card
@@ -94,6 +149,7 @@ func main() {
 
 	// API routes
 	api := r.Group("/api/v1")
+	api.Use(middleware.DebugAuthMiddleware()) // Add debug middleware before auth
 	api.Use(middleware.AuthMiddleware())
 	{
 		api.GET("/user", handlers.ProfileHandler)

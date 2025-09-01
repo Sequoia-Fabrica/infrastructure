@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"multipass/internal/models"
 	"net/http"
 	"time"
@@ -87,14 +88,23 @@ func DesktopCardHandler(c *gin.Context) {
 		AccessPermissions: getAccessPermissions(userProfile.AccessLevel),
 	}
 
-	c.HTML(http.StatusOK, "card_desktop.html", gin.H{
+	// Debug logging
+	log.Printf("[DEBUG] Rendering desktop card for user: %s (Level: %s)", 
+		userProfile.GetFullName(), userProfile.AccessLevel.String())
+
+	// Add debug info to template data
+	templateData := gin.H{
 		"title":          "Digital ID Card - " + userProfile.GetFullName(),
 		"user":           userProfile,
 		"membership":     membership,
 		"makerspace_name": "Sequoia Fabrica",
 		"current_time":   time.Now().Format("January 2, 2006"),
 		"qr_data":        generateQRData(userProfile),
-	})
+		"debug":          true,
+	}
+
+	// Render the template
+	c.HTML(http.StatusOK, "card_desktop.html", templateData)
 }
 
 // isMobileUserAgent performs simple mobile user agent detection

@@ -56,12 +56,13 @@ This starts both the application and Caddy reverse proxy with automatic HTTPS.
 
 ### Development Setup
 
-1. **Install Go 1.21+**
+1. **Install Go 1.21+ and Node.js 16+**
 2. **Clone repository and install dependencies**:
    ```bash
    git clone <repository-url>
    cd multipass
    go mod download
+   npm install
    ```
 
 3. **Set environment variables**:
@@ -71,9 +72,22 @@ This starts both the application and Caddy reverse proxy with automatic HTTPS.
    export MAKERSPACE_NAME="Your Makerspace"
    ```
 
-4. **Run the application**:
+4. **Build CSS with Tailwind**:
    ```bash
+   # Build CSS once
+   make css
+   
+   # Or watch for CSS changes during development
+   make css-watch
+   ```
+
+5. **Run the application**:
+   ```bash
+   # Run with pre-built CSS
    go run cmd/multipass/main.go
+   
+   # Or use the dev command to build CSS and run
+   make dev
    ```
 
 ## Configuration
