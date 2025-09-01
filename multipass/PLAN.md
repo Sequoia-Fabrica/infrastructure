@@ -125,7 +125,6 @@ func (ul UserLevel) String() string {
 type MembershipInfo struct {
     MembershipType      string              `json:"membership_type"`       // Derived from Authentik groups
     Status              MembershipStatus    `json:"status"`                // Active if user has valid groups
-    AccessPermissions   []string            `json:"access_permissions"`    // Equipment access from group attributes
     UserLevel           UserLevel           `json:"user_level"`            // Limited Volunteer or Full Member
 }
 
@@ -164,10 +163,9 @@ Authentik reverse proxy provides user data via headers:
 ### Desktop ID Card Layout
 - **Landscape card format** similar to physical ID cards
 - **Left side**: Member photo and QR code
-- **Right side**: Member details and access information
+- **Right side**: Member details and membership information
 - **Additional information** visible without interaction:
   - Emergency contact
-  - Access permissions
   - Recent activity
 - **Hover effects** for enhanced interactivity
 

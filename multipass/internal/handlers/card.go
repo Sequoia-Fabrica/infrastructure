@@ -24,7 +24,6 @@ func CardHandler(c *gin.Context) {
 		MembershipType:    userProfile.AccessLevel.String(),
 		Status:           models.StatusActive,
 		UserLevel:        userProfile.AccessLevel,
-		AccessPermissions: getAccessPermissions(userProfile.AccessLevel),
 	}
 
 	// Determine template based on user agent
@@ -73,7 +72,6 @@ func MobileCardHandler(c *gin.Context) {
 		MembershipType:    userProfile.AccessLevel.String(),
 		Status:           models.StatusActive,
 		UserLevel:        userProfile.AccessLevel,
-		AccessPermissions: getAccessPermissions(userProfile.AccessLevel),
 	}
 
 	// Get debug info from context
@@ -113,7 +111,6 @@ func DesktopCardHandler(c *gin.Context) {
 		MembershipType:    userProfile.AccessLevel.String(),
 		Status:           models.StatusActive,
 		UserLevel:        userProfile.AccessLevel,
-		AccessPermissions: getAccessPermissions(userProfile.AccessLevel),
 	}
 
 	// Debug logging
