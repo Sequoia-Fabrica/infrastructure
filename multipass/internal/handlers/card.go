@@ -80,15 +80,3 @@ func contains(s, substr string) bool {
 		     (s[:len(substr)] == substr ||
 		      contains(s[1:], substr))))
 }
-
-// MobileCardHandler redirects to the main CardHandler for backward compatibility
-func MobileCardHandler(c *gin.Context) {
-	// Simply use the main CardHandler which now uses responsive design
-	CardHandler(c)
-}
-
-// DesktopCardHandler redirects to the main CardHandler for backward compatibility
-func DesktopCardHandler(c *gin.Context) {
-	// Simply use the main CardHandler which now uses responsive design
-	CardHandler(c)
-}
