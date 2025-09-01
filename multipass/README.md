@@ -4,7 +4,7 @@ A Go-based web application that serves as a digital ID card system for makerspac
 
 ## Features
 
-- **Digital ID Cards**: Mobile-optimized and desktop-friendly membership cards
+- **Digital ID Cards**: Responsive membership cards that adapt to any device
 - **Authentik SSO Integration**: Seamless authentication via reverse proxy headers
 - **Two-Tier User System**: Limited Volunteer and Full Member access levels
 - **Responsive Design**: Optimized for both mobile and desktop viewing
@@ -133,8 +133,8 @@ Configure these groups in Authentik to control user access levels:
 ### Protected Endpoints (Require Authentication)
 - `GET /` - Redirects to card
 - `GET /card` - Digital ID card (responsive)
-- `GET /card/mobile` - Mobile ID card layout
-- `GET /card/desktop` - Desktop ID card layout
+- `GET /card/mobile` - Mobile ID card layout (redirects to /card for backward compatibility)
+- `GET /card/desktop` - Desktop ID card layout (redirects to /card for backward compatibility)
 - `GET /profile` - User profile information
 
 ### API Endpoints
@@ -162,8 +162,7 @@ multipass/
 ├── web/
 │   ├── templates/
 │   │   ├── base.html          # Base template
-│   │   ├── card_mobile.html   # Mobile ID card
-│   │   ├── card_desktop.html  # Desktop ID card
+│   │   ├── card.html          # Responsive ID card (primary template)
 │   │   └── login.html         # Login page
 │   └── static/
 │       ├── css/

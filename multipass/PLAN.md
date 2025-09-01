@@ -61,8 +61,7 @@ multipass/
 ├── web/
 │   ├── templates/
 │   │   ├── base.html          # Base template
-│   │   ├── card_mobile.html   # Mobile ID card layout
-│   │   ├── card_desktop.html  # Desktop ID card layout
+│   │   ├── card.html          # Responsive ID card layout
 │   │   └── login.html         # SSO login page
 │   └── static/
 │       ├── css/
@@ -146,27 +145,30 @@ Authentik reverse proxy provides user data via headers:
 
 ## UI/UX Design Requirements
 
-### Mobile ID Card Layout
-- **Portrait orientation optimized**
-- **Card-like visual design** with rounded corners and shadow
-- **Member photo** prominently displayed at top
-- **Essential information**:
+### Responsive ID Card Layout
+- **Single unified template** that adapts to screen size
+- **Portrait orientation** for mobile devices
+- **Landscape format** for desktop devices
+- **Essential information** displayed appropriately for each viewport:
   - Full name (large, bold)
   - Membership type and status
   - Member ID number
   - QR code for quick scanning
   - Expiration date
 - **Color coding** by membership type
-- **Touch-friendly** interactions for card flipping/details
+- **Touch-friendly** interactions for mobile
+- **Hover effects** for desktop interactivity
 
-### Desktop ID Card Layout
+### Mobile View (Portrait)
+- **Card-like visual design** with rounded corners and shadow
+- **Member photo** prominently displayed at top
+- **Stacked layout** for optimal mobile viewing
+
+### Desktop View (Landscape)
 - **Landscape card format** similar to physical ID cards
 - **Left side**: Member photo and QR code
 - **Right side**: Member details and membership information
-- **Additional information** visible without interaction:
-  - Emergency contact
-  - Recent activity
-- **Hover effects** for enhanced interactivity
+- **Additional information** visible without interaction
 
 ### Responsive Breakpoints
 - **Mobile**: < 768px (card stacked vertically)
@@ -239,10 +241,11 @@ For extended user data not available in headers:
 - [ ] Implement user level determination logic
 
 ### Phase 2: ID Card Interface (Week 3-4)
-- [ ] Mobile ID card layout
-- [ ] Desktop ID card layout
-- [ ] Responsive design implementation
-- [ ] Member data display
+- [x] Unified responsive ID card layout
+- [x] Mobile view implementation
+- [x] Desktop view implementation
+- [x] Responsive design with media queries
+- [x] Member data display
 
 ### Phase 3: Enhanced Integration (Week 5-6)
 - [ ] Profile image fetching from Authentik API
