@@ -43,6 +43,8 @@ func (m *MembershipInfo) IsActive() bool {
 // GetAccessLevel returns a human-readable access level description
 func (m *MembershipInfo) GetAccessLevel() string {
 	switch m.UserLevel {
+	case NoAccess:
+		return "No access to workspace or equipment"
 	case LimitedVolunteer:
 		return "Basic workspace access, supervised equipment use"
 	case FullMember:
@@ -52,6 +54,6 @@ func (m *MembershipInfo) GetAccessLevel() string {
 	case Admin:
 		return "Full administrative access"
 	default:
-		return "No access"
+		return "Unknown access level"
 	}
 }

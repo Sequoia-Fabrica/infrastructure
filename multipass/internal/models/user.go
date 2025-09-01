@@ -1,13 +1,15 @@
 package models
 
 import (
+	"multipass/internal/config"
 	"strings"
 )
 
 type UserLevel int
 
 const (
-	LimitedVolunteer UserLevel = iota
+	NoAccess UserLevel = iota
+	LimitedVolunteer
 	FullMember
 	Staff
 	Admin
@@ -15,6 +17,8 @@ const (
 
 func (ul UserLevel) String() string {
 	switch ul {
+	case NoAccess:
+		return "No Access"
 	case LimitedVolunteer:
 		return "Limited Volunteer"
 	case FullMember:
@@ -48,21 +52,50 @@ type UserFromHeaders struct {
 	Groups    []string `json:"groups"`
 }
 
-// Group mapping for membership types and user levels
-var GroupMapping = map[string]UserLevel{
-	"volunteers-limited": LimitedVolunteer,
-	"members-full":       FullMember,
-}
+// Group mapping will be loaded from config file
+var GroupMapping = map[string]UserLevel{}
 
 // DetermineUserLevel determines user level from Authentik groups
 func DetermineUserLevel(groups []string) UserLevel {
+	// Import config package
+	cfg := config.Load()
+	
 	// Check for highest privilege level first
 	for _, group := range groups {
-		if level, exists := GroupMapping[group]; exists {
-			return level
+		if levelStr, exists := cfg.GroupMappingConfig.Mappings[group]; exists {
+			// Convert string level to UserLevel enum
+			switch levelStr {
+			case "NoAccess":
+				return NoAccess
+			case "LimitedVolunteer":
+				return LimitedVolunteer
+			case "FullMember":
+				return FullMember
+			case "Staff":
+				return Staff
+			case "Admin":
+				return Admin
+			default:
+				return NoAccess
+			}
 		}
 	}
-	return LimitedVolunteer // Default to limited volunteer
+	
+	// Use default level from config
+	switch cfg.GroupMappingConfig.DefaultLevel {
+	case "NoAccess":
+		return NoAccess
+	case "LimitedVolunteer":
+		return LimitedVolunteer
+	case "FullMember":
+		return FullMember
+	case "Staff":
+		return Staff
+	case "Admin":
+		return Admin
+	default:
+		return NoAccess
+	}
 }
 
 // GetFullName returns the user's full name

@@ -98,7 +98,8 @@ type UserProfile struct {
 type UserLevel int
 
 const (
-    LimitedVolunteer UserLevel = iota
+    NoAccess UserLevel = iota
+    LimitedVolunteer
     FullMember
     Staff
     Admin
@@ -106,6 +107,8 @@ const (
 
 func (ul UserLevel) String() string {
     switch ul {
+    case NoAccess:
+        return "No Access"
     case LimitedVolunteer:
         return "Limited Volunteer"
     case FullMember:
@@ -196,10 +199,19 @@ type UserFromHeaders struct {
     Groups    []string `json:"groups"`
 }
 
+// Group mapping configuration loaded from a YAML file
+type GroupMappingConfig struct {
+    Mappings map[string]string `yaml:"mappings"` // Maps Authentik group names to access levels
+    DefaultLevel string `yaml:"default_level"` // Default access level if no matching groups found
+}
+
 // Group mapping for membership types and user levels
+// This mapping will be loaded from a configuration file
 var GroupMapping = map[string]UserLevel{
     "volunteers-limited":   LimitedVolunteer,
     "members-full":        FullMember,
+    "staff":              Staff,
+    "admin":              Admin,
 }
 
 // DetermineUserLevel determines user level from Authentik groups
@@ -210,8 +222,11 @@ func DetermineUserLevel(groups []string) UserLevel {
             return level
         }
     }
-    return LimitedVolunteer // Default to limited volunteer
+    return NoAccess // Default to No Access if no matching groups found
 }
+
+// Debug middleware will have no groups, resulting in "No Access" level
+// This ensures proper testing of the default access level
 ```
 
 ### Authentik API Integration
@@ -261,6 +276,20 @@ BIND_ADDRESS=0.0.0.0:3000
 MAKERSPACE_NAME="Sequoia Fabrica"
 MAKERSPACE_LOGO_URL="/static/images/logo.png"
 TRUSTED_PROXY_HEADERS=true  # Enable header-based authentication
+GROUP_MAPPING_CONFIG="./config/group_mapping.yaml"  # Path to group mapping configuration file
+```
+
+### Group Mapping Configuration
+The application uses a YAML configuration file to map Authentik groups to access levels. This file is loaded at startup and can be specified via the `GROUP_MAPPING_CONFIG` environment variable.
+
+```yaml
+# Example group_mapping.yaml
+mappings:
+  volunteers-limited: "LimitedVolunteer"
+  members-full: "FullMember"
+  staff: "Staff"
+  admin: "Admin"
+default_level: "NoAccess"  # Default access level if no matching groups found
 ```
 
 ## Security Considerations

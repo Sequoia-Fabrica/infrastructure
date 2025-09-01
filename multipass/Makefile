@@ -10,7 +10,7 @@ run: build
 
 # Run in development mode
 dev: css
-	go run cmd/multipass/main.go
+	GROUP_MAPPING_CONFIG="./config/group_mapping.yaml" go run cmd/multipass/main.go
 
 # Install dependencies
 install:
