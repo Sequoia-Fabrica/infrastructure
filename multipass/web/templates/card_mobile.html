@@ -23,11 +23,11 @@
             <div class="px-6 py-6 text-center">
                 <div class="relative inline-block">
                     {{if .user.Avatar}}
-                    <img class="w-24 h-24 rounded-full border-4 border-gray-200 dark:border-gray-700 shadow-sm" 
+                    <img class="w-24 h-24 rounded-full border-4 border-gray-200 dark:border-gray-700 shadow-sm"
                          src="{{.user.Avatar}}" alt="{{.user.GetFullName}}">
                     {{else if .debug_mode}}
                     {{if .debug_info.avatar}}
-                    <img class="w-24 h-24 rounded-full border-4 border-gray-200 dark:border-gray-700 shadow-sm" 
+                    <img class="w-24 h-24 rounded-full border-4 border-gray-200 dark:border-gray-700 shadow-sm"
                          src="{{.debug_info.avatar}}" alt="{{.user.GetFullName}}">
                     {{else}}
                     <div class="w-24 h-24 rounded-full border-4 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
@@ -60,7 +60,7 @@
                         <span class="text-gray-600 dark:text-gray-300 font-medium">Member ID</span>
                         <span class="font-mono text-sm bg-gray-100 dark:bg-gray-700 dark:text-gray-300 px-2 py-1 rounded">{{.user.MemberID}}</span>
                     </div>
-                    
+
                     <div class="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700">
                         <span class="text-gray-600 dark:text-gray-300 font-medium">Status</span>
                         <span class="text-green-600 dark:text-green-400 font-semibold">{{.membership.Status.String}}</span>
@@ -103,12 +103,12 @@
 
         <!-- Action Buttons -->
         <div class="mt-6 space-y-3">
-            <button onclick="toggleCard()" 
+            <button onclick="toggleCard()"
                     class="w-full bg-green-600 text-white py-3 px-4 rounded-lg font-semibold hover:bg-green-700 transition-colors">
                 Flip Card
             </button>
-            
-            <button onclick="shareCard()" 
+
+            <button onclick="shareCard()"
                     class="w-full bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 py-3 px-4 rounded-lg font-semibold hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
                 Share Digital ID
             </button>

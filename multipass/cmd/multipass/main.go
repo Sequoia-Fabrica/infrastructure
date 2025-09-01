@@ -49,19 +49,19 @@ func createTemplateRenderer() multitemplate.Renderer {
 		if fileName == "base.html" {
 			continue
 		}
-		
+
 		// Load both templates together
 		tmplFiles := []string{baseFile, file}
-		
+
 		// Create a new template instance for each page
 		tmpl, err := template.New(filepath.Base(baseFile)).Funcs(funcMap).ParseFiles(tmplFiles...)
 		if err != nil {
 			log.Fatalf("Failed to parse template %s: %v", fileName, err)
 		}
-		
+
 		// Add to renderer with the full filename
 		r.Add(fileName, tmpl)
-		
+
 		log.Printf("Added template: %s", fileName)
 	}
 
@@ -103,12 +103,12 @@ func main() {
 			c.Header("Access-Control-Allow-Origin", "*")
 			c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 			c.Header("Access-Control-Allow-Headers", "Accept, Authorization, Content-Type, X-CSRF-Token")
-			
+
 			if c.Request.Method == "OPTIONS" {
 				c.AbortWithStatus(204)
 				return
 			}
-			
+
 			c.Next()
 		})
 	}
@@ -181,7 +181,7 @@ func main() {
 	log.Printf("Starting Multipass server on %s", cfg.GetServerAddress())
 	log.Printf("Environment: %s", cfg.Environment)
 	log.Printf("Makerspace: %s", cfg.MakerspaceName)
-	
+
 	if err := r.Run(cfg.GetServerAddress()); err != nil {
 		log.Fatal("Failed to start server:", err)
 	}

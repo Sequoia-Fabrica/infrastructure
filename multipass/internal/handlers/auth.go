@@ -26,7 +26,7 @@ func ProfileHandler(c *gin.Context) {
 	}
 
 	userProfile := user.(*models.UserProfile)
-	
+
 	// Create membership info
 	membership := &models.MembershipInfo{
 		MembershipType:    userProfile.AccessLevel.String(),

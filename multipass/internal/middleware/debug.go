@@ -16,7 +16,7 @@ func DebugAuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// Check if debug mode is enabled via environment variable
 		debugMode := os.Getenv("DEBUG_MODE") == "true"
-		
+
 		// Only apply mock headers in development mode
 		cfg := config.Load()
 		if cfg.IsDevelopment() && c.GetHeader("X-Authentik-Email") == "" {
@@ -24,14 +24,14 @@ func DebugAuthMiddleware() gin.HandlerFunc {
 			testEmail := "test.user@example.com"
 			c.Request.Header.Set("X-Authentik-Email", testEmail)
 			c.Request.Header.Set("X-Authentik-Name", "Test User")
-			
+
 			// Use the Members group from group_mapping.yaml
 			c.Request.Header.Set("X-Authentik-Groups", "Members")
-			
+
 			// Generate Gravatar URL for test user
 			gravatarURL := utils.GenerateGravatarURL(testEmail, 256, "identicon")
 			c.Set("debug_avatar", gravatarURL)
-			
+
 			log.Printf("[DEBUG] Added mock Authentik headers for path: %s", c.Request.URL.Path)
 		} else if c.GetHeader("X-Authentik-Email") != "" {
 			log.Println("Headers already present, skipping debug middleware")
@@ -45,17 +45,17 @@ func DebugAuthMiddleware() gin.HandlerFunc {
 				"X-Authentik-Name":  c.GetHeader("X-Authentik-Name"),
 				"X-Authentik-Groups": c.GetHeader("X-Authentik-Groups"),
 			}
-			
+
 			// Add debug info to context for templates
 			c.Set("debug_mode", true)
 			c.Set("debug_headers", debugInfo)
-			
+
 			// Log debug information
-			log.Printf("[DEBUG] Headers: Email=%s, Name=%s, Groups=%s", 
+			log.Printf("[DEBUG] Headers: Email=%s, Name=%s, Groups=%s",
 				debugInfo["X-Authentik-Email"],
 				debugInfo["X-Authentik-Name"],
 				debugInfo["X-Authentik-Groups"])
-			
+
 			// Parse groups for debugging
 			groups := []string{}
 			if groupsHeader := debugInfo["X-Authentik-Groups"]; groupsHeader != "" {
@@ -66,12 +66,12 @@ func DebugAuthMiddleware() gin.HandlerFunc {
 					// Fall back to comma if no pipes found
 					groups = strings.Split(groupsHeader, ",")
 				}
-				
+
 				// Trim spaces from each group
 				for i, group := range groups {
 					groups[i] = strings.TrimSpace(group)
 				}
-				
+
 				// Log the parsed groups
 				log.Printf("[DEBUG] Parsed groups: %v", groups)
 			}
@@ -88,18 +88,18 @@ func GetDebugInfo(c *gin.Context) map[string]interface{} {
 	if !exists || !debugMode.(bool) {
 		return nil
 	}
-	
+
 	debugInfo := map[string]interface{}{
 		"headers": c.MustGet("debug_headers"),
 	}
-	
+
 	if groups, exists := c.Get("debug_groups"); exists {
 		debugInfo["groups"] = groups
 	}
-	
+
 	if avatar, exists := c.Get("debug_avatar"); exists {
 		debugInfo["avatar"] = avatar
 	}
-	
+
 	return debugInfo
 }

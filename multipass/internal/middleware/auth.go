@@ -36,19 +36,19 @@ func AuthMiddleware() gin.HandlerFunc {
 				// Fall back to comma if no pipes found
 				groups = strings.Split(groupsHeader, ",")
 			}
-			
+
 			// Trim whitespace from group names
 			for i, group := range groups {
 				groups[i] = strings.TrimSpace(group)
 			}
-			
+
 			// Log the parsed groups for debugging
 			fmt.Printf("[AUTH] Parsed groups: %v\n", groups)
 		}
 
 		// Generate Gravatar URL for the user's email
 		gravatarURL := utils.GenerateGravatarURL(email, 256, "identicon")
-		
+
 		// Create user profile
 		userProfile := &models.UserProfile{
 			Email:       email,

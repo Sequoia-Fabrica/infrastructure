@@ -20,12 +20,12 @@ import (
 func GenerateGravatarURL(email string, size int, defaultImage string) string {
 	// Trim whitespace and convert to lowercase
 	email = strings.TrimSpace(strings.ToLower(email))
-	
+
 	// Generate MD5 hash of email
 	hash := md5.Sum([]byte(email))
 	hashString := fmt.Sprintf("%x", hash)
-	
+
 	// Build Gravatar URL
-	return fmt.Sprintf("https://www.gravatar.com/avatar/%s?s=%d&d=%s", 
+	return fmt.Sprintf("https://www.gravatar.com/avatar/%s?s=%d&d=%s",
 		hashString, size, defaultImage)
 }
