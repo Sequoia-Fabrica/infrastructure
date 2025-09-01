@@ -172,25 +172,70 @@
 
 /* Dark mode support */
 @media (prefers-color-scheme: dark) {
+    /* Card backgrounds */
     .id-card-mobile,
     .id-card-desktop {
         background: #1f2937;
         color: #f9fafb;
     }
 
+    /* Mobile card specific styles */
+    .mobile-card {
+        background: #1f2937 !important;
+        color: #f9fafb !important;
+    }
+
+    /* QR code styles for dark mode */
+    .mobile-card [data-qr] .bg-white,
+    .id-card-desktop [data-qr] .bg-white,
+    .id-card-mobile [data-qr] .bg-white {
+        background-color: #f9fafb !important; /* Light color for QR code */
+    }
+
+    .mobile-card [data-qr] .bg-gray-900,
+    .id-card-desktop [data-qr] .bg-gray-900,
+    .id-card-mobile [data-qr] .bg-gray-900 {
+        background-color: #111827 !important; /* Dark color for QR code */
+    }
+
+    /* QR code container */
+    .mobile-card .bg-white,
+    .id-card-mobile .bg-white {
+        background-color: #374151 !important;
+    }
+
+    /* Footer background for mobile card */
+    .mobile-card .bg-gray-50 {
+        background-color: #111827 !important;
+    }
+
+    /* Common dark mode styles */
     .bg-gray-50 {
         background-color: #374151 !important;
+    }
+
+    .bg-gray-100 {
+        background-color: #1f2937 !important;
     }
 
     .text-gray-900 {
         color: #f9fafb !important;
     }
 
+    .text-gray-800 {
+        color: #f3f4f6 !important;
+    }
+
     .text-gray-600 {
         color: #d1d5db !important;
     }
 
-    .border-gray-200 {
+    .text-gray-500 {
+        color: #9ca3af !important;
+    }
+
+    .border-gray-200,
+    .border-gray-100 {
         border-color: #4b5563 !important;
     }
 }
