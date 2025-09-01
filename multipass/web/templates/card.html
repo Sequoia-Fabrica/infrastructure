@@ -1,3 +1,27 @@
+{{define "status_bubble_desktop"}}
+    {{if eq .user.AccessLevel 0}}
+        <span class="bg-red-500 px-3 py-1 rounded-full text-sm">NO ACCESS</span>
+    {{else if eq .user.AccessLevel 1}}
+        <span class="bg-green-500 px-3 py-1 rounded-full text-sm">VOLUNTEER</span>
+    {{else if eq .user.AccessLevel 2}}
+        <span class="bg-blue-500 px-3 py-1 rounded-full text-sm">MEMBER</span>
+    {{else}}
+        <span class="bg-purple-500 px-3 py-1 rounded-full text-sm">{{.user.AccessLevel.String | upper}}</span>
+    {{end}}
+{{end}}
+
+{{define "status_bubble_mobile"}}
+    {{if eq .user.AccessLevel 0}}
+        <span class="bg-red-500 px-2 py-1 rounded-full text-xs">NO ACCESS</span>
+    {{else if eq .user.AccessLevel 1}}
+        <span class="bg-green-500 px-2 py-1 rounded-full text-xs">VOLUNTEER</span>
+    {{else if eq .user.AccessLevel 2}}
+        <span class="bg-blue-500 px-2 py-1 rounded-full text-xs">MEMBER</span>
+    {{else}}
+        <span class="bg-purple-500 px-2 py-1 rounded-full text-xs">{{.user.AccessLevel.String | upper}}</span>
+    {{end}}
+{{end}}
+
 {{define "content"}}
 <!-- START DEBUG MESSAGE -->
 <!-- {{if .debug_mode}}
@@ -35,15 +59,7 @@
                     <div class="text-center mb-6">
                         <h1 class="text-xl font-bold mb-2">{{.makerspace_name}}</h1>
                         <div class="text-green-100">
-                            {{if eq .user.AccessLevel 0}}
-                                <span class="bg-red-500 px-3 py-1 rounded-full text-sm">NO ACCESS</span>
-                            {{else if eq .user.AccessLevel 1}}
-                                <span class="bg-green-500 px-3 py-1 rounded-full text-sm">VOLUNTEER</span>
-                            {{else if eq .user.AccessLevel 2}}
-                                <span class="bg-blue-500 px-3 py-1 rounded-full text-sm">MEMBER</span>
-                            {{else}}
-                                <span class="bg-purple-500 px-3 py-1 rounded-full text-sm">{{.user.AccessLevel.String | upper}}</span>
-                            {{end}}
+                            {{template "status_bubble_desktop" .}}
                         </div>
                     </div>
 
@@ -150,13 +166,7 @@
                 <div class="flex items-center justify-between">
                     <h1 class="text-white font-semibold text-lg">{{.makerspace_name}}</h1>
                     <div class="text-green-100 text-sm">
-                        {{if eq .membership.UserLevel 0}}
-                            <span class="bg-green-500 px-2 py-1 rounded-full text-xs">VOLUNTEER</span>
-                        {{else if eq .membership.UserLevel 1}}
-                            <span class="bg-blue-500 px-2 py-1 rounded-full text-xs">MEMBER</span>
-                        {{else}}
-                            <span class="bg-purple-500 px-2 py-1 rounded-full text-xs">{{.user.AccessLevel.String | upper}}</span>
-                        {{end}}
+                        {{template "status_bubble_mobile" .}}
                     </div>
                 </div>
             </div>
