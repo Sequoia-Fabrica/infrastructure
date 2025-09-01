@@ -3,6 +3,7 @@ package middleware
 import (
 	"log"
 	"multipass/internal/config"
+	"multipass/internal/utils"
 	"os"
 	"strings"
 
@@ -20,12 +21,17 @@ func DebugAuthMiddleware() gin.HandlerFunc {
 		cfg := config.Load()
 		if cfg.IsDevelopment() && c.GetHeader("X-Authentik-Email") == "" {
 			// Add mock Authentik headers for testing
-			c.Request.Header.Set("X-Authentik-Email", "test.user@example.com")
+			testEmail := "test.user@example.com"
+			c.Request.Header.Set("X-Authentik-Email", testEmail)
 			c.Request.Header.Set("X-Authentik-Given-Name", "Test")
 			c.Request.Header.Set("X-Authentik-Family-Name", "User")
 			
 			// Use the Members group from group_mapping.yaml
 			c.Request.Header.Set("X-Authentik-Groups", "Members")
+			
+			// Generate Gravatar URL for test user
+			gravatarURL := utils.GenerateGravatarURL(testEmail, 256, "identicon")
+			c.Set("debug_avatar", gravatarURL)
 			
 			log.Printf("[DEBUG] Added mock Authentik headers for path: %s", c.Request.URL.Path)
 		} else if c.GetHeader("X-Authentik-Email") != "" {
@@ -92,6 +98,10 @@ func GetDebugInfo(c *gin.Context) map[string]interface{} {
 	
 	if groups, exists := c.Get("debug_groups"); exists {
 		debugInfo["groups"] = groups
+	}
+	
+	if avatar, exists := c.Get("debug_avatar"); exists {
+		debugInfo["avatar"] = avatar
 	}
 	
 	return debugInfo

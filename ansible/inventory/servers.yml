@@ -6,8 +6,8 @@ all:
     vm_hosts:
       hosts:
         soil:
-          ansible_host: soil.xylem.sequoiafabrica.org
+          ansible_host: soil.cloudforest-perch.ts.net
     container_hosts:
       hosts:
         nursery:
-          ansible_host: nursery.xylem.sequoiafabrica.org
+          ansible_host: nursery.cloudforest-perch.ts.net

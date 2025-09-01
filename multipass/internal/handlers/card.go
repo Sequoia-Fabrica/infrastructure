@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"log"
+	"multipass/internal/middleware"
 	"multipass/internal/models"
 	"net/http"
 	"time"
@@ -48,6 +49,14 @@ func CardHandler(c *gin.Context) {
 	// Add debug info if available
 	if debugMode, _ := c.Get("debug_mode"); debugMode != nil && debugMode.(bool) {
 		templateData["debug_mode"] = true
+		
+		// Get all debug info from middleware
+		debugInfo := middleware.GetDebugInfo(c)
+		if debugInfo != nil {
+			templateData["debug_info"] = debugInfo
+		}
+		
+		// For backward compatibility
 		if debugHeaders, exists := c.Get("debug_headers"); exists {
 			templateData["debug_headers"] = debugHeaders
 		}
@@ -87,6 +96,14 @@ func MobileCardHandler(c *gin.Context) {
 	// Add debug info if available
 	if debugMode, _ := c.Get("debug_mode"); debugMode != nil && debugMode.(bool) {
 		templateData["debug_mode"] = true
+		
+		// Get all debug info from middleware
+		debugInfo := middleware.GetDebugInfo(c)
+		if debugInfo != nil {
+			templateData["debug_info"] = debugInfo
+		}
+		
+		// For backward compatibility
 		if debugHeaders, exists := c.Get("debug_headers"); exists {
 			templateData["debug_headers"] = debugHeaders
 		}
@@ -130,6 +147,14 @@ func DesktopCardHandler(c *gin.Context) {
 	// Add debug info if available
 	if debugMode, _ := c.Get("debug_mode"); debugMode != nil && debugMode.(bool) {
 		templateData["debug_mode"] = true
+		
+		// Get all debug info from middleware
+		debugInfo := middleware.GetDebugInfo(c)
+		if debugInfo != nil {
+			templateData["debug_info"] = debugInfo
+		}
+		
+		// For backward compatibility
 		if debugHeaders, exists := c.Get("debug_headers"); exists {
 			templateData["debug_headers"] = debugHeaders
 		}

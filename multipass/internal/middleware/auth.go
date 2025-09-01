@@ -4,6 +4,7 @@ import (
 	"crypto/md5"
 	"fmt"
 	"multipass/internal/models"
+	"multipass/internal/utils"
 	"net/http"
 	"strings"
 
@@ -46,6 +47,9 @@ func AuthMiddleware() gin.HandlerFunc {
 			fmt.Printf("[AUTH] Parsed groups: %v\n", groups)
 		}
 
+		// Generate Gravatar URL for the user's email
+		gravatarURL := utils.GenerateGravatarURL(email, 256, "identicon")
+		
 		// Create user profile
 		userProfile := &models.UserProfile{
 			Email:       email,
@@ -54,6 +58,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			Groups:      groups,
 			MemberID:    generateMemberID(email),
 			AccessLevel: models.DetermineUserLevel(groups),
+			Avatar:      &gravatarURL,
 		}
 
 		// Store user profile in context

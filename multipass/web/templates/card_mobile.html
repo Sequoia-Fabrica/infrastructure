@@ -25,6 +25,15 @@
                     {{if .user.Avatar}}
                     <img class="w-24 h-24 rounded-full border-4 border-gray-200 dark:border-gray-700 shadow-sm" 
                          src="{{.user.Avatar}}" alt="{{.user.GetFullName}}">
+                    {{else if .debug_mode}}
+                    {{if .debug_info.avatar}}
+                    <img class="w-24 h-24 rounded-full border-4 border-gray-200 dark:border-gray-700 shadow-sm" 
+                         src="{{.debug_info.avatar}}" alt="{{.user.GetFullName}}">
+                    {{else}}
+                    <div class="w-24 h-24 rounded-full border-4 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                        <span class="text-2xl font-bold text-gray-600 dark:text-gray-300">{{.user.GetInitials}}</span>
+                    </div>
+                    {{end}}
                     {{else}}
                     <div class="w-24 h-24 rounded-full border-4 border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
                         <span class="text-2xl font-bold text-gray-600 dark:text-gray-300">{{.user.GetInitials}}</span>
