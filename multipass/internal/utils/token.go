@@ -35,18 +35,18 @@ func GenerateToken(userID, email, secret string) (string, error) {
 
 	// Create payload
 	payload := fmt.Sprintf("%s:%s:%s", userID, email, timestamp)
-	
+
 	// Base64 encode the payload
 	encodedPayload := base64.URLEncoding.EncodeToString([]byte(payload))
-	
+
 	// Generate HMAC
 	h := hmac.New(sha256.New, []byte(secret))
 	h.Write([]byte(encodedPayload))
 	signature := hex.EncodeToString(h.Sum(nil))
-	
+
 	// Combine payload and signature
 	token := fmt.Sprintf("%s:%s", encodedPayload, signature)
-	
+
 	return token, nil
 }
 
@@ -57,47 +57,47 @@ func VerifyToken(token, secret string) (*TokenData, error) {
 	if len(parts) != 2 {
 		return nil, errors.New("invalid token format")
 	}
-	
+
 	encodedPayload := parts[0]
 	providedSignature := parts[1]
-	
+
 	// Verify HMAC
 	h := hmac.New(sha256.New, []byte(secret))
 	h.Write([]byte(encodedPayload))
 	expectedSignature := hex.EncodeToString(h.Sum(nil))
-	
+
 	if !hmac.Equal([]byte(providedSignature), []byte(expectedSignature)) {
 		return nil, errors.New("invalid token signature")
 	}
-	
+
 	// Decode payload
 	payloadBytes, err := base64.URLEncoding.DecodeString(encodedPayload)
 	if err != nil {
 		return nil, fmt.Errorf("failed to decode payload: %w", err)
 	}
-	
+
 	// Parse payload
 	payloadStr := string(payloadBytes)
 	payloadParts := strings.SplitN(payloadStr, ":", 3)
 	if len(payloadParts) != 3 {
 		return nil, fmt.Errorf("invalid payload format: %s", payloadStr)
 	}
-	
+
 	userID := payloadParts[0]
 	email := payloadParts[1]
 	timestampStr := payloadParts[2]
-	
+
 	// Parse timestamp
 	timestamp, err := time.Parse(time.RFC3339, timestampStr)
 	if err != nil {
 		return nil, fmt.Errorf("invalid timestamp: %w", err)
 	}
-	
+
 	// Check if token is expired
 	if time.Since(timestamp) > TokenValidityDuration {
 		return nil, errors.New("token expired")
 	}
-	
+
 	return &TokenData{
 		UserID:    userID,
 		Email:     email,

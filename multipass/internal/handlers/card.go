@@ -71,7 +71,7 @@ func generateQRData(user *models.UserProfile, cfg *config.Config) string {
 			return "/public/card?token=" + token
 		}
 	}
-	
+
 	// Fallback to the old format if token generation fails
 	return "MEMBER:" + user.MemberID + ":" + user.Email
 }

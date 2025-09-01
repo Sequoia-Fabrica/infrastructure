@@ -61,13 +61,13 @@ func AuthMiddleware() gin.HandlerFunc {
 			Avatar:      &gravatarURL,
 			AuthentikID: authentikUID,
 		}
-		
+
 		// Try to get the user's PK from Authentik API
 		if email != "" {
 			// Create Authentik client using config
 			cfg := config.Load()
 			authentikClient := services.NewAuthentikClient(cfg)
-			
+
 			// Look up user by email
 			apiUserProfile, err := authentikClient.GetUserByEmail(email)
 			if err == nil && apiUserProfile != nil {
