@@ -92,17 +92,24 @@
                     <!-- QR Code -->
                     <div class="text-center">
                         <div class="inline-block p-3 bg-white dark:bg-gray-700 rounded-lg">
-                            <div class="w-24 h-24 bg-gray-900 rounded grid grid-cols-8 gap-px p-1" data-qr="{{.qr_data}}">
-                                <!-- Simple QR code pattern placeholder -->
-                                <div class="bg-white"></div>
-                                <div class="bg-gray-900"></div>
-                                <div class="bg-white"></div>
-                                <div class="bg-gray-900"></div>
-                                <div class="bg-white"></div>
-                                <div class="bg-gray-900"></div>
-                                <div class="bg-white"></div>
-                                <div class="bg-gray-900"></div>
-                            </div>
+                            {{if .qr_code_html}}
+                                <!-- Real QR code from server -->
+                                <div class="w-24 h-24 rounded qr-code-container">
+                                    {{.qr_code_html}}
+                                </div>
+                            {{else}}
+                                <!-- Fallback QR code pattern -->
+                                <div class="w-24 h-24 bg-gray-900 rounded grid grid-cols-8 gap-px p-1" data-qr="{{.qr_data}}">
+                                    <div class="bg-white"></div>
+                                    <div class="bg-gray-900"></div>
+                                    <div class="bg-white"></div>
+                                    <div class="bg-gray-900"></div>
+                                    <div class="bg-white"></div>
+                                    <div class="bg-gray-900"></div>
+                                    <div class="bg-white"></div>
+                                    <div class="bg-gray-900"></div>
+                                </div>
+                            {{end}}
                         </div>
                         <p class="text-xs text-green-100 mt-2">Scan to verify</p>
                     </div>
@@ -227,17 +234,24 @@
                 <!-- QR Code -->
                 <div class="text-center mt-6">
                     <div class="inline-block p-4 bg-white dark:bg-gray-700 border-2 border-gray-200 dark:border-gray-600 rounded-lg">
-                        <div class="w-20 h-20 bg-gray-900 rounded grid grid-cols-8 gap-px p-1" data-qr="{{.qr_data}}">
-                            <!-- Simple QR code pattern placeholder -->
-                            <div class="bg-white"></div>
-                            <div class="bg-gray-900"></div>
-                            <div class="bg-white"></div>
-                            <div class="bg-gray-900"></div>
-                            <div class="bg-white"></div>
-                            <div class="bg-gray-900"></div>
-                            <div class="bg-white"></div>
-                            <div class="bg-gray-900"></div>
-                        </div>
+                        {{if .qr_code_html}}
+                            <!-- Real QR code from server -->
+                            <div class="w-20 h-20 rounded qr-code-container">
+                                {{.qr_code_html}}
+                            </div>
+                        {{else}}
+                            <!-- Fallback QR code pattern -->
+                            <div class="w-20 h-20 bg-gray-900 rounded grid grid-cols-8 gap-px p-1" data-qr="{{.qr_data}}">
+                                <div class="bg-white"></div>
+                                <div class="bg-gray-900"></div>
+                                <div class="bg-white"></div>
+                                <div class="bg-gray-900"></div>
+                                <div class="bg-white"></div>
+                                <div class="bg-gray-900"></div>
+                                <div class="bg-white"></div>
+                                <div class="bg-gray-900"></div>
+                            </div>
+                        {{end}}
                     </div>
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">Scan for verification</p>
                 </div>
@@ -325,6 +339,26 @@
     .desktop-card {
         display: block !important;
     }
+}
+
+/* QR code styles */
+.qr-code-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.qr-code-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.qr-code {
+    display: block;
+    width: 100%;
+    height: 100%;
 }
 
 /* Print styles */

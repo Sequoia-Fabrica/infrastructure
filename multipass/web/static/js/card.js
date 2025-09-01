@@ -144,16 +144,8 @@ function showNotification(message, type = 'success') {
     }, 3000);
 }
 
-// QR Code generation (simple placeholder pattern)
-function generateQRPattern(data) {
-    const qrElements = document.querySelectorAll('[data-qr]');
-    qrElements.forEach(element => {
-        // This is a placeholder - in a real implementation, you'd use a QR code library
-        // like qrcode.js or make a server-side call to generate the QR code
-        const pattern = createSimplePattern(data);
-        element.innerHTML = pattern;
-    });
-}
+// Create placeholder QR pattern when no server-generated QR code is available
+// This is only used as a fallback when server-side QR code generation fails
 
 // Create a simple pattern (placeholder for actual QR code)
 function createSimplePattern(data) {
@@ -184,11 +176,18 @@ function simpleHash(str) {
 
 // Initialize card interactions when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    // Generate QR patterns for any QR elements
-    const qrData = document.querySelector('[data-qr]')?.getAttribute('data-qr');
-    if (qrData) {
-        generateQRPattern(qrData);
-    }
+    // Generate QR patterns only for elements that don't already have a real QR code
+    const qrElements = document.querySelectorAll('[data-qr]');
+    qrElements.forEach(element => {
+        // Only generate placeholder if the element doesn't already have content (no server-generated QR)
+        if (!element.querySelector('img.qr-code') && !element.innerHTML.trim()) {
+            const qrData = element.getAttribute('data-qr');
+            if (qrData) {
+                const pattern = createSimplePattern(qrData);
+                element.innerHTML = pattern;
+            }
+        }
+    });
 
     // Check viewport width and ensure correct card is displayed
     function checkViewportWidth() {
