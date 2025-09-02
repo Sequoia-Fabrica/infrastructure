@@ -550,6 +550,12 @@
     owner: root
     group: root
     mode: ug=rw,o=r
+- name: Log in to GitHub Container Registry
+  community.docker.docker_login:
+    registry: ghcr.io
+    username: "{{ github.app_id }}"
+    password: "{{ github.app_private_key }}"
+    reauthorize: true
 - name: Run multipass
   become: true
   community.docker.docker_container:
