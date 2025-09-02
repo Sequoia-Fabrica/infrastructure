@@ -90,5 +90,5 @@ jobs:
           fi
           
           git add ansible/inventory/group_vars/all.yml
-          git commit -m "chore: update multipass container to ${{ needs.build-and-push.outputs.version }}"
+          git commit -m "deploy: update multipass container to ${{ needs.build-and-push.outputs.version }}"
           git push
