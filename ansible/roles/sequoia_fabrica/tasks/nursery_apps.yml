@@ -560,13 +560,16 @@
     ports:
       - "{{ multipass.port }}:3000"
     env:
+      ENVIRONMENT: "{{ multipass.environment }}"
       AUTHENTIK_URL: "{{ multipass.authentik_url }}"
       AUTHENTIK_API_TOKEN: "{{ multipass.authentik_api_token }}"
-      BIND_ADDRESS: "0.0.0.0:3000"
+      BIND_ADDRESS: "0.0.0.0"
+      PORT: "3000"
       MAKERSPACE_NAME: "{{ multipass.makerspace_name }}"
       MAKERSPACE_LOGO_URL: "/static/images/logo.png"
       TRUSTED_PROXY_HEADERS: "{{ multipass.trusted_proxy_headers | string | lower }}"
       GROUP_MAPPING_CONFIG: "/config/group_mapping.yaml"
+      TOKEN_SECRET: "{{ multipass.multipass_token_secret }}"
     mounts:
       - type: bind
         source: "{{ multipass.data_location }}/config"
