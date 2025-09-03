@@ -21,7 +21,7 @@ func DebugAuthMiddleware() gin.HandlerFunc {
 		cfg := config.Load()
 		// Create logger instance
 		logger := services.NewLogger(cfg)
-		
+
 		if cfg.IsDevelopment() && c.GetHeader("X-Authentik-Email") == "" {
 			// Add mock Authentik headers for testing
 			testEmail := "test.user@example.com"

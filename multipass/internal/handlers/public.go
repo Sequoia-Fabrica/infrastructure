@@ -84,15 +84,15 @@ func PublicCardHandler(c *gin.Context) {
 	// Format dates for display
 	joinDateStr := "Unknown"
 	expiryDateStr := "Unknown"
-	
+
 	if membershipInfo.JoinDate != nil {
 		joinDateStr = membershipInfo.JoinDate.Format("Jan 2, 2006")
 	}
-	
+
 	if membershipInfo.ExpiryDate != nil {
 		expiryDateStr = membershipInfo.ExpiryDate.Format("Jan 2, 2006")
 	}
-	
+
 	// Prepare template data
 	templateData := gin.H{
 		"title":           "Digital ID Card - " + cfg.MakerspaceName,

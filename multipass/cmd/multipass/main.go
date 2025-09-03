@@ -71,7 +71,7 @@ func createTemplateRenderer(logger *services.Logger) multitemplate.Renderer {
 func main() {
 	// Load configuration
 	cfg := config.Load()
-	
+
 	// Create logger
 	logger := services.NewLogger(cfg)
 

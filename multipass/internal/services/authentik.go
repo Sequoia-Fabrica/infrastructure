@@ -285,19 +285,19 @@ func createUserProfileFromAuthentikUser(ac *AuthentikClient, authUser AuthentikU
 			ac.logger.Debug("Found member_since attribute: %s", memberSince)
 			userProfile.MemberSince = memberSince
 		}
-		
+
 		// Extract membership_type if available
 		if membershipType, ok := authUser.Attributes["membership_type"].(string); ok {
 			ac.logger.Debug("Found membership_type attribute: %s", membershipType)
 			userProfile.MembershipType = membershipType
 		}
-		
+
 		// Extract expiry_date if available
 		if expiryDate, ok := authUser.Attributes["expiry_date"].(string); ok {
 			ac.logger.Debug("Found expiry_date attribute: %s", expiryDate)
 			userProfile.ExpiryDate = expiryDate
 		}
-		
+
 		// Extract membership_status if available
 		if status, ok := authUser.Attributes["membership_status"].(string); ok {
 			ac.logger.Debug("Found membership_status attribute: %s", status)

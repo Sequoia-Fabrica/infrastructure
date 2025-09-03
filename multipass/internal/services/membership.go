@@ -86,7 +86,7 @@ func (s *MembershipService) getMembershipType(user *models.UserProfile) string {
 		s.logger.Debug("Using membership_type metadata: %s for user %s", user.MembershipType, user.Email)
 		return user.MembershipType
 	}
-	
+
 	// Fall back to access level mapping if no metadata
 	switch user.AccessLevel {
 	case models.NoAccess:
@@ -109,7 +109,7 @@ func (s *MembershipService) determineMembershipStatus(user *models.UserProfile) 
 	// Check if we have membership_status metadata from Authentik
 	if user.MembershipStatus != "" {
 		s.logger.Debug("Using membership_status metadata: %s for user %s", user.MembershipStatus, user.Email)
-		
+
 		// Map the status string to our enum
 		switch strings.ToLower(user.MembershipStatus) {
 		case "active":
@@ -122,7 +122,7 @@ func (s *MembershipService) determineMembershipStatus(user *models.UserProfile) 
 			return models.StatusInactive
 		}
 	}
-	
+
 	// Fall back to checking groups if no metadata or unrecognized status
 	// Check for specific groups that might indicate a suspended or expired status
 	for _, group := range user.Groups {
@@ -152,16 +152,16 @@ func (s *MembershipService) getJoinDate(user *models.UserProfile) *time.Time {
 	// Check if we have member_since metadata from Authentik
 	if user.MemberSince != "" {
 		s.logger.Debug("Using member_since metadata: %s for user %s", user.MemberSince, user.Email)
-		
+
 		// Parse the date string (expected format: YYYY-MM-DD)
 		memberSince, err := time.Parse("2006-01-02", user.MemberSince)
 		if err == nil {
 			return &memberSince
 		}
-		
+
 		s.logger.Error("Failed to parse member_since date: %v", err)
 	}
-	
+
 	// Default to 1 year ago if we don't have real data
 	t := time.Now().AddDate(-1, 0, 0)
 	return &t
@@ -173,34 +173,34 @@ func (s *MembershipService) getExpiryDate(user *models.UserProfile) *time.Time {
 	// Check if we have expiry_date metadata from Authentik
 	if user.ExpiryDate != "" {
 		s.logger.Debug("Using expiry_date metadata: %s for user %s", user.ExpiryDate, user.Email)
-		
+
 		// Parse the date string (expected format: YYYY-MM-DD)
 		expiryDate, err := time.Parse("2006-01-02", user.ExpiryDate)
 		if err == nil {
 			return &expiryDate
 		}
-		
+
 		s.logger.Error("Failed to parse expiry_date: %v", err)
 	}
-	
+
 	// For annual members, expiry is 1 year from now
 	if containsAny(user.Groups, []string{"annual-members"}) {
 		expiry := time.Now().AddDate(1, 0, 0)
 		return &expiry
 	}
-	
+
 	// For lifetime members, expiry is 100 years from now (effectively forever)
 	if containsAny(user.Groups, []string{"lifetime-members"}) {
 		expiryDate := time.Now().AddDate(100, 0, 0)
 		return &expiryDate
 	}
-	
+
 	// For monthly members, expiry is 1 month from now
 	if containsAny(user.Groups, []string{"monthly-members"}) {
 		expiryDate := time.Now().AddDate(0, 1, 0)
 		return &expiryDate
 	}
-	
+
 	// Check for specific groups that indicate a specific expiry year
 	if containsAny(user.Groups, []string{"expires-2023"}) {
 		expiryDate := time.Date(2023, 12, 31, 23, 59, 59, 0, time.UTC)
