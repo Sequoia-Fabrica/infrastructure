@@ -377,5 +377,3 @@ func (ac *AuthentikClient) GetUserGroups(userID int) ([]string, error) {
 
 	return groups, nil
 }
-
-// No longer needed as we're using the numeric PK directly
