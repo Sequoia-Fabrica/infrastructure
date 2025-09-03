@@ -1,4 +1,22 @@
-# Build stage
+# Node.js build stage for CSS
+FROM node:18-alpine AS css-builder
+
+WORKDIR /app
+
+# Copy package.json and package-lock.json
+COPY package*.json ./
+
+# Install dependencies
+RUN npm install
+
+# Copy tailwind config and CSS source
+COPY tailwind.config.js ./
+COPY web/static/css/input.css ./web/static/css/input.css
+
+# Build CSS
+RUN npm run build:css
+
+# Go build stage
 FROM golang:1.23-alpine AS builder
 
 # Install git for go mod download
@@ -14,6 +32,9 @@ RUN go mod download
 
 # Copy source code
 COPY . .
+
+# Copy the built CSS from the css-builder stage
+COPY --from=css-builder /app/web/static/css/tailwind.css ./web/static/css/tailwind.css
 
 # Build the application
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o multipass cmd/multipass/main.go
