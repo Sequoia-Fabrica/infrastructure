@@ -293,8 +293,8 @@ shlink:
   domain: go.sequoiafabrica.org
 
 multipass:
-  environment: "production"
   container_version: "20250903-054451-f6f1d52"
+  environment: "production"
   port: 3005
   data_location: "/opt/multipass"
   authentik_url: "https://login.sequoia.garden"
