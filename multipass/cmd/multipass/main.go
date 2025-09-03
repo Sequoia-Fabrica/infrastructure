@@ -10,8 +10,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/gin-gonic/gin"
 	"github.com/gin-contrib/multitemplate"
+	"github.com/gin-gonic/gin"
 )
 
 // createTemplateRenderer creates a custom HTML renderer that properly handles template inheritance

@@ -9,10 +9,12 @@ COPY package*.json ./
 # Install dependencies
 RUN npm install
 
-# Copy tailwind config and CSS source
+# Copy tailwind config, CSS source, and HTML templates for scanning
 COPY tailwind.config.js ./
 COPY web/static/css/input.css ./web/static/css/input.css
 COPY web/static/css/styles.css ./web/static/css/styles.css
+COPY web/templates/ ./web/templates/
+COPY web/static/js/ ./web/static/js/
 
 # Build CSS
 RUN npm run build:css
