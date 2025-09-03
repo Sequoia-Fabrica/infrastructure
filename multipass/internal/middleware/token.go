@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"log"
 	"multipass/internal/config"
 	"multipass/internal/models"
 	"multipass/internal/services"
@@ -26,10 +25,12 @@ func TokenAuthMiddleware() gin.HandlerFunc {
 
 		// Get config
 		cfg := config.Load()
+		// Create logger
+		logger := services.NewLogger(cfg)
 
 		// Check if token secret is configured
 		if cfg.TokenSecret == "" {
-			log.Println("Warning: TOKEN_SECRET is not configured")
+			logger.Error("Warning: TOKEN_SECRET is not configured")
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "Token verification not configured"})
 			c.Abort()
 			return
@@ -38,7 +39,7 @@ func TokenAuthMiddleware() gin.HandlerFunc {
 		// Verify token
 		tokenData, err := utils.VerifyToken(token, cfg.TokenSecret)
 		if err != nil {
-			log.Printf("Token verification failed: %v", err)
+			logger.Error("Token verification failed: %v", err)
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired token"})
 			c.Abort()
 			return
@@ -56,12 +57,12 @@ func TokenAuthMiddleware() gin.HandlerFunc {
 				// ID is numeric, try to get user by ID
 				userProfile, err = authentikClient.GetUserByID(tokenData.UserID)
 				if err != nil {
-					log.Printf("Failed to get user by ID: %v", err)
+					logger.Debug("Failed to get user by ID: %v", err)
 					// Fall back to email lookup
 				}
 			} else {
 				// ID is not numeric, skip the ID lookup to avoid 404
-				log.Printf("UserID %s is not numeric, skipping ID lookup", tokenData.UserID)
+				logger.Debug("UserID %s is not numeric, skipping ID lookup", tokenData.UserID)
 			}
 		}
 
@@ -69,7 +70,7 @@ func TokenAuthMiddleware() gin.HandlerFunc {
 		if userProfile == nil && tokenData.Email != "" {
 			userProfile, err = authentikClient.GetUserByEmail(tokenData.Email)
 			if err != nil {
-				log.Printf("Failed to get user by email: %v", err)
+				logger.Error("Failed to get user by email: %v", err)
 				c.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 				c.Abort()
 				return

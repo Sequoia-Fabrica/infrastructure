@@ -1,7 +1,6 @@
 package services
 
 import (
-	"log"
 	"multipass/internal/config"
 	"multipass/internal/models"
 	"strings"
@@ -12,16 +11,19 @@ import (
 type MembershipService struct {
 	cfg            *config.Config
 	authentikClient *AuthentikClient
+	logger         *Logger
 }
 
 // NewMembershipService creates a new instance of MembershipService
 func NewMembershipService() *MembershipService {
 	cfg := config.Load()
 	authentikClient := NewAuthentikClient(cfg)
+	logger := NewLogger(cfg)
 
 	return &MembershipService{
 		cfg:            cfg,
 		authentikClient: authentikClient,
+		logger:         logger,
 	}
 }
 
@@ -29,7 +31,7 @@ func NewMembershipService() *MembershipService {
 // This implementation uses Authentik data and group mappings to determine membership details
 func (s *MembershipService) GetMembershipInfo(user *models.UserProfile) (*models.MembershipInfo, error) {
 	// Log that we're retrieving membership info
-	log.Printf("Retrieving membership info for user: %s", user.Email)
+	s.logger.Debug("Retrieving membership info for user: %s", user.Email)
 
 	// If we have an Authentik ID, try to refresh user data from Authentik
 	var refreshedUser *models.UserProfile
@@ -38,7 +40,7 @@ func (s *MembershipService) GetMembershipInfo(user *models.UserProfile) (*models
 	if user.AuthentikID != "" {
 		refreshedUser, err = s.authentikClient.GetUserByID(user.AuthentikID)
 		if err != nil {
-			log.Printf("Failed to refresh user data from Authentik by ID: %v", err)
+			s.logger.Debug("Failed to refresh user data from Authentik by ID: %v", err)
 			// Continue with the user data we have
 			refreshedUser = user
 		}
@@ -46,7 +48,7 @@ func (s *MembershipService) GetMembershipInfo(user *models.UserProfile) (*models
 		// Try to get user by email if we don't have an Authentik ID
 		refreshedUser, err = s.authentikClient.GetUserByEmail(user.Email)
 		if err != nil {
-			log.Printf("Failed to refresh user data from Authentik by email: %v", err)
+			s.logger.Debug("Failed to refresh user data from Authentik by email: %v", err)
 			// Continue with the user data we have
 			refreshedUser = user
 		}
@@ -81,7 +83,7 @@ func (s *MembershipService) GetMembershipInfo(user *models.UserProfile) (*models
 func (s *MembershipService) getMembershipType(user *models.UserProfile) string {
 	// Check if we have membership_type metadata from Authentik
 	if user.MembershipType != "" {
-		log.Printf("Using membership_type metadata: %s for user %s", user.MembershipType, user.Email)
+		s.logger.Debug("Using membership_type metadata: %s for user %s", user.MembershipType, user.Email)
 		return user.MembershipType
 	}
 	
@@ -106,7 +108,7 @@ func (s *MembershipService) getMembershipType(user *models.UserProfile) string {
 func (s *MembershipService) determineMembershipStatus(user *models.UserProfile) models.MembershipStatus {
 	// Check if we have membership_status metadata from Authentik
 	if user.MembershipStatus != "" {
-		log.Printf("Using membership_status metadata: %s for user %s", user.MembershipStatus, user.Email)
+		s.logger.Debug("Using membership_status metadata: %s for user %s", user.MembershipStatus, user.Email)
 		
 		// Map the status string to our enum
 		switch strings.ToLower(user.MembershipStatus) {
@@ -149,7 +151,7 @@ func (s *MembershipService) determineMembershipStatus(user *models.UserProfile) 
 func (s *MembershipService) getJoinDate(user *models.UserProfile) *time.Time {
 	// Check if we have member_since metadata from Authentik
 	if user.MemberSince != "" {
-		log.Printf("Using member_since metadata: %s for user %s", user.MemberSince, user.Email)
+		s.logger.Debug("Using member_since metadata: %s for user %s", user.MemberSince, user.Email)
 		
 		// Parse the date string (expected format: YYYY-MM-DD)
 		memberSince, err := time.Parse("2006-01-02", user.MemberSince)
@@ -157,7 +159,7 @@ func (s *MembershipService) getJoinDate(user *models.UserProfile) *time.Time {
 			return &memberSince
 		}
 		
-		log.Printf("Failed to parse member_since date: %v", err)
+		s.logger.Error("Failed to parse member_since date: %v", err)
 	}
 	
 	// Default to 1 year ago if we don't have real data
@@ -170,7 +172,7 @@ func (s *MembershipService) getJoinDate(user *models.UserProfile) *time.Time {
 func (s *MembershipService) getExpiryDate(user *models.UserProfile) *time.Time {
 	// Check if we have expiry_date metadata from Authentik
 	if user.ExpiryDate != "" {
-		log.Printf("Using expiry_date metadata: %s for user %s", user.ExpiryDate, user.Email)
+		s.logger.Debug("Using expiry_date metadata: %s for user %s", user.ExpiryDate, user.Email)
 		
 		// Parse the date string (expected format: YYYY-MM-DD)
 		expiryDate, err := time.Parse("2006-01-02", user.ExpiryDate)
@@ -178,7 +180,7 @@ func (s *MembershipService) getExpiryDate(user *models.UserProfile) *time.Time {
 			return &expiryDate
 		}
 		
-		log.Printf("Failed to parse expiry_date: %v", err)
+		s.logger.Error("Failed to parse expiry_date: %v", err)
 	}
 	
 	// For annual members, expiry is 1 year from now

@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"multipass/internal/config"
 	"multipass/internal/models"
 	"net/http"
@@ -20,6 +19,7 @@ type AuthentikClient struct {
 	apiToken  string
 	userCache map[string]*models.UserProfile
 	cacheTTL  time.Duration
+	logger    *Logger
 }
 
 // AuthentikUserResponse represents the response from Authentik's user API
@@ -37,6 +37,9 @@ type AuthentikUserResponse struct {
 
 // NewAuthentikClient creates a new Authentik API client
 func NewAuthentikClient(cfg *config.Config) *AuthentikClient {
+	// Create logger
+	logger := NewLogger(cfg)
+
 	// Create HTTP client with timeout
 	client := resty.New().SetTimeout(10 * time.Second)
 
@@ -45,30 +48,30 @@ func NewAuthentikClient(cfg *config.Config) *AuthentikClient {
 
 	// Enable debug mode
 	if cfg.DebugMode {
-		log.Printf("[DEBUG] Authentik client initialized with debug mode enabled")
-		log.Printf("[DEBUG] Authentik URL: %s", cfg.AuthentikURL)
+		logger.Debug("Authentik client initialized with debug mode enabled")
+		logger.Debug("Authentik URL: %s", cfg.AuthentikURL)
 
 		client.SetDebug(true)
 		client.OnBeforeRequest(func(c *resty.Client, r *resty.Request) error {
-			log.Printf("[DEBUG] Authentik API Request: %s %s", r.Method, r.URL)
-			log.Printf("[DEBUG] Request Headers: %v", r.Header)
+			logger.Debug("Authentik API Request: %s %s", r.Method, r.URL)
+			logger.Debug("Request Headers: %v", r.Header)
 			return nil
 		})
 		client.OnAfterResponse(func(c *resty.Client, r *resty.Response) error {
-			log.Printf("[DEBUG] Authentik API Response: Status=%d, Time=%v",
+			logger.Debug("Authentik API Response: Status=%d, Time=%v",
 				r.StatusCode(), r.Time())
 
 			// Only log response body if it's JSON or plain text
 			contentType := r.Header().Get("Content-Type")
 			if (contentType == "application/json" || contentType == "text/plain") && r.Body() != nil {
 				if len(r.Body()) < 500 { // Only log if body is reasonably small
-					log.Printf("[DEBUG] Response Body: %s", string(r.Body()))
+					logger.Debug("Response Body: %s", string(r.Body()))
 				} else {
-					log.Printf("[DEBUG] Response Body: (large %d bytes, first 500) %s...",
+					logger.Debug("Response Body: (large %d bytes, first 500) %s...",
 						len(r.Body()), string(r.Body()[:500]))
 				}
 			} else {
-				log.Printf("[DEBUG] Response Content-Type: %s, Size: %d bytes",
+				logger.Debug("Response Content-Type: %s, Size: %d bytes",
 					contentType, len(r.Body()))
 			}
 			return nil
@@ -78,9 +81,9 @@ func NewAuthentikClient(cfg *config.Config) *AuthentikClient {
 	// Set API token if available
 	if cfg.AuthentikAPIToken != "" {
 		client.SetAuthToken(cfg.AuthentikAPIToken)
-		log.Printf("[DEBUG] Authentik API Token configured (length: %d)", len(cfg.AuthentikAPIToken))
+		logger.Debug("Authentik API Token configured (length: %d)", len(cfg.AuthentikAPIToken))
 	} else {
-		log.Printf("[DEBUG] Warning: No Authentik API Token configured")
+		logger.Debug("Warning: No Authentik API Token configured")
 	}
 
 	return &AuthentikClient{
@@ -88,16 +91,17 @@ func NewAuthentikClient(cfg *config.Config) *AuthentikClient {
 		client:    client,
 		userCache: make(map[string]*models.UserProfile),
 		cacheTTL:  15 * time.Minute,
+		logger:    logger,
 	}
 }
 
 // GetUserByID retrieves user information from Authentik by user ID
 func (ac *AuthentikClient) GetUserByID(userID string) (*models.UserProfile, error) {
-	log.Printf("[DEBUG] GetUserByID called with userID: %s", userID)
+	ac.logger.Debug("GetUserByID called with userID: %s", userID)
 
 	// Check cache first
 	if cachedUser, ok := ac.userCache[userID]; ok {
-		log.Printf("[DEBUG] User found in cache: %s (%s)", cachedUser.FullName, cachedUser.Email)
+		ac.logger.Debug("User found in cache: %s (%s)", cachedUser.FullName, cachedUser.Email)
 		return cachedUser, nil
 	}
 
@@ -106,20 +110,20 @@ func (ac *AuthentikClient) GetUserByID(userID string) (*models.UserProfile, erro
 	_, err := fmt.Sscanf(userID, "%d", &numericID)
 	if err != nil {
 		// If not numeric, it might be an email or username
-		log.Printf("[DEBUG] UserID is not numeric, trying as username/email: %s", userID)
+		ac.logger.Debug("UserID is not numeric, trying as username/email: %s", userID)
 	}
 
 	// Make API request to Authentik
 	url := fmt.Sprintf("%s/api/v3/core/users/%s/", ac.baseURL, userID)
-	log.Printf("[DEBUG] Making Authentik API request to: %s", url)
+	ac.logger.Debug("Making Authentik API request to: %s", url)
 
 	resp, err := ac.client.R().Get(url)
 	if err != nil {
-		log.Printf("[ERROR] Failed to request user data: %v", err)
+		ac.logger.Error("Failed to request user data: %v", err)
 		return nil, fmt.Errorf("failed to request user data: %w", err)
 	}
 
-	log.Printf("[DEBUG] Authentik API response status: %d", resp.StatusCode())
+	ac.logger.Debug("Authentik API response status: %d", resp.StatusCode())
 
 	if resp.StatusCode() != http.StatusOK {
 		// Only log a portion of the response body for non-JSON responses
@@ -135,7 +139,7 @@ func (ac *AuthentikClient) GetUserByID(userID string) (*models.UserProfile, erro
 			bodyExcerpt = fmt.Sprintf("[%s content, %d bytes]", contentType, len(resp.Body()))
 		}
 
-		log.Printf("[ERROR] Failed to get user data, status: %d, body: %s",
+		ac.logger.Error("Failed to get user data, status: %d, body: %s",
 			resp.StatusCode(), bodyExcerpt)
 		return nil, fmt.Errorf("failed to get user data, status: %d", resp.StatusCode())
 	}
@@ -143,17 +147,17 @@ func (ac *AuthentikClient) GetUserByID(userID string) (*models.UserProfile, erro
 	// Parse response
 	var authUser AuthentikUserResponse
 	if err := json.Unmarshal(resp.Body(), &authUser); err != nil {
-		log.Printf("[ERROR] Failed to parse user data: %v", err)
+		ac.logger.Error("Failed to parse user data: %v", err)
 		return nil, fmt.Errorf("failed to parse user data: %w", err)
 	}
 
-	log.Printf("[DEBUG] Successfully parsed user data for: %s (%s)",
+	ac.logger.Debug("Successfully parsed user data for: %s (%s)",
 		authUser.Name, authUser.Email)
 
 	// Use the helper function to create user profile
 	userProfile, err := createUserProfileFromAuthentikUser(ac, authUser)
 	if err != nil {
-		log.Printf("[ERROR] Error creating user profile: %v", err)
+		ac.logger.Error("Error creating user profile: %v", err)
 		return nil, err
 	}
 
@@ -165,19 +169,19 @@ func (ac *AuthentikClient) GetUserByID(userID string) (*models.UserProfile, erro
 
 // GetUserByEmail retrieves user information from Authentik by email
 func (ac *AuthentikClient) GetUserByEmail(email string) (*models.UserProfile, error) {
-	log.Printf("[DEBUG] GetUserByEmail called with email: %s", email)
+	ac.logger.Debug("GetUserByEmail called with email: %s", email)
 
 	// Make API request to Authentik
 	url := fmt.Sprintf("%s/api/v3/core/users/", ac.baseURL)
-	log.Printf("[DEBUG] Making Authentik API request to: %s with email filter", url)
+	ac.logger.Debug("Making Authentik API request to: %s with email filter", url)
 
 	resp, err := ac.client.R().SetQueryParam("email", email).Get(url)
 	if err != nil {
-		log.Printf("[ERROR] Failed to request user data by email: %v", err)
+		ac.logger.Error("Failed to request user data by email: %v", err)
 		return nil, fmt.Errorf("failed to request user data: %w", err)
 	}
 
-	log.Printf("[DEBUG] Authentik API response status for email search: %d", resp.StatusCode())
+	ac.logger.Debug("Authentik API response status for email search: %d", resp.StatusCode())
 
 	if resp.StatusCode() != http.StatusOK {
 		// Only log a portion of the response body for non-JSON responses
@@ -193,13 +197,13 @@ func (ac *AuthentikClient) GetUserByEmail(email string) (*models.UserProfile, er
 			bodyExcerpt = fmt.Sprintf("[%s content, %d bytes]", contentType, len(resp.Body()))
 		}
 
-		log.Printf("[ERROR] Failed to get user data by email, status: %d, body: %s",
+		ac.logger.Error("Failed to get user data by email, status: %d, body: %s",
 			resp.StatusCode(), bodyExcerpt)
 		return nil, fmt.Errorf("failed to get user data, status: %d", resp.StatusCode())
 	}
 
 	// Log the response body for debugging
-	log.Printf("[DEBUG] Response body: %s", string(resp.Body())[:min(len(resp.Body()), 200)])
+	ac.logger.Debug("Response body: %s", string(resp.Body())[:min(len(resp.Body()), 200)])
 
 	// First try to parse as a paginated response
 	var paginatedResponse struct {
@@ -210,47 +214,47 @@ func (ac *AuthentikClient) GetUserByEmail(email string) (*models.UserProfile, er
 	}
 
 	if err := json.Unmarshal(resp.Body(), &paginatedResponse); err != nil {
-		log.Printf("[ERROR] Failed to parse paginated response: %v", err)
+		ac.logger.Error("Failed to parse paginated response: %v", err)
 
 		// Try parsing as a direct array
 		var authUsers []AuthentikUserResponse
 		if err := json.Unmarshal(resp.Body(), &authUsers); err != nil {
-			log.Printf("[ERROR] Failed to parse user data as array: %v", err)
+			ac.logger.Error("Failed to parse user data as array: %v", err)
 			return nil, fmt.Errorf("failed to parse user data: %w", err)
 		}
 
 		// Check if user was found
 		if len(authUsers) == 0 {
-			log.Printf("[ERROR] No user found with email: %s", email)
+			ac.logger.Error("No user found with email: %s", email)
 			return nil, errors.New("user not found")
 		}
 
 		// Use the first user from the array
 		authUser := authUsers[0]
-		log.Printf("[DEBUG] Found user by email in array response: %s (ID: %d)", authUser.Name, authUser.ID)
+		ac.logger.Debug("Found user by email in array response: %s (ID: %d)", authUser.Name, authUser.ID)
 		return createUserProfileFromAuthentikUser(ac, authUser)
 	}
 
 	// Check if we have any results
 	if len(paginatedResponse.Results) == 0 {
-		log.Printf("[ERROR] No user found with email: %s in paginated response", email)
+		ac.logger.Error("No user found with email: %s in paginated response", email)
 		return nil, errors.New("user not found")
 	}
 
 	// Get first user from paginated response
 	authUser := paginatedResponse.Results[0]
-	log.Printf("[DEBUG] Found user by email in paginated response: %s (ID: %d)", authUser.Name, authUser.ID)
+	ac.logger.Debug("Found user by email in paginated response: %s (ID: %d)", authUser.Name, authUser.ID)
 	return createUserProfileFromAuthentikUser(ac, authUser)
 }
 
 // Helper function to create a user profile from an Authentik user
 func createUserProfileFromAuthentikUser(ac *AuthentikClient, authUser AuthentikUserResponse) (*models.UserProfile, error) {
 	// Get user groups
-	log.Printf("[DEBUG] Fetching user groups for user ID: %d", authUser.ID)
+	ac.logger.Debug("Fetching user groups for user ID: %d", authUser.ID)
 	groups, err := ac.GetUserGroups(authUser.ID)
 	if err != nil {
 		// Log error but continue
-		log.Printf("[ERROR] Error getting user groups: %v", err)
+		ac.logger.Error("Error getting user groups: %v", err)
 	}
 
 	// Convert the integer ID to string for the member ID
@@ -274,29 +278,29 @@ func createUserProfileFromAuthentikUser(ac *AuthentikClient, authUser AuthentikU
 	// Extract user attributes/metadata
 	if authUser.Attributes != nil {
 		// Log available attributes for debugging
-		log.Printf("[DEBUG] User attributes for %s: %v", authUser.Email, authUser.Attributes)
+		ac.logger.Debug("User attributes for %s: %v", authUser.Email, authUser.Attributes)
 
 		// Extract member_since if available
 		if memberSince, ok := authUser.Attributes["member_since"].(string); ok {
-			log.Printf("[DEBUG] Found member_since attribute: %s", memberSince)
+			ac.logger.Debug("Found member_since attribute: %s", memberSince)
 			userProfile.MemberSince = memberSince
 		}
 		
 		// Extract membership_type if available
 		if membershipType, ok := authUser.Attributes["membership_type"].(string); ok {
-			log.Printf("[DEBUG] Found membership_type attribute: %s", membershipType)
+			ac.logger.Debug("Found membership_type attribute: %s", membershipType)
 			userProfile.MembershipType = membershipType
 		}
 		
 		// Extract expiry_date if available
 		if expiryDate, ok := authUser.Attributes["expiry_date"].(string); ok {
-			log.Printf("[DEBUG] Found expiry_date attribute: %s", expiryDate)
+			ac.logger.Debug("Found expiry_date attribute: %s", expiryDate)
 			userProfile.ExpiryDate = expiryDate
 		}
 		
 		// Extract membership_status if available
 		if status, ok := authUser.Attributes["membership_status"].(string); ok {
-			log.Printf("[DEBUG] Found membership_status attribute: %s", status)
+			ac.logger.Debug("Found membership_status attribute: %s", status)
 			userProfile.MembershipStatus = status
 		}
 	}
@@ -314,20 +318,20 @@ func min(a, b int) int {
 
 // GetUserGroups retrieves user groups from Authentik
 func (ac *AuthentikClient) GetUserGroups(userID int) ([]string, error) {
-	log.Printf("[DEBUG] GetUserGroups called with userID: %d", userID)
+	ac.logger.Debug("GetUserGroups called with userID: %d", userID)
 
 	// Make API request to Authentik
 	// Try using the groups endpoint with a filter for the user
 	url := fmt.Sprintf("%s/api/v3/core/groups/?user=%d", ac.baseURL, userID)
-	log.Printf("[DEBUG] Making Authentik API request for groups to: %s", url)
+	ac.logger.Debug("Making Authentik API request for groups to: %s", url)
 
 	resp, err := ac.client.R().Get(url)
 	if err != nil {
-		log.Printf("[ERROR] Failed to request user groups: %v", err)
+		ac.logger.Error("Failed to request user groups: %v", err)
 		return nil, fmt.Errorf("failed to request user data: %w", err)
 	}
 
-	log.Printf("[DEBUG] Authentik API response status for groups: %d", resp.StatusCode())
+	ac.logger.Debug("Authentik API response status for groups: %d", resp.StatusCode())
 
 	if resp.StatusCode() != http.StatusOK {
 		// Only log a portion of the response body for non-JSON responses
@@ -343,7 +347,7 @@ func (ac *AuthentikClient) GetUserGroups(userID int) ([]string, error) {
 			bodyExcerpt = fmt.Sprintf("[%s content, %d bytes]", contentType, len(resp.Body()))
 		}
 
-		log.Printf("[ERROR] Failed to get user groups, status: %d, body: %s",
+		ac.logger.Error("Failed to get user groups, status: %d, body: %s",
 			resp.StatusCode(), bodyExcerpt)
 		return nil, fmt.Errorf("failed to get user data, status: %d", resp.StatusCode())
 	}
@@ -356,13 +360,13 @@ func (ac *AuthentikClient) GetUserGroups(userID int) ([]string, error) {
 	}
 
 	if err := json.Unmarshal(resp.Body(), &response); err != nil {
-		log.Printf("[ERROR] Failed to parse user groups data: %v", err)
+		ac.logger.Error("Failed to parse user groups data: %v", err)
 		return nil, fmt.Errorf("failed to parse user data: %w", err)
 	}
 
-	log.Printf("[DEBUG] Retrieved %d groups for user ID %d", len(response.Results), userID)
+	ac.logger.Debug("Retrieved %d groups for user ID %d", len(response.Results), userID)
 	if len(response.Results) > 0 {
-		log.Printf("[DEBUG] Groups: %v", response.Results)
+		ac.logger.Debug("Groups: %v", response.Results)
 	}
 
 	// Extract group names

@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"html/template"
-	"log"
 	"multipass/internal/config"
 	"multipass/internal/models"
 	"multipass/internal/services"
@@ -33,12 +32,14 @@ func PublicCardHandler(c *gin.Context) {
 
 	// Load config
 	cfg := config.Load()
+	// Create logger
+	logger := services.NewLogger(cfg)
 
 	// Get membership info from the membership service
 	membershipService := services.NewMembershipService()
 	membershipInfo, err := membershipService.GetMembershipInfo(user)
 	if err != nil {
-		log.Printf("[ERROR] Failed to retrieve membership info: %v", err)
+		logger.Error("Failed to retrieve membership info: %v", err)
 		// Fall back to default membership info if service fails
 		membershipInfo = &models.MembershipInfo{
 			MembershipType: "Digital Member",
@@ -73,7 +74,7 @@ func PublicCardHandler(c *gin.Context) {
 	// Generate QR code as base64 data URI
 	qrCodeBase64, err := utils.GenerateQRCodeBase64(fullURL, 250)
 	if err != nil {
-		log.Printf("[ERROR] Failed to generate QR code: %v", err)
+		logger.Error("Failed to generate QR code: %v", err)
 		qrCodeBase64 = ""
 	}
 

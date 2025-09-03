@@ -2,10 +2,10 @@ package main
 
 import (
 	"html/template"
-	"log"
 	"multipass/internal/config"
 	"multipass/internal/handlers"
 	"multipass/internal/middleware"
+	"multipass/internal/services"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -15,7 +15,7 @@ import (
 )
 
 // createTemplateRenderer creates a custom HTML renderer that properly handles template inheritance
-func createTemplateRenderer() multitemplate.Renderer {
+func createTemplateRenderer(logger *services.Logger) multitemplate.Renderer {
 	r := multitemplate.NewRenderer()
 	templateDir := "web/templates"
 
@@ -27,7 +27,7 @@ func createTemplateRenderer() multitemplate.Renderer {
 	// Get all template files
 	templateFiles, err := filepath.Glob(filepath.Join(templateDir, "*.html"))
 	if err != nil {
-		log.Fatal("Failed to load templates:", err)
+		logger.Fatal("Failed to load templates: %v", err)
 	}
 
 	// Find base template
@@ -40,7 +40,7 @@ func createTemplateRenderer() multitemplate.Renderer {
 	}
 
 	if baseFile == "" {
-		log.Fatal("Base template not found")
+		logger.Fatal("Base template not found")
 	}
 
 	// Add each template with base
@@ -56,13 +56,13 @@ func createTemplateRenderer() multitemplate.Renderer {
 		// Create a new template instance for each page
 		tmpl, err := template.New(filepath.Base(baseFile)).Funcs(funcMap).ParseFiles(tmplFiles...)
 		if err != nil {
-			log.Fatalf("Failed to parse template %s: %v", fileName, err)
+			logger.Fatal("Failed to parse template %s: %v", fileName, err)
 		}
 
 		// Add to renderer with the full filename
 		r.Add(fileName, tmpl)
 
-		log.Printf("Added template: %s", fileName)
+		logger.Debug("Added template: %s", fileName)
 	}
 
 	return r
@@ -71,6 +71,9 @@ func createTemplateRenderer() multitemplate.Renderer {
 func main() {
 	// Load configuration
 	cfg := config.Load()
+	
+	// Create logger
+	logger := services.NewLogger(cfg)
 
 	// Set Gin mode based on environment
 	if cfg.IsProduction() {
@@ -88,7 +91,7 @@ func main() {
 	})
 
 	// Load HTML templates with proper inheritance
-	r.HTMLRender = createTemplateRenderer()
+	r.HTMLRender = createTemplateRenderer(logger)
 
 	// Serve static files
 	r.Static("/static", "./web/static")
@@ -188,11 +191,11 @@ func main() {
 	})
 
 	// Start server
-	log.Printf("Starting Multipass server on %s", cfg.GetServerAddress())
-	log.Printf("Environment: %s", cfg.Environment)
-	log.Printf("Makerspace: %s", cfg.MakerspaceName)
+	logger.Info("Starting Multipass server on %s", cfg.GetServerAddress())
+	logger.Info("Environment: %s", cfg.Environment)
+	logger.Info("Makerspace: %s", cfg.MakerspaceName)
 
 	if err := r.Run(cfg.GetServerAddress()); err != nil {
-		log.Fatal("Failed to start server:", err)
+		logger.Fatal("Failed to start server: %v", err)
 	}
 }

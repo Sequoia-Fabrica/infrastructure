@@ -1,8 +1,8 @@
 package middleware
 
 import (
-	"log"
 	"multipass/internal/config"
+	"multipass/internal/services"
 	"multipass/internal/utils"
 	"os"
 	"strings"
@@ -19,6 +19,9 @@ func DebugAuthMiddleware() gin.HandlerFunc {
 
 		// Only apply mock headers in development mode
 		cfg := config.Load()
+		// Create logger instance
+		logger := services.NewLogger(cfg)
+		
 		if cfg.IsDevelopment() && c.GetHeader("X-Authentik-Email") == "" {
 			// Add mock Authentik headers for testing
 			testEmail := "test.user@example.com"
@@ -32,9 +35,9 @@ func DebugAuthMiddleware() gin.HandlerFunc {
 			gravatarURL := utils.GenerateGravatarURL(testEmail, 256, "identicon")
 			c.Set("debug_avatar", gravatarURL)
 
-			log.Printf("[DEBUG] Added mock Authentik headers for path: %s", c.Request.URL.Path)
+			logger.Debug("Added mock Authentik headers for path: %s", c.Request.URL.Path)
 		} else if c.GetHeader("X-Authentik-Email") != "" {
-			log.Println("Headers already present, skipping debug middleware")
+			logger.Debug("Headers already present, skipping debug middleware")
 		}
 
 		// Always collect debug information if debug mode is enabled
@@ -51,7 +54,7 @@ func DebugAuthMiddleware() gin.HandlerFunc {
 			c.Set("debug_headers", debugInfo)
 
 			// Log debug information
-			log.Printf("[DEBUG] Headers: Email=%s, Name=%s, Groups=%s",
+			logger.Debug("Headers: Email=%s, Name=%s, Groups=%s",
 				debugInfo["X-Authentik-Email"],
 				debugInfo["X-Authentik-Name"],
 				debugInfo["X-Authentik-Groups"])
@@ -73,7 +76,7 @@ func DebugAuthMiddleware() gin.HandlerFunc {
 				}
 
 				// Log the parsed groups
-				log.Printf("[DEBUG] Parsed groups: %v", groups)
+				logger.Debug("Parsed groups: %v", groups)
 			}
 			c.Set("debug_groups", groups)
 		}
