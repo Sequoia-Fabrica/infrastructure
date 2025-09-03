@@ -12,6 +12,7 @@ RUN npm install
 # Copy tailwind config and CSS source
 COPY tailwind.config.js ./
 COPY web/static/css/input.css ./web/static/css/input.css
+COPY web/static/css/styles.css ./web/static/css/styles.css
 
 # Build CSS
 RUN npm run build:css
@@ -35,6 +36,7 @@ COPY . .
 
 # Copy the built CSS from the css-builder stage
 COPY --from=css-builder /app/web/static/css/tailwind.css ./web/static/css/tailwind.css
+COPY --from=css-builder /app/web/static/css/styles.css ./web/static/css/styles.css
 
 # Build the application
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o multipass cmd/multipass/main.go
