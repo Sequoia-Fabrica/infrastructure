@@ -294,7 +294,7 @@ shlink:
 
 multipass:
   environment: "production"
-  container_version: "20250901-211349-408bdd0"
+  container_version: "20250903-045530-1c8a9e7"
   port: 3005
   data_location: "/opt/multipass"
   authentik_url: "https://login.sequoia.garden"
