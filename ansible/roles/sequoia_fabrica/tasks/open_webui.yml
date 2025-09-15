@@ -1,0 +1,38 @@
+---
+# open-webui
+- name: Create /opt/open-webui/data
+  become: true
+  ansible.builtin.file:
+    path: /opt/open-webui/data
+    state: directory
+    owner: root
+    group: root
+    mode: ug=rwx
+- name: Run open-webui
+  become: true
+  community.docker.docker_container:
+    name: open-webui
+    image: ghcr.io/open-webui/open-webui:main
+    pull: always
+    restart_policy: always
+    ports:
+      - 3333:8080
+    dns_servers:
+      - 100.100.100.100
+    mounts:
+      - type: bind
+        source: /opt/open-webui/data
+        target: /app/backend/data
+    env:
+      DEFAULT_USER_ROLE: admin
+      ENABLE_OAUTH_SIGNUP: "true"
+      ENABLE_SIGNUP: "false"
+      ENABLE_LOGIN_FORM: "false"
+      OAUTH_CLIENT_ID: "5WXNpPqj2OdtqXjki5x2JuhgvDxIXrY2X2P2BHC8"
+      OAUTH_CLIENT_SECRET: "{{ open_webui.oauth_client_secret }}"
+      OAUTH_PROVIDER_NAME: "sequoia.garden"
+      OAUTH_MERGE_ACCOUNTS_BY_EMAIL: "true"
+      OAUTH_SCOPES: "openid email profile"
+      OLLAMA_BASE_URL: "http://beefy-gpu.cloudforest-perch.ts.net:11434"
+      OPENID_PROVIDER_URL: "https://login.sequoia.garden/application/o/chat/.well-known/openid-configuration"
+      OPENID_REDIRECT_URI: "https://chat.sequoia.garden/oauth/oidc/callback"

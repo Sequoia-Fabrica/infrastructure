@@ -1,0 +1,53 @@
+---
+## Frigate
+- name: Ensure /opt/frigate/config
+  become: true
+  ansible.builtin.file:
+    path: /opt/frigate/config
+    state: directory
+    owner: root
+    group: root
+    mode: ug=rwx,o=rx
+- name: Place /opt/frigate/config/config.yml
+  become: true
+  ansible.builtin.template:
+    src: frigate.config.yml
+    dest: /opt/frigate/config/config.yml
+    owner: root
+    group: root
+    mode: ug=rw,o=
+  notify: Restart frigate
+- name: Create /data-disk/frigate/media
+  become: true
+  ansible.builtin.file:
+    path: /data-disk/frigate/media
+    state: directory
+- name: Run frigate
+  community.docker.docker_container:
+    name: frigate
+    image: ghcr.io/blakeblackshear/frigate:stable
+    pull: always
+    restart_policy: unless-stopped
+    network_mode: host
+    shm_size: 1G
+    privileged: true
+    env:
+      FRIGATE_RTSP_PASSWORD: "{{ frigate_rtsp_password }}"
+      FRIGATE_MQTT_PASSWORD: "{{ frigate_mqtt_password }}"
+    devices:
+      - /dev/bus/usb:/dev/bus/usb
+      - /dev/apex_0:/dev/apex_0
+    mounts:
+      - type: tmpfs
+        target: /tmp/cache
+        tmpfs_size: 1G
+      - type: bind
+        source: /data-disk/frigate/media
+        target: /media/frigate
+      - type: bind
+        source: /opt/frigate/config
+        target: /config
+      - type: bind
+        source: /etc/localtime
+        target: /etc/localtime
+        read_only: true

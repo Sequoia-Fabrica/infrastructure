@@ -1,0 +1,46 @@
+---
+- name: Ensure /opt/prometheus/data
+  become: true
+  ansible.builtin.file:
+    path: /opt/prometheus/data
+    state: directory
+    owner: nobody
+    group: nogroup
+    mode: ug=rwx,o=rx
+# - name: Ensure /opt/prometheus/config
+#   become: true
+#   ansible.builtin.file:
+#     path: /opt/prometheus/config
+#     state: directory
+#     owner: root
+#     group: root
+#     mode: ug=rwx,o=rx
+# - name: Template /opt/prometheus/config/prometheus.yml
+#   become: true
+#   ansible.builtin.template:
+#     src: prometheus.yml.j2
+#     dest: /opt/prometheus/config/prometheus.yml
+#     owner: root
+#     group: root
+#     mode: ug=rw,o=r
+#   notify: Reload prometheus
+# - name: Run prometheus
+#   community.docker.docker_container:
+#     name: prometheus
+#     image: prom/prometheus
+#     restart_policy: unless-stopped
+#     ports:
+#       - 9090:9090
+#     mounts:
+#       - type: bind
+#         source: /opt/prometheus/config
+#         target: /etc/prometheus
+#       - type: bind
+#         source: /opt/prometheus/data
+#         target: /prometheus
+#     command:
+#       - --config.file=/etc/prometheus/prometheus.yml
+#       - --storage.tsdb.path=/prometheus
+#       - --web.console.libraries=/usr/share/prometheus/console_libraries
+#       - --web.console.templates=/usr/share/prometheus/consoles
+#       - --storage.tsdb.retention.size=8GB

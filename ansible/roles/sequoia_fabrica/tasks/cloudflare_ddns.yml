@@ -1,0 +1,20 @@
+---
+## Cloudflare Dynamic DNS update
+- name: Place cloudflare_ddns_update.sh script
+  become: true
+  ansible.builtin.template:
+    src: cloudflare_ddns_update.sh.j2
+    dest: /opt/cloudflare_ddns_update.sh
+    owner: root
+    group: root
+    mode: ug=rwx,o=
+- name: Install cron
+  become: true
+  ansible.builtin.package:
+    name: cron
+    state: present
+- name: Run cloudflare_ddns_update.sh with a cron
+  ansible.builtin.cron:
+    name: cloudflare_ddns_update
+    minute: "*/15"
+    job: /opt/cloudflare_ddns_update.sh

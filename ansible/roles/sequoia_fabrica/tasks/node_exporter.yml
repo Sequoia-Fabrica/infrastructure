@@ -1,0 +1,17 @@
+---
+## node-exporter
+- name: Run node-exporter
+  become: true
+  community.docker.docker_container:
+    name: node-exporter
+    image: quay.io/prometheus/node-exporter:latest
+    command: --path.rootfs=/host
+    restart_policy: unless-stopped
+    network_mode: host
+    pid_mode: host
+    mounts:
+      - type: bind
+        source: /
+        target: /host
+        propagation: rslave
+        read_only: true

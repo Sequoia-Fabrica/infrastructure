@@ -1,0 +1,52 @@
+---
+## aruba-exporter
+- name: Ensure /opt/aruba_exporter/repo
+  become: true
+  ansible.builtin.file:
+    path: /opt/aruba_exporter
+    state: directory
+    owner: root
+    group: root
+    mode: ugo=rwx
+- name: Template /opt/aruba_exporter/config.yaml
+  become: true
+  ansible.builtin.template:
+    src: aruba_exporter.config.yaml.j2
+    dest: /opt/aruba_exporter/config.yaml
+    owner: root
+    group: root
+    mode: ug=rw,o=
+- name: Clone github.com:slashdoom/aruba_exporter
+  become: true
+  ansible.builtin.git:
+    repo: https://github.com/slashdoom/aruba_exporter
+    dest: /opt/aruba_exporter/repo
+  register: aruba_exporter_git_repo
+- name: Rebuild aruba_exporter Docker image
+  become: true
+  when: aruba_exporter_git_repo.changed
+  community.docker.docker_image:
+    name: aruba_exporter
+    tag: latest
+    source: build
+    force_source: true
+    force_tag: true
+    build:
+      path: /opt/aruba_exporter/repo
+  register: aruba_exporter_container_image
+  notify: Restart aruba_exporter
+- name: Run aruba_exporter
+  become: true
+  community.docker.docker_container:
+    name: aruba_exporter
+    image: aruba_exporter:latest
+    state: started
+    restart_policy: unless-stopped
+    command: "/go/aruba_exporter/aruba_exporter -config.file /opt/aruba_exporter/config.yaml"
+    ports:
+      - 9909:9909
+    mounts:
+      - type: bind
+        source: /opt/aruba_exporter/config.yaml
+        target: /opt/aruba_exporter/config.yaml
+        read_only: true

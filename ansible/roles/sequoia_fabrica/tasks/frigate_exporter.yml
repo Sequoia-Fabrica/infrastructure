@@ -1,0 +1,11 @@
+---
+## frigate-exporter
+- name: Run prometheus-frigate-exporter
+  community.docker.docker_container:
+    name: prometheus_frigate_exporter
+    image: rhysbailey/prometheus-frigate-exporter
+    restart_policy: unless-stopped
+    ports:
+      - 9101:9100
+    env:
+      FRIGATE_STATS_URL: http://nursery.xylem.sequoiafabrica.org:5000/api/stats

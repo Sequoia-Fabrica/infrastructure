@@ -1,0 +1,40 @@
+---
+## Grafana
+- name: Ensure /opt/grafana/storage
+  become: true
+  ansible.builtin.file:
+    path: /opt/grafana/storage
+    state: directory
+    owner: nobody
+    group: nogroup
+    mode: ug=rwx,o=rx
+    recurse: true
+- name: Run grafana
+  community.docker.docker_container:
+    name: grafana
+    image: grafana/grafana-oss
+    restart_policy: unless-stopped
+    ports:
+      - 3000:3000
+    user: nobody:nogroup
+    env:
+      GF_PANELS_DISABLE_SANITIZE_HTML: "true"
+      GF_AUTH_GENERIC_OAUTH_ENABLED: "true"
+      GF_AUTH_GENERIC_OAUTH_NAME: "Sequoia Garden Login"
+      GF_AUTH_GENERIC_OAUTH_ALLOW_SIGN_UP: "true"
+      GF_AUTH_GENERIC_OAUTH_CLIENT_ID: "{{ authentik.apps.grafana.client_id }}"
+      GF_AUTH_GENERIC_OAUTH_CLIENT_SECRET: "{{ authentik.apps.grafana.client_secret }}"
+      GF_AUTH_GENERIC_OAUTH_SCOPES: "openid profile email"
+      GF_AUTH_GENERIC_OAUTH_AUTH_URL: "https://login.sequoia.garden/application/o/authorize/"
+      GF_AUTH_GENERIC_OAUTH_TOKEN_URL: "https://login.sequoia.garden/application/o/token/"
+      GF_AUTH_GENERIC_OAUTH_API_URL: "https://login.sequoia.garden/application/o/userinfo/"
+      GF_AUTH_SIGNOUT_REDIRECT_URL: "https://login.sequoia.garden/application/o/grafana/end-session/"
+      GF_SERVER_ROOT_URL: "https://grafana.sequoia.garden/"
+      # Optionally enable auto-login (bypasses Grafana login screen)
+      GF_AUTH_OAUTH_AUTO_LOGIN: "true"
+      # Optionally map user groups to Grafana roles
+      GF_AUTH_GENERIC_OAUTH_ROLE_ATTRIBUTE_PATH: "contains(groups, 'Grafana Admins') && 'Admin' || contains(groups, 'Grafana Editors') && 'Editor' || 'Viewer'"
+    mounts:
+      - type: bind
+        source: /opt/grafana/storage
+        target: /var/lib/grafana

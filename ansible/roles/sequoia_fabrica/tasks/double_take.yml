@@ -1,0 +1,42 @@
+---
+# double-take
+- name: Create double-take storage directory
+  become: true
+  ansible.builtin.file:
+    path: /data-disk/double-take
+    state: directory
+    owner: root
+    group: root
+    mode: ug=rwx
+- name: Create double-take config directory
+  become: true
+  ansible.builtin.file:
+    path: /data-disk/double-take/config
+    state: directory
+    owner: root
+    group: root
+    mode: ug=rwx
+- name: Place /data-disk/double-take/config/config.yml
+  become: true
+  ansible.builtin.template:
+    src: double-take.config.yml.j2
+    dest: /data-disk/double-take/config/config.yml
+    owner: root
+    group: root
+    mode: ug=rwx
+  notify: Restart double-take
+- name: Run double-take
+  become: true
+  community.docker.docker_container:
+    name: double-take
+    image: skrashevich/double-take
+    restart_policy: always
+    dns_servers:
+      - 100.100.100.100
+    mounts:
+      - type: bind
+        source: /data-disk/double-take
+        target: /.storage
+    ports:
+      - 3003:3000
+      - 3004:8080
