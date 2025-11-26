@@ -1,13 +1,22 @@
 ---
-- name: Add the Google APT Key
+- name: Create apt keyrings directory
   become: true
-  ansible.builtin.apt_key:
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+- name: Download Google Cloud GPG key
+  become: true
+  ansible.builtin.get_url:
     url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
-    state: present
+    dest: "/etc/apt/keyrings/google-cloud.gpg"
+    mode: '0644'
+
 - name: Install core-edgetpu-stable apt repo
   become: true
   ansible.builtin.apt_repository:
-    repo: "deb https://packages.cloud.google.com/apt coral-edgetpu-stable main"
+    repo: "deb [signed-by=/etc/apt/keyrings/google-cloud.gpg] https://packages.cloud.google.com/apt coral-edgetpu-stable main"
     state: present
 - name: Install the coral edgetpu packages
   become: true

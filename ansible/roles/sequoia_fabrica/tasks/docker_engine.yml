@@ -1,14 +1,22 @@
 ---
-- name: Install apt gpg key
+- name: Create apt keyrings directory
   become: true
-  ansible.builtin.apt_key:
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+- name: Download Docker GPG key
+  become: true
+  ansible.builtin.get_url:
     url: "https://download.docker.com/linux/{{ ansible_distribution | lower }}/gpg"
-    state: present
+    dest: "/etc/apt/keyrings/docker.gpg"
+    mode: '0644'
 
 - name: Install apt repository
   become: true
   ansible.builtin.apt_repository:
-    repo: "deb https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
+    repo: "deb [signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/{{ ansible_distribution | lower }} {{ ansible_distribution_release }} stable"
     state: present
     update_cache: true
 
