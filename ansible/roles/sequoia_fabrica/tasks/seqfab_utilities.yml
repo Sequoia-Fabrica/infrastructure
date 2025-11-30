@@ -3,39 +3,39 @@
 - name: Create seqfab_utilities database directory
   become: true
   ansible.builtin.file:
-    path: "{{ seqfab_utilities.db_data_location }}"
-    state: directory
-    mode: u=rwx,o=rx
+      path: "{{ seqfab_utilities.db_data_location_source }}"
+      state: directory
+      mode: u=rwx,o=rx
 - name: Place sequoia-fabrica/utilities repo deploy key
   become: true
   ansible.builtin.copy:
-    src: sequoia-fabrica_utilities_deploy.key
-    dest: /opt/seqfab_utilities/deploy_key
-    owner: root
-    group: root
-    mode: u=rw,go=
+      src: sequoia-fabrica_utilities_deploy.key
+      dest: /opt/seqfab_utilities/deploy_key
+      owner: root
+      group: root
+      mode: u=rw,go=
 - name: Clone sequoia-fabrica/utilities repo
   become: true
   ansible.builtin.git:
-    accept_newhostkey: true
-    key_file: /opt/seqfab_utilities/deploy_key
-    repo: git@github.com:sequoia-fabrica/utilities.git
-    dest: /opt/seqfab_utilities/utilities
-    version: main
-    update: yes
-    force: yes
+      accept_newhostkey: true
+      key_file: /opt/seqfab_utilities/deploy_key
+      repo: git@github.com:sequoia-fabrica/utilities.git
+      dest: /opt/seqfab_utilities/utilities
+      version: main
+      update: yes
+      force: yes
 - name: Place /opt/seqfab_utilities/utilities/.env
   become: true
   ansible.builtin.template:
-    src: seqfab_utilities.env.j2
-    dest: /opt/seqfab_utilities/utilities/.env
-    owner: root
-    group: root
-    mode: u=rw,go=
+      src: seqfab_utilities.env.j2
+      dest: /opt/seqfab_utilities/utilities/.env
+      owner: root
+      group: root
+      mode: u=rw,go=
 - name: Deploy seqfab_utilities with docker-compose
   become: true
   community.docker.docker_compose_v2:
-    project_src: "{{ seqfab_utilities.docker_compose_location }}"
-    remove_orphans: true
-    build: always
-    state: present
+      project_src: "{{ seqfab_utilities.docker_compose_location }}"
+      remove_orphans: true
+      build: always
+      state: present
