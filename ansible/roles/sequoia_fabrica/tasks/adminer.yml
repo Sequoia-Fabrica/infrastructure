@@ -1,0 +1,27 @@
+---
+## Run sequoia-fabrica/adminer php file in container
+- name: Clone momja/adminer-traefik-compose repo
+  become: true
+  ansible.builtin.git:
+      accept_newhostkey: true
+      repo: https://github.com/momja/adminer-traefik-compose.git
+      dest: /opt/adminer
+      version: main
+      update: yes
+      force: yes
+
+- name: Place /opt/adminer/.env
+  become: true
+  ansible.builtin.template:
+      src: adminer.env.j2
+      dest: /opt/adminer/.env
+      owner: root
+      group: root
+      mode: u=rw,go=
+- name: Deploy adminer with docker-compose
+  become: true
+  community.docker.docker_compose_v2:
+      project_src: "{{ adminer.docker_compose_location }}"
+      remove_orphans: true
+      build: always
+      state: present

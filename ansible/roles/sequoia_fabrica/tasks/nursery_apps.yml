@@ -65,6 +65,12 @@
     tasks_from: seqfab_utilities.yml
   tags: seqfab_utilities
 
+- name: Adminer
+  ansible.builtin.include_role:
+    name: sequoia_fabrica
+    tasks_from: adminer.yml
+  tags: adminer
+
 - name: Open WebUI
   ansible.builtin.include_role:
     name: sequoia_fabrica
