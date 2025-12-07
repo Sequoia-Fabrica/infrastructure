@@ -301,6 +301,9 @@ seqfab_utilities:
     3634376161313337390a613432346436373366653234333562386361333130386665616435313834
     6632
 
+adminer:
+  docker_compose_location: /opt/adminer
+
 doubletake:
   compreface:
     recognition_key: !vault |
