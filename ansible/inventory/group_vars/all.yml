@@ -344,3 +344,13 @@ multipass:
     6664643836636336643933663465323365633432653239643230
   makerspace_name: "Sequoia Fabrica"
   trusted_proxy_headers: true
+
+# Google Drive Backup - https://github.com/Sequoia-Fabrica/rclone-gdrive-backups
+# Setup: run 'rclone config' locally, then store token in vault
+# Configured in nursery_apps.yml - requires vault_gdrive_backup_rclone_token
+#
+# Supports:
+#   db_path:  Single file       - "/data/app.sqlite"
+#   db_paths: Multiple files    - "/data/users.sqlite:/data/orders.sqlite"
+#   db_dirs:  Scan directories  - "/data/databases"
+#   db_pattern: File pattern    - "*.sqlite" (default)

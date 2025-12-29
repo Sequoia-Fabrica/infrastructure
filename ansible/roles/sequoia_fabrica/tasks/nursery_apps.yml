@@ -94,3 +94,21 @@
     name: sequoia_fabrica
     tasks_from: multipass.yml
   tags: multipass
+
+# Google Drive Backup - call once per database/directory to backup
+# See: https://github.com/Sequoia-Fabrica/rclone-gdrive-backups
+- name: Google Drive Backup (seqfab_utilities)
+  ansible.builtin.include_role:
+    name: sequoia_fabrica
+    tasks_from: gdrive_backup.yml
+  vars:
+    gdrive_backup:
+      db_dirs: "/data"
+      db_pattern: "*.sqlite"
+      volumes:
+        - "{{ seqfab_utilities.db_data_location_source }}:/data:ro"
+      rclone_token: "{{ vault_gdrive_backup_rclone_token }}"
+      drive_folder_name: "seqfab_utilities_backups"
+      container_name: "gdrive_backup_seqfab_utilities"
+  tags: gdrive_backup
+  when: vault_gdrive_backup_rclone_token is defined

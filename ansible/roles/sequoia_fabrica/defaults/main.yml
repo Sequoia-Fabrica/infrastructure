@@ -20,3 +20,25 @@ etherpad:
   require_session: false
   edit_only: false
   trust_proxy: true
+
+# Google Drive backup configuration
+# https://github.com/Sequoia-Fabrica/rclone-gdrive-backups
+#
+# Required:
+#   rclone_token: "{{ vault_gdrive_backup_rclone_token }}"
+#
+# Database sources (at least one required):
+#   db_path:    Single file        - "/data/app.sqlite"
+#   db_paths:   Multiple files     - "/data/a.sqlite:/data/b.sqlite"
+#   db_dirs:    Scan directories   - "/data/databases"
+#   db_pattern: Pattern for dirs   - "*.sqlite" (default)
+#
+# Volume mounts:
+#   volumes:    List of mounts     - ["{{ src }}:/data:ro"]
+#
+# Optional:
+#   container_name: gdrive_backup_<app>
+#   drive_folder_name: sqlite_backups
+#   backup_schedule: "30 2 * * *"
+#   retention_days: 30
+#   run_on_startup: false
