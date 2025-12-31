@@ -54,7 +54,7 @@
   ansible.builtin.set_fact:
     gdrive_backup_volumes: >-
       {{
-        ['/opt/gdrive-backup/rclone.conf:/etc/rclone/rclone.conf:ro']
+        ['/opt/gdrive-backup/rclone.conf:/etc/rclone/rclone.conf']
         + (gdrive_backup.volumes | default([]))
       }}
 

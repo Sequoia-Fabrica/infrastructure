@@ -47,6 +47,7 @@
       ansible.builtin.include_role:
         name: sequoia_fabrica
         tasks_from: nursery_apps.yml
+      tags: always
     - name: Setup Etherpad
       ansible.builtin.include_role:
         name: sequoia_fabrica

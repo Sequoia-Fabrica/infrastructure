@@ -23,22 +23,48 @@ etherpad:
 
 # Google Drive backup configuration
 # https://github.com/Sequoia-Fabrica/rclone-gdrive-backups
-#
-# Required:
-#   rclone_token: "{{ vault_gdrive_backup_rclone_token }}"
-#
-# Database sources (at least one required):
-#   db_path:    Single file        - "/data/app.sqlite"
-#   db_paths:   Multiple files     - "/data/a.sqlite:/data/b.sqlite"
-#   db_dirs:    Scan directories   - "/data/databases"
-#   db_pattern: Pattern for dirs   - "*.sqlite" (default)
-#
-# Volume mounts:
-#   volumes:    List of mounts     - ["{{ src }}:/data:ro"]
-#
-# Optional:
-#   container_name: gdrive_backup_<app>
-#   drive_folder_name: sqlite_backups
-#   backup_schedule: "30 2 * * *"
-#   retention_days: 30
-#   run_on_startup: false
+# 
+# OAuth credentials are stored in group_vars with vault_ prefix
+# These defaults reference those vault variables
+gdrive_backup:
+  # OAuth credentials (references vault_gdrive_backup from group_vars/all.yml)
+  rclone_token: "{{ vault_gdrive_backup.rclone_token }}"
+  rclone_remote_name: "gdrive"
+  rclone_scope: "drive"
+  
+  # Optional: Custom OAuth app credentials (override in group_vars if needed)
+  # rclone_client_id: "{{ vault_gdrive_backup.rclone_client_id | default(omit) }}"
+  # rclone_client_secret: "{{ vault_gdrive_backup.rclone_client_secret | default(omit) }}"
+  # rclone_team_drive: "{{ vault_gdrive_backup.rclone_team_drive | default(omit) }}"
+  
+  # Database sources (at least one method required):
+  # Method 1: Single database file
+  # db_path: "/data/app.sqlite"
+  # Method 2: Multiple specific files (colon or comma separated)
+  # db_paths: "/data/users.sqlite:/data/orders.sqlite"
+  # Method 3: Scan directories for databases (colon or comma separated)
+  # db_dirs: "/data"
+  # Pattern for finding databases in db_dirs (default: *.sqlite)
+  db_pattern: "*.sqlite"
+  
+  # Volume mounts - mount host database paths to /data in container (read-only)
+  # Examples:
+  #   Single file:     ["{{ db_host_path }}:/data/db.sqlite:ro"]
+  #   Entire dir:      ["{{ db_host_path }}:/data:ro"]
+  #   Multiple dirs:   ["{{ path1 }}:/data/app1:ro", "{{ path2 }}:/data/app2:ro"]
+  volumes: []
+  
+  # Container configuration
+  container_name: "gdrive_backup"
+  
+  # Google Drive folder name where backups are stored
+  drive_folder_name: "sqlite_backups"
+  
+  # Backup schedule (cron format) - default: 2:30 AM daily
+  backup_schedule: "30 2 * * *"
+  
+  # Days to keep backups (0 to disable retention policy)
+  retention_days: 30
+  
+  # Run backup immediately when container starts
+  run_on_startup: false

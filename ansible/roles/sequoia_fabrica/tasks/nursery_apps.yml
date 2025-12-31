@@ -97,18 +97,23 @@
 
 # Google Drive Backup - call once per database/directory to backup
 # See: https://github.com/Sequoia-Fabrica/rclone-gdrive-backups
+- name: Prepare Google Drive Backup config for seqfab_utilities
+  ansible.builtin.set_fact:
+    seqfab_gdrive_backup_config: "{{ gdrive_backup | combine({
+      'db_dirs': '/data',
+      'db_pattern': '*.db',
+      'volumes': [seqfab_utilities.db_data_location_source + ':/data:ro'],
+      'drive_folder_name': 'seqfab_utilities_backups',
+      'container_name': 'gdrive_backup_seqfab_utilities'
+    }) }}"
+  tags: gdrive_backup
+  when: vault_gdrive_backup.rclone_token is defined
+
 - name: Google Drive Backup (seqfab_utilities)
-  ansible.builtin.include_role:
+  ansible.builtin.import_role:
     name: sequoia_fabrica
     tasks_from: gdrive_backup.yml
   vars:
-    gdrive_backup:
-      db_dirs: "/data"
-      db_pattern: "*.sqlite"
-      volumes:
-        - "{{ seqfab_utilities.db_data_location_source }}:/data:ro"
-      rclone_token: "{{ vault_gdrive_backup_rclone_token }}"
-      drive_folder_name: "seqfab_utilities_backups"
-      container_name: "gdrive_backup_seqfab_utilities"
+    gdrive_backup: "{{ seqfab_gdrive_backup_config }}"
   tags: gdrive_backup
-  when: vault_gdrive_backup_rclone_token is defined
+  when: seqfab_gdrive_backup_config is defined and seqfab_gdrive_backup_config.rclone_token is defined
