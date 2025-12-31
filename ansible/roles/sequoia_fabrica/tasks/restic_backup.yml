@@ -1,0 +1,149 @@
+---
+# Restic Backup deployment using rclone backend for Google Drive
+#
+# Uses tofran/restic-rclone image which includes both restic and rclone
+# https://hub.docker.com/r/tofran/restic-rclone
+#
+# Required variables:
+#   restic_backup.source_paths - Directory or list of directories to backup (on host)
+#   restic_backup.repository_name - Name for the restic repository in Google Drive
+#
+# Optional variables:
+#   restic_backup.password - Repository password (defaults to vault_restic_password)
+#   restic_backup.retention_days - Days to keep backups (default: 30)
+#   restic_backup.retention_weeks - Weeks to keep backups (default: 4)
+#   restic_backup.retention_months - Months to keep backups (default: 6)
+#   restic_backup.backup_schedule - Cron schedule (default: "0 3 * * *" - 3 AM daily)
+#   restic_backup.container_name - Container name (default: restic_backup_<repository_name>)
+
+- name: Ensure restic_backup is configured
+  ansible.builtin.assert:
+    that:
+      - restic_backup is defined
+      - restic_backup.source_paths is defined
+      - restic_backup.repository_name is defined
+      - vault_gdrive_backup.rclone_token is defined
+      - vault_restic_password is defined
+    fail_msg: "restic_backup requires source_paths, repository_name, vault_gdrive_backup.rclone_token, and vault_restic_password"
+
+- name: Normalize source_paths to list
+  ansible.builtin.set_fact:
+    normalized_source_paths: "{{ [restic_backup.source_paths] if restic_backup.source_paths is string else restic_backup.source_paths }}"
+
+- name: Set restic backup defaults
+  ansible.builtin.set_fact:
+    restic_config:
+      source_paths: "{{ normalized_source_paths }}"
+      repository_name: "{{ restic_backup.repository_name }}"
+      password: "{{ restic_backup.password | default(vault_restic_password) }}"
+      retention_days: "{{ restic_backup.retention_days | default(30) }}"
+      retention_weeks: "{{ restic_backup.retention_weeks | default(4) }}"
+      retention_months: "{{ restic_backup.retention_months | default(6) }}"
+      backup_schedule: "{{ restic_backup.backup_schedule | default('0 3 * * *') }}"
+      container_name: "{{ restic_backup.container_name | default('restic_backup_' + restic_backup.repository_name) }}"
+      rclone_remote_name: "{{ vault_gdrive_backup.rclone_client_remote_name | default('gdrive') }}"
+
+- name: Build base volume mounts
+  ansible.builtin.set_fact:
+    restic_backup_volumes:
+      - "/opt/restic-backup/{{ restic_config.repository_name }}:/config"
+      - "/opt/restic-backup/{{ restic_config.repository_name }}/backup.sh:/backup.sh:ro"
+
+- name: Add source path volume mounts
+  ansible.builtin.set_fact:
+    restic_backup_volumes: "{{ restic_backup_volumes + [item.1 + ':/data/backup' + (item.0 | string) + ':ro'] }}"
+  loop: "{{ range(restic_config.source_paths | length) | list | zip(restic_config.source_paths) | list }}"
+
+- name: Create restic backup directory
+  become: true
+  ansible.builtin.file:
+    path: /opt/restic-backup/{{ restic_config.repository_name }}
+    state: directory
+    mode: "0700"
+
+- name: Template rclone configuration for restic
+  become: true
+  ansible.builtin.template:
+    src: restic_rclone.conf.j2
+    dest: /opt/restic-backup/{{ restic_config.repository_name }}/rclone.conf
+    mode: "0600"
+  register: restic_rclone_config
+
+- name: Template restic backup script
+  become: true
+  ansible.builtin.template:
+    src: restic_backup.sh.j2
+    dest: /opt/restic-backup/{{ restic_config.repository_name }}/backup.sh
+    mode: "0700"
+  register: restic_backup_script
+
+- name: Check if restic repository exists
+  become: true
+  community.docker.docker_container:
+    name: "{{ restic_config.container_name }}_check"
+    image: tofran/restic-rclone:latest
+    command: snapshots
+    detach: false
+    cleanup: true
+    env:
+      RESTIC_REPOSITORY: "rclone:{{ restic_config.rclone_remote_name }}:{{ restic_config.repository_name }}"
+      RESTIC_PASSWORD: "{{ restic_config.password }}"
+      RCLONE_CONFIG: "/config/rclone.conf"
+    volumes:
+      - "/opt/restic-backup/{{ restic_config.repository_name }}:/config"
+  register: restic_repo_check
+  failed_when: false
+  changed_when: false
+
+- name: Debug restic_repo_check output
+  ansible.builtin.debug:
+    var: restic_repo_check
+
+- name: Initialize restic repository if not exists
+  become: true
+  community.docker.docker_container:
+    name: "{{ restic_config.container_name }}_init"
+    image: tofran/restic-rclone:latest
+    command: init
+    detach: false
+    cleanup: true
+    env:
+      RESTIC_REPOSITORY: "rclone:{{ restic_config.rclone_remote_name }}:{{ restic_config.repository_name }}"
+      RESTIC_PASSWORD: "{{ restic_config.password }}"
+      RCLONE_CONFIG: "/config/rclone.conf"
+    volumes:
+      - "/opt/restic-backup/{{ restic_config.repository_name }}:/config"
+  when: restic_repo_check.status != 0
+
+- name: Deploy restic backup cron container
+  become: true
+  community.docker.docker_container:
+    name: "{{ restic_config.container_name }}"
+    image: tofran/restic-rclone:latest
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        echo "{{ restic_config.backup_schedule }} /backup.sh >> /var/log/restic.log 2>&1" > /etc/crontabs/root
+        crond -f -l 2
+    state: started
+    restart_policy: unless-stopped
+    recreate: "{{ restic_rclone_config.changed or restic_backup_script.changed }}"
+    env:
+      RESTIC_REPOSITORY: "rclone:{{ restic_config.rclone_remote_name }}:{{ restic_config.repository_name }}"
+      RESTIC_PASSWORD: "{{ restic_config.password }}"
+      RCLONE_CONFIG: "/config/rclone.conf"
+      RETENTION_DAYS: "{{ restic_config.retention_days | string }}"
+      RETENTION_WEEKS: "{{ restic_config.retention_weeks | string }}"
+      RETENTION_MONTHS: "{{ restic_config.retention_months | string }}"
+    volumes: "{{ restic_backup_volumes }}"
+    log_driver: json-file
+    log_options:
+      max-size: "10m"
+      max-file: "3"
+    healthcheck:
+      test: ["CMD", "pgrep", "crond"]
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 5s

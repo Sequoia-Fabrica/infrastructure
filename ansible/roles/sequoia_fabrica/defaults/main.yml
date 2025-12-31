@@ -21,50 +21,29 @@ etherpad:
   edit_only: false
   trust_proxy: true
 
-# Google Drive backup configuration
-# https://github.com/Sequoia-Fabrica/rclone-gdrive-backups
-# 
-# OAuth credentials are stored in group_vars with vault_ prefix
-# These defaults reference those vault variables
-gdrive_backup:
-  # OAuth credentials (references vault_gdrive_backup from group_vars/all.yml)
-  rclone_token: "{{ vault_gdrive_backup.rclone_token }}"
-  rclone_remote_name: "gdrive"
-  rclone_scope: "drive"
+# Restic backup configuration
+# https://restic.net/
+#
+# Uses rclone as backend to upload encrypted backups to Google Drive
+# OAuth credentials are stored in vault_gdrive_backup in group_vars/all.yml
+# Restic password is stored in vault_restic_password in group_vars/all.yml
+restic_backup:
+  # Required: Directory or directories to backup (on host)
+  # Single path:
+  # source_paths: "/path/to/backup"
+  # Multiple paths:
+  # source_paths:
+  #   - "/path/to/backup1"
+  #   - "/path/to/backup2"
+  #   - "/path/to/backup3"
   
-  # Optional: Custom OAuth app credentials (override in group_vars if needed)
-  # rclone_client_id: "{{ vault_gdrive_backup.rclone_client_id | default(omit) }}"
-  # rclone_client_secret: "{{ vault_gdrive_backup.rclone_client_secret | default(omit) }}"
-  # rclone_team_drive: "{{ vault_gdrive_backup.rclone_team_drive | default(omit) }}"
+  # Required: Name for the restic repository in Google Drive
+  # repository_name: "my_app_backups"
   
-  # Database sources (at least one method required):
-  # Method 1: Single database file
-  # db_path: "/data/app.sqlite"
-  # Method 2: Multiple specific files (colon or comma separated)
-  # db_paths: "/data/users.sqlite:/data/orders.sqlite"
-  # Method 3: Scan directories for databases (colon or comma separated)
-  # db_dirs: "/data"
-  # Pattern for finding databases in db_dirs (default: *.sqlite)
-  db_pattern: "*.sqlite"
+  # Backup schedule (cron format) - default: 3 AM daily
+  backup_schedule: "0 3 * * *"
   
-  # Volume mounts - mount host database paths to /data in container (read-only)
-  # Examples:
-  #   Single file:     ["{{ db_host_path }}:/data/db.sqlite:ro"]
-  #   Entire dir:      ["{{ db_host_path }}:/data:ro"]
-  #   Multiple dirs:   ["{{ path1 }}:/data/app1:ro", "{{ path2 }}:/data/app2:ro"]
-  volumes: []
-  
-  # Container configuration
-  container_name: "gdrive_backup"
-  
-  # Google Drive folder name where backups are stored
-  drive_folder_name: "sqlite_backups"
-  
-  # Backup schedule (cron format) - default: 2:30 AM daily
-  backup_schedule: "30 2 * * *"
-  
-  # Days to keep backups (0 to disable retention policy)
+  # Retention policy
   retention_days: 30
-  
-  # Run backup immediately when container starts
-  run_on_startup: false
+  retention_weeks: 4
+  retention_months: 6

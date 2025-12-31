@@ -182,6 +182,8 @@ seqfab_utilities:
   docker_compose_location: /opt/seqfab_utilities/utilities
   db_data_location_source: /opt/seqfab_utilities/database
   db_data_location_target: /var/lib/sqlite/data
+  db_backup_location_source: /opt/seqfab_utilities/backup
+  db_backup_location_target: /var/lib/sqlite/backup
 
   # Ollama (optional)
   ollama_model_name: "gemma3:4b"
@@ -348,10 +350,7 @@ multipass:
   makerspace_name: "Sequoia Fabrica"
   trusted_proxy_headers: true
 
-# Google Drive Backup - https://github.com/Sequoia-Fabrica/rclone-gdrive-backups
 # Setup: run 'rclone config' locally, then encrypt token with ansible-vault
-#
-# Vault-encrypted credentials (use vault_ prefix for encrypted values)
 vault_gdrive_backup:
   # OAuth token from rclone config (encrypted with ansible-vault)
   rclone_token: !vault |
@@ -416,33 +415,21 @@ vault_gdrive_backup:
           64373963336230326462336635616162353038646464663764323434316336636361316134646561
           3036633462633864323366636432383765393531343839356331
 
-# Google Drive Backup - Base configuration
-# References vault_gdrive_backup for encrypted credentials
-# Override in specific deployments by merging with app-specific settings
-gdrive_backup:
-  # OAuth credentials (references vault)
-  rclone_token: "{{ vault_gdrive_backup.rclone_token }}"
-  rclone_remote_name: "sequoia_fabrica_google_workspace"
-  rclone_scope: "drive"
-  
-  # Optional OAuth settings (references vault if defined)
-  rclone_client_id: "{{ vault_gdrive_backup.rclone_client_id }}"
-  rclone_client_secret: "{{ vault_gdrive_backup.rclone_client_secret }}"
-  rclone_team_drive: "{{ vault_gdrive_backup.rclone_team_drive }}"
+  # Rclone remote name (not a secret, just a label)
+  rclone_client_remote_name: "sequoia_fabrica_google_workspace"
 
-  # Default Google Drive folder for backups
-  drive_folder_name: "sqlite_backups"
+# Restic Backup Configuration
+# https://restic.net/
+#
+# Restic uses rclone as backend to upload to Google Drive
+# The rclone credentials are reused from vault_gdrive_backup above
 
-  # Default backup schedule (cron format) - 2:30 AM daily
-  backup_schedule: "30 2 * * *"
-
-  # Days to keep backups (0 to disable retention policy)
-  retention_days: 30
-
-  # Run backup immediately when container starts
-  run_on_startup: false
-
-  # Database pattern for scanning directories
-  db_pattern: "*.sqlite"
-
-# Example: See nursery_apps.yml for seqfab_utilities backup configuration
+# Restic repository password (used to encrypt backups, and stored in Bitwarden)
+vault_restic_password: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          33323461646365663736663862373137666564616531636139663862626530376435393561383463
+          6438333063343632343037656162343464636361613364640a356562386230333536313836646232
+          35333061333430643630643132623534383539373530303636663433303337396631396539633763
+          6430396333633463390a326337333261303835316238663939386335343731353934373531346266
+          39646263666635393038653337306632616630376533313861633838623764386139666463343562
+          3634626166353062393763663630373136393262613330356636
