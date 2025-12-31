@@ -10,14 +10,15 @@
   become: true
   ansible.builtin.get_url:
     url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
-    dest: "/etc/apt/keyrings/google-cloud.gpg"
+    dest: "/etc/apt/keyrings/google-cloud.asc"
     mode: '0644'
 
 - name: Install core-edgetpu-stable apt repo
   become: true
   ansible.builtin.apt_repository:
-    repo: "deb [signed-by=/etc/apt/keyrings/google-cloud.gpg] https://packages.cloud.google.com/apt coral-edgetpu-stable main"
+    repo: "deb [signed-by=/etc/apt/keyrings/google-cloud.asc] https://packages.cloud.google.com/apt coral-edgetpu-stable main"
     state: present
+
 - name: Install the coral edgetpu packages
   become: true
   ansible.builtin.apt:
