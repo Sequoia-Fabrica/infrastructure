@@ -29,7 +29,7 @@ record:
   enabled: true
   expire_interval: 180
   retain:
-    days: 2
+    days: 14
     mode: motion
   alerts:
     retain: {}
