@@ -2,6 +2,7 @@
 # open-webui
 - name: Create /opt/open-webui/data
   become: true
+  tags: open_webui
   ansible.builtin.file:
     path: /opt/open-webui/data
     state: directory
@@ -10,6 +11,7 @@
     mode: ug=rwx
 - name: Run open-webui
   become: true
+  tags: open_webui
   community.docker.docker_container:
     name: open-webui
     image: ghcr.io/open-webui/open-webui:main
