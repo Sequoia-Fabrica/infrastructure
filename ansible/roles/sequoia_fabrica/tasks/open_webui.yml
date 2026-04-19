@@ -21,6 +21,8 @@
       - 3333:8080
     dns_servers:
       - 100.100.100.100
+    networks:
+      - name: utilities_seqfab_network
     mounts:
       - type: bind
         source: /opt/open-webui/data
@@ -35,6 +37,8 @@
       OAUTH_PROVIDER_NAME: "sequoia.garden"
       OAUTH_MERGE_ACCOUNTS_BY_EMAIL: "true"
       OAUTH_SCOPES: "openid email profile"
-      OLLAMA_BASE_URL: "http://beefy-gpu.cloudforest-perch.ts.net:11434"
+      OLLAMA_BASE_URL: "http://ollama:11434"
       OPENID_PROVIDER_URL: "https://login.sequoia.garden/application/o/chat/.well-known/openid-configuration"
       OPENID_REDIRECT_URI: "https://chat.sequoia.garden/oauth/oidc/callback"
+      OLLAMA_REQUEST_TIMEOUT: "300"
+      OLLAMA_KEEP_ALIVE: "5m"
