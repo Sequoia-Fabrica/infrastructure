@@ -10,5 +10,7 @@
   vars:
     motd_files:
       files:
-        - "motd.{{ ansible_hostname }}.txt"
+        - "motd.{{ ansible_facts['hostname'] }}.txt"
         - "motd.txt"
+      paths:
+        - "{{ role_path }}/files"
