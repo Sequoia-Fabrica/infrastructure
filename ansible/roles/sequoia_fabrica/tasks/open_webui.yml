@@ -14,7 +14,7 @@
   tags: open_webui
   community.docker.docker_container:
     name: open-webui
-    image: ghcr.io/open-webui/open-webui:main
+    image: ghcr.io/open-webui/open-webui:v0.8.12
     pull: always
     restart_policy: always
     ports:
