@@ -32,10 +32,21 @@
       owner: root
       group: root
       mode: u=rw,go=
+- name: Place /opt/seqfab_utilities/utilities/docker-compose.override.yml
+  become: true
+  ansible.builtin.template:
+      src: seqfab_utilities.docker-compose.override.yml.j2
+      dest: /opt/seqfab_utilities/utilities/docker-compose.override.yml
+      owner: root
+      group: root
+      mode: u=rw,go=r
 - name: Deploy seqfab_utilities with docker-compose
   become: true
   community.docker.docker_compose_v2:
       project_src: "{{ seqfab_utilities.docker_compose_location }}"
+      files:
+        - compose.yml
+        - docker-compose.override.yml
       remove_orphans: true
       build: always
       state: present
