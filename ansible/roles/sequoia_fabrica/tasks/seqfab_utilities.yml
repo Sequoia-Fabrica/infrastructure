@@ -6,6 +6,14 @@
       path: "{{ seqfab_utilities.db_data_location_source }}"
       state: directory
       mode: u=rwx,o=rx
+- name: Place Gmail service account credentials
+  become: true
+  ansible.builtin.copy:
+      src: gmail_service_account.json
+      dest: "{{ seqfab_utilities.gmail_service_account_path_source }}"
+      owner: root
+      group: root
+      mode: u=rw,go=
 - name: Place sequoia-fabrica/utilities repo deploy key
   become: true
   ansible.builtin.copy:
@@ -32,10 +40,27 @@
       owner: root
       group: root
       mode: u=rw,go=
+- name: Place docker-compose.override.yml for resource limits
+  become: true
+  ansible.builtin.copy:
+      content: |
+        services:
+          ollama:
+            deploy:
+              resources:
+                limits:
+                  memory: {{ seqfab_utilities.ollama_memory_limit | default('2g') }}
+      dest: /opt/seqfab_utilities/utilities/docker-compose.override.yml
+      owner: root
+      group: root
+      mode: u=rw,go=r
 - name: Deploy seqfab_utilities with docker-compose
   become: true
   community.docker.docker_compose_v2:
       project_src: "{{ seqfab_utilities.docker_compose_location }}"
+      files:
+        - compose.yml
+        - docker-compose.override.yml
       remove_orphans: true
       build: always
       state: present

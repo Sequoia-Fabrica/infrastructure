@@ -54,19 +54,22 @@
     restic_backup_volumes: "{{ restic_backup_volumes + [item.1 + ':/data/backup' + (item.0 | string) + ':ro'] }}"
   loop: "{{ range(restic_config.source_paths | length) | list | zip(restic_config.source_paths) | list }}"
 
-- name: Create restic backup directory
+- name: Create restic backup parent and repository directories
   become: true
   ansible.builtin.file:
-    path: /opt/restic-backup/{{ restic_config.repository_name }}
+    path: "{{ item }}"
     state: directory
-    mode: "0700"
+    mode: u=rwx,o=rx
+  loop:
+    - /opt/restic-backup
+    - /opt/restic-backup/{{ restic_config.repository_name }}
 
 - name: Template rclone configuration for restic
   become: true
   ansible.builtin.template:
     src: restic_rclone.conf.j2
     dest: /opt/restic-backup/{{ restic_config.repository_name }}/rclone.conf
-    mode: "0600"
+    mode: u=rw,go=
   register: restic_rclone_config
 
 - name: Template restic backup script
@@ -74,7 +77,7 @@
   ansible.builtin.template:
     src: restic_backup.sh.j2
     dest: /opt/restic-backup/{{ restic_config.repository_name }}/backup.sh
-    mode: "0700"
+    mode: u=rwx,go=
   register: restic_backup_script
 
 - name: Check if restic repository exists

@@ -63,6 +63,8 @@
   ansible.builtin.include_role:
     name: sequoia_fabrica
     tasks_from: seqfab_utilities.yml
+    apply:
+      tags: seqfab_utilities
   tags: seqfab_utilities
 
 - name: Adminer
