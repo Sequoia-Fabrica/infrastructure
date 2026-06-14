@@ -1,4 +1,10 @@
 ---
+- name: NVIDIA Container Toolkit
+  ansible.builtin.include_role:
+    name: sequoia_fabrica
+    tasks_from: nvidia_container_toolkit.yml
+  tags: nvidia_container_toolkit
+
 - name: Authentik
   ansible.builtin.include_role:
     name: sequoia_fabrica

@@ -40,16 +40,10 @@
       owner: root
       group: root
       mode: u=rw,go=
-- name: Place docker-compose.override.yml for resource limits
+- name: Place /opt/seqfab_utilities/utilities/docker-compose.override.yml
   become: true
-  ansible.builtin.copy:
-      content: |
-        services:
-          ollama:
-            deploy:
-              resources:
-                limits:
-                  memory: {{ seqfab_utilities.ollama_memory_limit | default('2g') }}
+  ansible.builtin.template:
+      src: seqfab_utilities.docker-compose.override.yml.j2
       dest: /opt/seqfab_utilities/utilities/docker-compose.override.yml
       owner: root
       group: root
