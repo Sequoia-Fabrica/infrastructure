@@ -1,5 +1,8 @@
 ---
 ## Authentik
+# Redis was removed in authentik 2025.10 (PostgreSQL now handles caching,
+# sessions, tasks and websockets). Local storage moved from /media to /data
+# in 2025.12, so uploaded media now lives under /opt/authentik/data/media.
 - name: "Ensure /opt/authentik/custom-templates"
   become: true
   ansible.builtin.file:
@@ -16,28 +19,28 @@
     owner: 70
     group: 70
     mode: u=rwx,go=
-- name: "Ensure /opt/authentik/redis"
+- name: "Ensure /opt/authentik/data"
   become: true
   ansible.builtin.file:
-    path: "/opt/authentik/redis"
+    path: "/opt/authentik/data"
     state: directory
-    owner: 999
+    owner: 1000
     group: 1000
     mode: ug=rwx,o=rx
-- name: "Ensure /opt/authentik/media"
+- name: "Ensure /opt/authentik/data/media/public"
   become: true
   ansible.builtin.file:
-    path: "/opt/authentik/redis"
+    path: "/opt/authentik/data/media/public"
     state: directory
-    owner: 999
+    owner: 1000
     group: 1000
     mode: ug=rwx,o=rx
 - name: "Ensure /opt/authentik/certs"
   become: true
   ansible.builtin.file:
-    path: "/opt/authentik/redis"
+    path: "/opt/authentik/certs"
     state: directory
-    owner: 999
+    owner: 1000
     group: 1000
     mode: ug=rwx,o=rx
 - name: Template /opt/authentik/.env
@@ -56,11 +59,14 @@
     owner: root
     group: root
     mode: ug=rw,o=
-- name: Place /opt/authentik/media/sequoia_fabrica_tree.svg
+# Brand logo is referenced from the DB brand record as the bare key
+# "sequoia_fabrica_tree.svg"; authentik serves it from the media "public/"
+# storage prefix via signed /files URLs, so the file must live under public/.
+- name: Place /opt/authentik/data/media/public/sequoia_fabrica_tree.svg
   become: true
   ansible.builtin.copy:
     src: sequoia_fabrica_tree.svg
-    dest: /opt/authentik/media/sequoia_fabrica_tree.svg
+    dest: /opt/authentik/data/media/public/sequoia_fabrica_tree.svg
     owner: 1000
     group: 1000
     mode: ug=rw,o=r
@@ -68,3 +74,4 @@
   become: true
   community.docker.docker_compose_v2:
     project_src: /opt/authentik
+    remove_orphans: true
