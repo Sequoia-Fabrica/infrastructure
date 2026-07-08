@@ -9,6 +9,8 @@
   ansible.builtin.include_role:
     name: sequoia_fabrica
     tasks_from: authentik.yml
+    apply:
+      tags: authentik
   tags: authentik
 
 - name: Prometheus
