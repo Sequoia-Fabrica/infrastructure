@@ -1,0 +1,10 @@
+---
+# soil is an ASRockRack Z490D4U-2L2T (i9-10900K, AST2500 BMC). Its stock
+# smart-fan curve hunts because the CPU idles (45-55 C) right on a 30% -> 55%
+# duty cliff. This flatter curve keeps the 45-60 C band gentle (~1%/C) while
+# still ramping to 100% by 90 C for safety. Applied to the BMC at boot.
+fan_control:
+  enabled: true
+  # Both lists must have 11 entries (BMC smart-fan table breakpoints).
+  temps: [45, 50, 55, 60, 65, 70, 74, 78, 82, 86, 90]
+  duties: [30, 35, 38, 42, 46, 52, 58, 68, 80, 90, 100]

@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# {{ ansible_managed }}
+#
+# Apply a gentler BMC smart-fan curve to stop fan hunting on ASRockRack boards.
+# The curve is rendered from the `fan_control` Ansible variable and written to
+# the BMC via its OEM smart-fan table commands (ASRockRack AST2500/2600):
+#   ipmitool raw 0x3a 0x05 0x02 0x00 <temps>   -> temperature breakpoints (C)
+#   ipmitool raw 0x3a 0x05 0x01 0x00 <duties>  -> duty-cycle percentages (%)
+#   ipmitool raw 0x3a 0x06 0x01 0x00           -> read back the duty table
+set -euo pipefail
+
+# The 0x3a OEM netfn is ASRockRack-specific. Refuse to run on any other BMC so
+# an accidental misapplication elsewhere can't send garbage to a foreign BMC.
+if ! ipmitool mc info 2>/dev/null | grep -qi 'ASRock'; then
+    echo "BMC is not ASRockRack; refusing to send OEM fan commands." >&2
+    exit 0
+fi
+
+temps=({% for t in fan_control.temps %}{{ '0x%02x' | format(t) }} {% endfor %})
+duties=({% for d in fan_control.duties %}{{ '0x%02x' | format(d) }} {% endfor %})
+
+echo "Applying fan curve: temps=[{{ fan_control.temps | join(', ') }}] C  duties=[{{ fan_control.duties | join(', ') }}] %"
+ipmitool raw 0x3a 0x05 0x02 0x00 "${temps[@]}"
+ipmitool raw 0x3a 0x05 0x01 0x00 "${duties[@]}"
+echo "BMC duty table now:$(ipmitool raw 0x3a 0x06 0x01 0x00)"

@@ -1,6 +1,14 @@
 ---
 sequoia_fabrica_users: []
 
+# BMC fan curve for ASRockRack boards (see tasks/fan_control.yml).
+# Disabled by default; enable and tune the curve per host in host_vars.
+# `temps`/`duties` are the 11-point smart-fan table (degrees C / duty %).
+fan_control:
+  enabled: false
+  temps: [45, 50, 55, 60, 65, 70, 74, 78, 82, 86, 90]
+  duties: [30, 35, 38, 42, 46, 52, 58, 68, 80, 90, 100]
+
 # etherpad configuration
 etherpad:
   port: 9001

@@ -21,6 +21,15 @@
         name: sequoia_fabrica
         tasks_from: users.yml
 
+- name: Regulate the climate on bare-metal hosts (BMC fan curve)
+  hosts: vm_hosts
+  tasks:
+    - name: Fan control
+      ansible.builtin.include_role:
+        name: sequoia_fabrica
+        tasks_from: fan_control.yml
+      when: fan_control.enabled | default(false)
+
 - name: Setup container_hosts as github runners
   hosts: container_hosts
   tasks:

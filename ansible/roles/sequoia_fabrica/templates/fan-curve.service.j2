@@ -1,0 +1,16 @@
+# {{ ansible_managed }}
+[Unit]
+Description=Apply BMC smart-fan curve (anti-hunting)
+Documentation=https://github.com/sequoia-fabrica/infrastructure
+# In-band IPMI needs the ipmi_devintf-provided /dev/ipmi0; systemd-modules-load
+# runs in sysinit.target (before multi-user), so the device exists by now.
+After=multi-user.target
+ConditionPathExists=/dev/ipmi0
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/apply-fan-curve.sh
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target

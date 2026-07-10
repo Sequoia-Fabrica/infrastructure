@@ -1,0 +1,63 @@
+---
+# Stabilize BMC-controlled fan speeds on ASRockRack boards (e.g. soil's
+# Z490D4U-2L2T). The board's stock smart-fan curve has a steep duty cliff
+# (30% -> 55% between 45 and 50 C) right where the CPU idles, so tiny turbo
+# temperature spikes cause the fans to constantly surge and settle ("hunting").
+# We write a gentler curve to the BMC (persisted in its NVRAM) and re-apply it
+# at every boot via a systemd oneshot, in case the BMC is ever reset.
+#
+# Enabled/tuned per host via the `fan_control` variable (see host_vars).
+
+- name: Install ipmitool
+  become: true
+  ansible.builtin.apt:
+    name: ipmitool
+    state: present
+
+- name: Ensure IPMI kernel modules load at boot
+  become: true
+  ansible.builtin.copy:
+    dest: /etc/modules-load.d/ipmi.conf
+    content: |
+      # Managed by Ansible (sequoia_fabrica role, fan_control.yml)
+      ipmi_si
+      ipmi_devintf
+    owner: root
+    group: root
+    mode: ug=rw,o=r
+
+- name: Load IPMI modules now
+  become: true
+  community.general.modprobe:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - ipmi_si
+    - ipmi_devintf
+
+- name: Install fan-curve script
+  become: true
+  ansible.builtin.template:
+    src: apply_fan_curve.sh.j2
+    dest: /usr/local/sbin/apply-fan-curve.sh
+    owner: root
+    group: root
+    mode: u=rwx,g=rx,o=rx
+  notify: Apply fan curve
+
+- name: Install fan-curve systemd unit
+  become: true
+  ansible.builtin.template:
+    src: fan-curve.service.j2
+    dest: /etc/systemd/system/fan-curve.service
+    owner: root
+    group: root
+    mode: ug=rw,o=r
+  notify: Apply fan curve
+
+- name: Enable fan-curve service
+  become: true
+  ansible.builtin.systemd_service:
+    name: fan-curve.service
+    enabled: true
+    daemon_reload: true
