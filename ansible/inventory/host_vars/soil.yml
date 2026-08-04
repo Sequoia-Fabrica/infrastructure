@@ -6,10 +6,16 @@
 # 8600-10500 RPM at idle). So we pin the duty FLAT at 35% from 45-70 C -- wider
 # than the whole idle+spike range -- so routine jitter produces zero fan change,
 # and only sustained load above 70 C ramps the fans (to 100% by 90 C, before the
-# 100 C Tjmax). 35% ~= the current idle duty, so idle RPM/temp don't regress.
-# Applied to the BMC at boot.
+# 100 C Tjmax).
+#
+# Floor is 25% for quiet: validated idle equilibrium ~55-56 C with fans steady at
+# ~7600 RPM (vs ~9500 at 35%), still 14 C below the 70 C ramp point. The floor
+# only governs idle/light load; a full-load test showed the CPU spikes 65->88 C
+# in seconds and the ramp drives the fans to max well before Tjmax, so load-time
+# cooling is unaffected by the floor (this box is in a poorly-ventilated closet,
+# so the ramp is deliberately aggressive). Applied to the BMC at boot.
 fan_control:
   enabled: true
   # Both lists must have 11 entries (BMC smart-fan table breakpoints).
   temps: [45, 50, 55, 60, 65, 70, 74, 78, 82, 86, 90]
-  duties: [35, 35, 35, 35, 35, 35, 44, 55, 68, 84, 100]
+  duties: [25, 25, 25, 25, 25, 25, 44, 55, 68, 84, 100]
