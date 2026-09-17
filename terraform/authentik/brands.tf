@@ -17,14 +17,17 @@
 # -------------------------------------------------------------------
 
 resource "authentik_brand" "sequoia_fabrica" {
-  domain           = var.authentik_domain
-  default          = true
+  domain = var.authentik_domain
+  # Matched by domain; the instance does not mark this brand as default and
+  # we keep it that way to leave the stock authentik-default brand alone.
+  default          = false
   branding_title   = "Sequoia Fabrica"
   branding_logo    = "sequoia_fabrica_lockup.svg"
   branding_favicon = "sequoia_fabrica_favicon.png"
 
   # Brand-wide default background for every flow (login, recovery, consent,
-  # user settings...). Individual flows inherit it by leaving `background` unset.
+  # user settings...) that has no background of its own. Flows managed here
+  # also set it explicitly, see flows.tf for why.
   branding_default_flow_background = "sequoia_fabrica_flow_background.svg"
 
   flow_authentication = authentik_flow.sequoia_fabrica_authentication.uuid

@@ -63,16 +63,34 @@ export AUTHENTIK_URL="https://${AUTHENTIK_HOST}/"
 export AUTHENTIK_TOKEN
 
 echo "==> Discovering existing objects and writing imports.generated.tf..."
-python3 - "${AUTHENTIK_URL}" "${AUTHENTIK_TOKEN}" "${AUTHENTIK_HOST}" "${_here}/imports.generated.tf" <<'PY'
+_rc=0
+python3 - "${AUTHENTIK_URL}" "${AUTHENTIK_TOKEN}" "${AUTHENTIK_HOST}" "${_here}/imports.generated.tf" <<'PY' || _rc=$?
 import json, sys, urllib.parse, urllib.request
 
 base, token, domain, out_path = sys.argv[1:5]
 
+# login.sequoia.garden sits behind a Cloudflare tunnel whose browser-integrity
+# check rejects Python's default User-Agent (error 1010). Terraform's Go
+# client is allowed, so we only need to identify ourselves sensibly here.
+HEADERS = {
+    "Authorization": f"Bearer {token}",
+    "Accept": "application/json",
+    "User-Agent": "sequoia-fabrica-infrastructure/terraform-authentik setup-env.sh",
+}
+
 def get(path, **params):
     url = f"{base}api/v3/{path}?{urllib.parse.urlencode(params)}" if params else f"{base}api/v3/{path}"
-    req = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}", "Accept": "application/json"})
-    with urllib.request.urlopen(req, timeout=30) as r:
-        return json.load(r)
+    req = urllib.request.Request(url, headers=HEADERS)
+    try:
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return json.load(r)
+    except urllib.error.HTTPError as e:
+        body = e.read().decode(errors="replace")[:300]
+        if e.code == 403 and "1010" in body:
+            sys.exit(f"Cloudflare blocked the request to {url} (error 1010, User-Agent check)")
+        if e.code in (401, 403):
+            sys.exit(f"HTTP {e.code} from {url}: the token's user probably lacks superuser/API rights.\n{body}")
+        sys.exit(f"HTTP {e.code} from {url}: {body}")
 
 blocks = []
 def imp(to, ident):
@@ -121,6 +139,11 @@ apps = get("core/applications/").get("results", [])
 if apps:
     print("    (unmanaged) applications:", ", ".join(f"{a['slug']}" for a in apps))
 PY
+if [[ ${_rc} -ne 0 ]]; then
+  echo "ERROR: discovery failed (see above); not exporting credentials." >&2
+  unset AUTHENTIK_TOKEN AUTHENTIK_URL
+  return 1 2>/dev/null || exit 1
+fi
 
 echo "==> Ready. Token: ${TOKEN_ID} (user: ${AK_USER}, expires in 1h)"
 echo "    AUTHENTIK_URL=${AUTHENTIK_URL}"

@@ -21,8 +21,10 @@ resource "authentik_flow" "sequoia_fabrica_authentication" {
   denied_action      = "message_continue"
   compatibility_mode = false
 
-  # `background` is left unset so the flow inherits the brand-level
-  # branding_default_flow_background (brands.tf).
+  # The provider fills an unset `background` with authentik's stock JPEG
+  # (/static/dist/assets/images/flow_background.jpg), which would override the
+  # brand-level default, so pin the same brand asset here explicitly.
+  background = "sequoia_fabrica_flow_background.svg"
 }
 
 resource "authentik_flow_stage_binding" "sequoia_fabrica_auth_identification" {
