@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Default flow background for login.sequoia.garden (authentik brand
+  branding_default_flow_background). Emerald gradient from the landing-page
+  palette with the Sequoia Fabrica circuit-tree as a faint watermark.
+  Vector, so it stays small and crisp at any viewport size.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1000" viewBox="0 0 1600 1000" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#022c22"/>
+      <stop offset="0.55" stop-color="#064e3b"/>
+      <stop offset="1" stop-color="#065f46"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.35" r="0.6">
+      <stop offset="0" stop-color="#10b981" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#10b981" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1600" height="1000" fill="url(#bg)"/>
+  <rect width="1600" height="1000" fill="url(#glow)"/>
+  <g opacity="0.10" transform="translate(1059.22,140.00) scale(53.8650)">
+    <g
+    
+    
+     id="layer1"
+     transform="translate(-99.218739,-140.22917)">
+    <path
+      
+       d="m 100.83377,147.24062 c 0,0 -1.111252,0.0265 -1.111252,-0.84666 0,-0.87313 0.555622,-0.92604 0.555622,-0.92604 0,0 -0.1852,-0.18521 -0.1852,-0.42334 0,-0.23812 0.0529,-0.47625 0.0529,-0.47625 0,0 -0.634998,-0.10583 -0.661457,-0.74083 -0.02646,-0.66146 0.423334,-0.97896 0.687917,-1.05833 0.3175,-0.0794 0.55563,0 0.55563,0 0,0 -0.23813,-0.7673 0.42333,-1.19063 0.47625,-0.29104 1.03187,-0.18521 1.03187,-0.18521 0,0 0.21167,-0.89958 1.27,-0.89958 1.05834,0 2.75167,0 2.75167,0 0,0 0.42333,0.0529 0.60854,0.37042 0.18521,0.3175 0.23813,0.55562 0.23813,0.55562 l 1.42875,-0.0265 c 0,0 0.68791,0.13229 0.71437,0.71438 0.0529,0.58208 -0.23812,0.97896 -0.23812,0.97896 0,0 0.21166,0.26458 0.23812,0.47625 0.0265,0.21166 -0.13229,0.52916 -0.13229,0.52916 0,0 0.635,-0.10583 0.89958,0.18521 0.26459,0.29104 0.15875,1.16417 0.15875,1.16417 0,0 0.74084,0.29104 0.635,0.92604 -0.10583,0.635 -0.39687,0.82021 -0.71437,0.84667 -0.29104,0.0529 -1.21709,0 -1.21709,0"
+       id="path1"
+       style="fill:none;stroke:#c3f9c3;stroke-width:0.529167;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10" />
+    <line
+      
+       x1="102.42126"
+       y1="155.28395"
+       x2="107.13085"
+       y2="155.28395"
+       id="line1"
+       style="fill:none;stroke:#c3f9c3;stroke-width:0.396875;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10" />
+    <line
+      
+       x1="103.02981"
+       y1="155.99834"
+       x2="106.41648"
+       y2="155.99834"
+       id="line2"
+       style="fill:none;stroke:#c3f9c3;stroke-width:0.396875;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10" />
+    <line
+      
+       x1="103.74419"
+       y1="156.73917"
+       x2="105.7021"
+       y2="156.73917"
+       id="line3"
+       style="fill:none;stroke:#c3f9c3;stroke-width:0.396875;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10" />
+    <polyline
+      
+       points="99.8,422.9 99.8,398.5 110.5,388.6 110.5,386.7 "
+       id="polyline3"
+       style="fill:none;stroke:#c3f9c3;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10"
+       transform="matrix(0.26458333,0,0,0.26458333,78.952727,43.391667)" />
+    <line
+      
+       x1="106.7869"
+       y1="143.45709"
+       x2="106.7869"
+       y2="147.5052"
+       id="line4"
+       style="fill:none;stroke:#c3f9c3;stroke-width:0.396875;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10" />
+    <polyline
+      
+       points="95.3,422.9 95.3,393.5 88.2,386.7 88.2,377.5 "
+       id="polyline4"
+       style="fill:none;stroke:#c3f9c3;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10"
+       transform="matrix(0.26458333,0,0,0.26458333,78.952727,43.391667)" />
+    <polyline
+      
+       points="97.1,381.1 97.1,384.3 91.8,390.1 "
+       id="polyline5"
+       style="fill:none;stroke:#c3f9c3;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10"
+       transform="matrix(0.26458333,0,0,0.26458333,78.952727,43.391667)" />
+    <polyline
+      
+       points="89.1,397.3 89.1,400.2 95.3,406.5 "
+       id="polyline6"
+       style="fill:none;stroke:#c3f9c3;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10"
+       transform="matrix(0.26458333,0,0,0.26458333,78.952727,43.391667)" />
+    <circle
+      
+       cx="102.5271"
+       cy="147.955"
+       r="0.42333335"
+       id="circle6"
+       style="fill:none;stroke:#c3f9c3;stroke-width:0.396875;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10" />
+    <circle
+      
+       cx="102.28898"
+       cy="142.76917"
+       r="0.42333335"
+       id="circle7"
+       style="fill:none;stroke:#c3f9c3;stroke-width:0.396875;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10" />
+    <circle
+      
+       cx="104.64377"
+       cy="143.66875"
+       r="0.42333335"
+       id="circle8"
+       style="fill:none;stroke:#c3f9c3;stroke-width:0.396875;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10" />
+    <circle
+      
+       cx="106.7869"
+       cy="142.92792"
+       r="0.42333335"
+       id="circle9"
+       style="fill:none;stroke:#c3f9c3;stroke-width:0.396875;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10" />
+    <circle
+      
+       cx="108.18919"
+       cy="145.25626"
+       r="0.42333335"
+       id="circle10"
+       style="fill:none;stroke:#c3f9c3;stroke-width:0.396875;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:10" />
+  </g>
+  </g>
+</svg>

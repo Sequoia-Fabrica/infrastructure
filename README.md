@@ -49,3 +49,6 @@ A beloved collection of pets. No cattle here.
     ```
     ansible-vault encrypt_string --vault-password-file ~/.sequoia_fabrica_ansible_vault 'SECRET_KEY' --name 'authentik_api_token'
     ```
+
+## How do I change the look of the login page (authentik)?
+The brand, custom CSS and login flow for `login.sequoia.garden` are managed with Terraform in [`terraform/authentik/`](terraform/authentik/README.md). Logo, favicon and background files are deployed by ansible from `ansible/roles/sequoia_fabrica/files/authentik/`. Colours and logo rules are in [`documentation/brand-style-guide.md`](documentation/brand-style-guide.md).
