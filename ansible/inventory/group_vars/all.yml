@@ -130,6 +130,13 @@ authentik:
         32616536376239356435623732386538623231333663623234613934316239623339646263333563
         38396530623236336339316535616462616134396636663165343535323365626137646436316130
         383261656130373537643735336238333936
+  # Read by terraform/authentik/setup-env.sh (Sign in with Slack source).
+  # client_secret must be added as a `!vault` value, never in plaintext:
+  #   ansible-vault encrypt_string --vault-password-file ~/.sequoia_fabrica_ansible_vault --stdin-name client_secret
+  sources:
+    slack:
+      client_id: "6618118623809.12087476246931"
+      # team_id: "T..."   # optional: refuse identities from other workspaces
 
 cloudflared:
   tunnel_token: !vault |

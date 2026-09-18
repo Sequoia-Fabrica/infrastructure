@@ -18,9 +18,15 @@ Infrastructure-as-code for the Sequoia Fabrica look and feel of
   (`policies.tf`). Client secrets are never declared: the attribute is
   computed, so the imported state carries the live value.
 - **Custom scope mapping** `immich_same_users` (`property_mappings.tf`).
+- **"Log in with Slack"** (`sources.tf`): an OpenID Connect source backed by
+  a Slack app in the Sequoia Fabrica workspace, the enrollment flow that
+  creates an account on a member's first Slack login (asking only for a
+  username), the authentication flow for later logins, the `Slack Community`
+  group new accounts join, and the identification stage that shows the
+  button on the branded login page. See "Slack sign-in" below.
 
-Not managed here: groups and their membership (Multipass and the admin UI own
-those), the two hand-made flows `seqfab-auth-flow` and
+Not managed here: other groups and their membership (Multipass and the admin
+UI own those), the two hand-made flows `seqfab-auth-flow` and
 `sequoia-fabrica-member-enrollment-flow`, the embedded outpost, and global
 system settings. `setup-env.sh` warns about any application, provider or
 binding it finds on the instance that this workspace does not know about.
@@ -53,8 +59,59 @@ terraform apply
 
 `setup-env.sh` writes `imports.generated.tf` (gitignored) containing `import`
 blocks for whatever already exists: always the brand, and after the first
-apply also the branded flow and its bindings. Nothing is hard-coded, so the
-workspace works against a rebuilt instance too.
+apply also the branded flow, the Slack source objects and their bindings.
+Nothing is hard-coded, so the workspace works against a rebuilt instance too.
+It also decrypts the Slack app credentials from the ansible vault (see below)
+into `TF_VAR_slack_*` for the current shell; no `.tfvars` file is ever
+written.
+
+## Slack sign-in
+
+Slack.com is the identity provider ("Sign in with Slack" is plain OpenID
+Connect); the Slack app is only the client registration authentik uses. A
+workspace member who clicks "Log in with Slack" and has no account yet is
+sent through `sequoia-fabrica-slack-enrollment`, which asks for a username
+(pre-filled from their email), creates the user in `Slack Community`, and logs
+them in. Existing accounts with the same email are linked rather than
+duplicated. Once logged in, users set a password or enrol TOTP / WebAuthn in
+the user settings like anyone else, and can then also log in without Slack.
+
+**Slack app** (api.slack.com/apps, installed only in the Sequoia Fabrica
+workspace, not distributed):
+
+| Setting                          | Value                                                           |
+|----------------------------------|-----------------------------------------------------------------|
+| User Token Scopes                | `openid`, `email`, `profile` (no bot scopes)                    |
+| Redirect URL                     | `https://login.sequoia.garden/source/oauth/callback/slack/`     |
+| Token rotation                   | off                                                             |
+| App icon / background colour     | `documentation/brand/slack-app-icon.png` / `#065f46`            |
+
+**Credentials** live in the ansible vault, never in git as plaintext:
+
+```yaml
+# ansible/inventory/group_vars/all.yml
+authentik:
+  sources:
+    slack:
+      client_id: "…"          # not secret
+      client_secret: !vault | # ansible-vault encrypt_string --vault-password-file ~/.sequoia_fabrica_ansible_vault --stdin-name client_secret
+        $ANSIBLE_VAULT;1.1;AES256
+        …
+      team_id: "T…"           # optional, enables the workspace gate policy
+```
+
+**Switching enrollment off** later (existing Slack-linked users keep logging
+in; unknown Slack identities are refused): apply with
+`-var slack_enrollment_enabled=false`, or change the default in
+`variables.tf`.
+
+**Avatars**: the mapping stores the Slack picture in `attributes.avatar`; the
+ansible env sets `AUTHENTIK_AVATARS=attributes.avatar,gravatar,initials` so it
+is used. That part needs `make ansible` (restarts authentik).
+
+**Gotcha**: Slack does not push deactivations (SCIM is Business+ only). A
+member removed from Slack keeps their authentik account until deactivated by
+hand or by a sync script.
 
 ## Rolling back
 
@@ -80,8 +137,9 @@ Palette and asset rules live in `documentation/brand-style-guide.md`.
 | `setup-env.sh`        | Mint ephemeral token, discover IDs, write generated imports |
 | `cleanup-env.sh`      | Revoke terraform tokens, remove generated imports           |
 | `versions.tf`         | Terraform / provider constraints, provider config           |
-| `variables.tf`        | Brand domain                                                |
+| `variables.tf`        | Brand domain, Slack app credentials (from the vault)        |
 | `data.tf`             | Read-only references to default flows and stages            |
 | `brands.tf`           | Brand: logo, favicon, background, footer links, CSS         |
 | `flows.tf`            | Branded authentication flow and stage bindings              |
+| `sources.tf`          | Slack OIDC source, its enrollment/auth flows, identification stage |
 | `imports.generated.tf`| Generated per session, gitignored                           |

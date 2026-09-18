@@ -44,6 +44,20 @@ data "authentik_stage" "default_authentication_login" {
   name = "default-authentication-login"
 }
 
+# --- Stages reused by the Slack source flows (sources.tf) ---
+
+data "authentik_stage" "default_authentication_password" {
+  name = "default-authentication-password"
+}
+
+data "authentik_stage" "default_source_enrollment_login" {
+  name = "default-source-enrollment-login"
+}
+
+data "authentik_stage" "default_source_authentication_login" {
+  name = "default-source-authentication-login"
+}
+
 # --- Default scope mappings (OAuth2 providers; proxy providers get theirs
 #     from authentik automatically, see providers.tf) ---
 

@@ -62,6 +62,35 @@ rm -f "${_ak_err}"
 export AUTHENTIK_URL="https://${AUTHENTIK_HOST}/"
 export AUTHENTIK_TOKEN
 
+# Slack app credentials (sources.tf) live encrypted in the ansible vault under
+# authentik.sources.slack; decrypt them for this shell only. Nothing is
+# written to disk and no *.tfvars file exists.
+echo "==> Reading Slack app credentials from the ansible vault..."
+_inv="${_here}/../../ansible/inventory"
+_vault_pw="${HOME}/.sequoia_fabrica_ansible_vault"
+_slack_json=$(ANSIBLE_DEPRECATION_WARNINGS=False ANSIBLE_LOCALHOST_WARNING=False \
+  ansible -i "${_inv}" localhost -m debug -a "var=authentik.sources.slack" \
+  --vault-password-file "${_vault_pw}" 2>/dev/null | sed -n '/=>/,$p' | sed '1s/^[^{]*//') || true
+if ! _slack_env=$(python3 -c '
+import json, shlex, sys
+d = json.load(sys.stdin).get("authentik.sources.slack")
+if not isinstance(d, dict) or not d.get("client_id") or not d.get("client_secret"):
+    sys.exit("authentik.sources.slack.{client_id,client_secret} missing from the vault")
+print("export TF_VAR_slack_client_id=" + shlex.quote(str(d["client_id"])))
+print("export TF_VAR_slack_client_secret=" + shlex.quote(str(d["client_secret"])))
+print("export TF_VAR_slack_team_id=" + shlex.quote(str(d.get("team_id") or "")))
+' <<<"${_slack_json}" 2>&1); then
+  echo "ERROR: could not read the Slack app credentials: ${_slack_env}" >&2
+  echo "       Add them with:" >&2
+  echo "         ansible-vault encrypt_string --vault-password-file ${_vault_pw} --stdin-name client_secret" >&2
+  echo "       and paste the result under authentik.sources.slack in ansible/inventory/group_vars/all.yml" >&2
+  unset AUTHENTIK_TOKEN AUTHENTIK_URL
+  return 1 2>/dev/null || exit 1
+fi
+eval "${_slack_env}"
+unset _slack_json _slack_env
+echo "    client_id=${TF_VAR_slack_client_id} team_id=${TF_VAR_slack_team_id:-<unset, no workspace gate>}"
+
 echo "==> Discovering existing objects and writing imports.generated.tf..."
 _rc=0
 python3 - "${AUTHENTIK_URL}" "${AUTHENTIK_TOKEN}" "${AUTHENTIK_HOST}" "${_here}/imports.generated.tf" <<'PY' || _rc=$?
@@ -113,7 +142,9 @@ if flows:
     print(f"    flow       {flow['pk']}  slug={flow_slug}")
     bindings = get("flows/bindings/", target=flow["pk"], ordering="order").get("results", [])
     names = {
+        # Bound the stock stage until the Slack source landed, our own since.
         "default-authentication-identification": "sequoia_fabrica_auth_identification",
+        "sequoia-fabrica-authentication-identification": "sequoia_fabrica_auth_identification",
         "default-authentication-mfa-validation": "sequoia_fabrica_auth_mfa_validation",
         "default-authentication-login": "sequoia_fabrica_auth_login",
     }
@@ -195,6 +226,94 @@ for name, res in SCOPES.items():
 
 print(f"    apps/providers/bindings/scopes: {len(APPS)}/{len(PROVIDERS)}/{len(BINDINGS)}/{len(SCOPES)} mapped")
 
+# --- Slack source and its flows (sources.tf) ---------------------------
+# Everything here is created by the first apply; before that nothing is found
+# and nothing is imported. Objects are looked up by the names in sources.tf.
+
+def first(path, **params):
+    rs = get(path, **params).get("results", [])
+    return rs[0] if rs else None
+
+def imp_named(to, path, key, value, pk="pk"):
+    obj = first(path, **{key: value})
+    if obj:
+        imp(to, str(obj[pk]))
+    return obj
+
+n_slack = 0
+src = imp_named("authentik_source_oauth.slack", "sources/oauth/", "slug", "slack")
+if src:
+    n_slack += 1
+    print(f"    slack      source {src['pk']} enrollment_flow={'set' if src.get('enrollment_flow') else 'none'}")
+for to, path, key, value in [
+    ("authentik_property_mapping_source_oauth.slack", "propertymappings/source/oauth/", "name", "Slack: profile and workspace identity"),
+    ("authentik_group.slack_community", "core/groups/", "name", "Slack Community"),
+    ("authentik_policy_expression.slack_if_sso", "policies/expression/", "name", "slack-source-if-sso"),
+    ("authentik_policy_expression.slack_team_gate[0]", "policies/expression/", "name", "slack-source-workspace-gate"),
+    ("authentik_policy_expression.slack_if_no_username", "policies/expression/", "name", "slack-source-enrollment-if-no-username"),
+    ("authentik_stage_prompt_field.slack_username", "stages/prompt/prompts/", "name", "slack-source-enrollment-field-username"),
+    ("authentik_stage_prompt.slack_enrollment", "stages/prompt/stages/", "name", "slack-source-enrollment-prompt"),
+    ("authentik_stage_user_write.slack_enrollment", "stages/user_write/", "name", "slack-source-enrollment-write"),
+    ("authentik_stage_identification.sequoia_fabrica", "stages/identification/", "name", "sequoia-fabrica-authentication-identification"),
+]:
+    if imp_named(to, path, key, value):
+        n_slack += 1
+
+SLACK_FLOWS = {  # slug -> (flow resource, {stage name: binding resource}, {policy name: flow policy binding resource})
+    "sequoia-fabrica-slack-enrollment": (
+        "authentik_flow.slack_enrollment",
+        {
+            "slack-source-enrollment-prompt": "slack_enrollment_prompt",
+            "slack-source-enrollment-write": "slack_enrollment_write",
+            "default-source-enrollment-login": "slack_enrollment_login",
+        },
+        {
+            "slack-source-if-sso": "slack_enrollment_if_sso",
+            "slack-source-workspace-gate": "slack_enrollment_team_gate[0]",
+        },
+    ),
+    "sequoia-fabrica-slack-authentication": (
+        "authentik_flow.slack_authentication",
+        {"default-source-authentication-login": "slack_authentication_login"},
+        {
+            "slack-source-if-sso": "slack_authentication_if_sso",
+            "slack-source-workspace-gate": "slack_authentication_team_gate[0]",
+        },
+    ),
+}
+for slug, (flow_res, stage_names, policy_names) in SLACK_FLOWS.items():
+    fl = first("flows/instances/", slug=slug)
+    if not fl:
+        continue
+    n_slack += 1
+    imp(flow_res, slug)
+    for b in get("flows/bindings/", target=fl["pk"], ordering="order").get("results", []):
+        res = stage_names.get(b["stage_obj"]["name"])
+        if not res:
+            print(f"    WARNING: unmanaged binding {b['pk']} (stage {b['stage_obj']['name']}) on {slug}")
+            continue
+        imp(f"authentik_flow_stage_binding.{res}", b["pk"])
+        if res == "slack_enrollment_prompt":
+            for pb in get("policies/bindings/", target=b["pk"]).get("results", []):
+                imp("authentik_policy_binding.slack_enrollment_prompt_if_no_username", pb["pk"])
+    for pb in get("policies/bindings/", target=fl["pk"]).get("results", []):
+        pname = (pb.get("policy_obj") or {}).get("name")
+        res = policy_names.get(pname)
+        if res:
+            imp(f"authentik_policy_binding.{res}", pb["pk"])
+        else:
+            print(f"    WARNING: unmanaged policy binding {pb['pk']} ({pname}) on {slug}")
+print(f"    slack      {n_slack} object(s) found" if n_slack else "    slack      (nothing created yet; first apply creates the source and flows)")
+
+# The stock identification stage is what the branded flow bound before the
+# Slack source; our replacement copies its shape. Show anything configured on
+# the stock stage that sources.tf may need to mirror.
+ident = first("stages/identification/", name="default-authentication-identification")
+if ident:
+    extras = {k: ident.get(k) for k in ("recovery_flow", "enrollment_flow", "passwordless_flow", "captcha_stage", "sources")
+              if ident.get(k)}
+    print(f"    default identification stage: user_fields={ident.get('user_fields')} extras={extras or 'none'}")
+
 header = (
     "# GENERATED by setup-env.sh -- do not edit, do not commit.\n"
     "# Maps objects that already exist on the instance to Terraform addresses.\n\n"
@@ -204,7 +323,7 @@ with open(out_path, "w") as f:
 PY
 if [[ ${_rc} -ne 0 ]]; then
   echo "ERROR: discovery failed (see above); not exporting credentials." >&2
-  unset AUTHENTIK_TOKEN AUTHENTIK_URL
+  unset AUTHENTIK_TOKEN AUTHENTIK_URL TF_VAR_slack_client_id TF_VAR_slack_client_secret TF_VAR_slack_team_id
   return 1 2>/dev/null || exit 1
 fi
 
