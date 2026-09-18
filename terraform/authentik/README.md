@@ -106,6 +106,11 @@ userinfo (exposed to flow policies as `oauth_userinfo`) with `team_id`. Any
 other workspace, or a missing claim, is refused with a message. This holds
 even if the Slack app is later distributed or copied.
 
+**Expected plan noise**: every plan shows `authentik_source_oauth.slack`
+with `+ consumer_secret`, because the API never returns the secret and each
+session starts without state. Applying re-sends the same value; it is not
+drift.
+
 **Switching enrollment off** later (existing Slack-linked users keep logging
 in; unknown Slack identities are refused): apply with
 `-var slack_enrollment_enabled=false`, or change the default in
