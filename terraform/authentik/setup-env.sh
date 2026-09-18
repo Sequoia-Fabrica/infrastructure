@@ -281,6 +281,13 @@ SLACK_FLOWS = {  # slug -> (flow resource, {stage name: binding resource}, {poli
         },
     ),
 }
+# The list endpoint's ?target= filter only accepts some binding-model types
+# (a flow stage binding is rejected with HTTP 400), so index every policy
+# binding once and match the target client-side.
+policy_bindings_by_target = {}
+for pb in get("policies/bindings/", page_size=500).get("results", []):
+    policy_bindings_by_target.setdefault(str(pb["target"]), []).append(pb)
+
 for slug, (flow_res, stage_names, policy_names) in SLACK_FLOWS.items():
     fl = first("flows/instances/", slug=slug)
     if not fl:
@@ -294,9 +301,9 @@ for slug, (flow_res, stage_names, policy_names) in SLACK_FLOWS.items():
             continue
         imp(f"authentik_flow_stage_binding.{res}", b["pk"])
         if res == "slack_enrollment_prompt":
-            for pb in get("policies/bindings/", target=b["pk"]).get("results", []):
+            for pb in policy_bindings_by_target.get(str(b["pk"]), []):
                 imp("authentik_policy_binding.slack_enrollment_prompt_if_no_username", pb["pk"])
-    for pb in get("policies/bindings/", target=fl["pk"]).get("results", []):
+    for pb in policy_bindings_by_target.get(str(fl["pk"]), []):
         pname = (pb.get("policy_obj") or {}).get("name")
         res = policy_names.get(pname)
         if res:
