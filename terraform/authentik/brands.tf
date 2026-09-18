@@ -127,6 +127,50 @@ resource "authentik_brand" "sequoia_fabrica" {
       max-height: 3.5rem;
     }
 
+    /* Identification step: "Continue with Sequoia Fabrica Slack" first, the
+       email/password form as the fallback beneath it.
+
+       authentik adopts this stylesheet into every component's shadow root,
+       so these rules run inside <ak-flow-card>. The card renders header,
+       body (the form) and footer (the login-sources fieldset, slotted from
+       the identification stage) as siblings; we make the host a column flex
+       container and reorder body and footer. Everything is scoped to a card
+       that actually holds the login-sources fieldset, so other stages and
+       browsers without :has() see the stock layout. */
+    :host(ak-flow-card:has(fieldset[name="login-sources"])) {
+      display: flex;
+      flex-direction: column;
+    }
+    :host(ak-flow-card:has(fieldset[name="login-sources"])) .pf-c-login__main-footer {
+      order: 1;
+      margin-block-start: 0;
+      margin-block-end: 0;
+    }
+    :host(ak-flow-card:has(fieldset[name="login-sources"])) .pf-c-login__main-body {
+      order: 2;
+    }
+    :host(ak-flow-card:has(fieldset[name="login-sources"])) .pf-c-login__main-body::before {
+      content: "Or sign in with your email address";
+      display: block;
+      text-align: center;
+      font-size: 0.875rem;
+      color: var(--pf-global--Color--200);
+      margin-block-end: 1rem;
+    }
+
+    /* The form's own submit button steps back to a secondary style so the
+       promoted Slack button is the single primary action on the page. */
+    :host(ak-stage-identification) form.pf-c-form .pf-c-button.pf-m-primary {
+      background-color: transparent;
+      color: var(--pf-global--primary-color--100);
+      box-shadow: inset 0 0 0 1px var(--pf-global--primary-color--100);
+    }
+    :host(ak-stage-identification) form.pf-c-form .pf-c-button.pf-m-primary:hover {
+      background-color: transparent;
+      color: var(--pf-global--primary-color--200);
+      box-shadow: inset 0 0 0 2px var(--pf-global--primary-color--200);
+    }
+
     /* Single-language space: hide the locale picker */
     ak-flow-executor::part(locale-select) {
       display: none;

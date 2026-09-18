@@ -27,6 +27,7 @@ irregular all-caps "SEQUOIA FABRICA".
 | Tree + wordmark, self-theming  | `ansible/roles/sequoia_fabrica/files/authentik/sequoia_fabrica_lockup.svg`         | authentik login card, headers        |
 | Favicon 128 px                 | `ansible/roles/sequoia_fabrica/files/authentik/sequoia_fabrica_favicon.png`        | Browser tab (tea green tree on emerald) |
 | Flow background                | `ansible/roles/sequoia_fabrica/files/authentik/sequoia_fabrica_flow_background.svg`| authentik flow pages                 |
+| App icon 1024 px               | `documentation/brand/slack-app-icon.png`                               | Slack app / any square app icon (tea green tree on emerald `#065f46`) |
 | Stacked / horizontal / vertical| `sequoia-fabrica-landing-page/public/sf_logo_*.svg`                    | Web (tea green on emerald)           |
 
 Rules:

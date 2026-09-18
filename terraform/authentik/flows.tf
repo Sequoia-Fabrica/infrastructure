@@ -27,9 +27,14 @@ resource "authentik_flow" "sequoia_fabrica_authentication" {
   background = "sequoia_fabrica_flow_background.svg"
 }
 
+# Our own identification stage (sources.tf) rather than the blueprint default:
+# the "Log in with Slack" button is a property of the stage, and we do not
+# want to edit an object authentik's blueprints own. The stock stage stays in
+# place; swap `stage` back to data.authentik_stage.default_authentication_identification
+# to roll back.
 resource "authentik_flow_stage_binding" "sequoia_fabrica_auth_identification" {
   target = authentik_flow.sequoia_fabrica_authentication.uuid
-  stage  = data.authentik_stage.default_authentication_identification.id
+  stage  = authentik_stage_identification.sequoia_fabrica.id
   order  = 10
 }
 
