@@ -132,24 +132,27 @@ resource "authentik_brand" "sequoia_fabrica" {
 
        authentik adopts this stylesheet into every component's shadow root,
        so these rules run inside <ak-flow-card>. The card renders header,
-       body (the form) and footer (the login-sources fieldset, slotted from
-       the identification stage) as siblings; we make the host a column flex
-       container and reorder body and footer. Everything is scoped to a card
-       that actually holds the login-sources fieldset, so other stages and
-       browsers without :has() see the stock layout. */
-    :host(ak-flow-card:has(fieldset[name="login-sources"])) {
+       body (the form) and footer as sibling divs; the footer div only gets a
+       <slot name="footer"> when something is slotted there, and in the flow
+       UI the identification stage's login-sources fieldset is the only such
+       thing. So "footer div contains slot[name=footer]" means "this card has
+       login sources": we make the host a column flex container and move that
+       footer above the body. :host() only takes a compound selector, so the
+       scoping lives on the inner divs via :has(), not on the host. Other
+       stages, and browsers without :has(), keep the stock order. */
+    :host(ak-flow-card) {
       display: flex;
       flex-direction: column;
     }
-    :host(ak-flow-card:has(fieldset[name="login-sources"])) .pf-c-login__main-footer {
-      order: 1;
+    :host(ak-flow-card) .pf-c-login__main-header {
+      order: -2;
+    }
+    :host(ak-flow-card) .pf-c-login__main-footer:has(> slot[name="footer"]) {
+      order: -1;
       margin-block-start: 0;
       margin-block-end: 0;
     }
-    :host(ak-flow-card:has(fieldset[name="login-sources"])) .pf-c-login__main-body {
-      order: 2;
-    }
-    :host(ak-flow-card:has(fieldset[name="login-sources"])) .pf-c-login__main-body::before {
+    :host(ak-flow-card) .pf-c-login__main-body:has(+ .pf-c-login__main-footer > slot[name="footer"])::before {
       content: "Or sign in with your email address";
       display: block;
       text-align: center;
