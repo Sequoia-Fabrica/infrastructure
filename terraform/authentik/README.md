@@ -1,8 +1,7 @@
 # authentik Terraform: brand & login experience
 
 Infrastructure-as-code for the Sequoia Fabrica look and feel of
-[login.sequoia.garden](https://login.sequoia.garden), modelled on the SFMIX
-`terraform/authentik` workspace.
+[login.sequoia.garden](https://login.sequoia.garden).
 
 ## What's managed
 
@@ -15,7 +14,7 @@ Infrastructure-as-code for the Sequoia Fabrica look and feel of
 
 Not managed here (yet): applications, providers, groups and OAuth sources.
 `setup-env.sh` prints the current application slugs so they can be adopted
-later the same way the SFMIX workspace does.
+later with `import` blocks in the same way.
 
 Brand assets referenced by media key (`sequoia_fabrica_lockup.svg`, etc.) are
 deployed by ansible from `ansible/roles/sequoia_fabrica/files/authentik/` into
