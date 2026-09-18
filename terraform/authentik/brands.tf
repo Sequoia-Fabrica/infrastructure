@@ -34,15 +34,10 @@ resource "authentik_brand" "sequoia_fabrica" {
   flow_invalidation   = data.authentik_flow.default_invalidation.id
   flow_user_settings  = data.authentik_flow.default_user_settings.id
 
-  # Footer links shown under the login card and in the user interface.
-  attributes = jsonencode({
-    settings = {
-      footerLinks = [
-        { name = "Sequoia Fabrica", href = "https://sequoiafabrica.org" },
-        { name = "Blog", href = "https://blog.sequoiafabrica.org" },
-      ]
-    }
-  })
+  # Footer links are NOT a brand property in this authentik version: they
+  # live in the global system settings (authentik_system_settings.footer_links,
+  # Admin UI -> System -> Settings). That resource is a singleton whose other
+  # fields we have not adopted, so footer links stay managed by hand for now.
 
   # chomp() drops the heredoc's trailing newline so this matches exactly what
   # authentik stores; otherwise the one-byte difference shows as perpetual

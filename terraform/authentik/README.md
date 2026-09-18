@@ -6,8 +6,8 @@ Infrastructure-as-code for the Sequoia Fabrica look and feel of
 ## What's managed
 
 - **Brand** (`brands.tf`): title, tree + wordmark logo, favicon, brand-wide flow
-  background, footer links, and the custom CSS that themes the login flow, the
-  user library and the admin UI in the landing-page palette.
+  background, and the custom CSS that themes the login flow, the user library
+  and the admin UI in the landing-page palette.
 - **Authentication flow** (`flows.tf`): `sequoia-fabrica-authentication`, a
   branded copy of the default flow ("Welcome back to the garden") that binds
   the stock identification / MFA / login stages, so behaviour is unchanged.
@@ -60,7 +60,7 @@ apply; the branded flow can be deleted afterwards or left in place.
 | Colours, fonts, CSS        | `branding_custom_css` in `brands.tf`                   |
 | Logo / favicon / background| the SVG/PNG in `ansible/.../files/authentik/`, then `make ansible` |
 | Login page heading         | `title` on the flow in `flows.tf`                       |
-| Footer links               | `attributes.settings.footerLinks` in `brands.tf`        |
+| Footer links               | Admin UI -> System -> Settings (global, not per brand; not in Terraform yet) |
 
 Palette and asset rules live in `documentation/brand-style-guide.md`.
 
