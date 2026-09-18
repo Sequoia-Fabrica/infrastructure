@@ -12,9 +12,18 @@ Infrastructure-as-code for the Sequoia Fabrica look and feel of
   branded copy of the default flow ("Welcome back to the garden") that binds
   the stock identification / MFA / login stages, so behaviour is unchanged.
 
-Not managed here (yet): applications, providers, groups and OAuth sources.
-`setup-env.sh` prints the current application slugs so they can be adopted
-later with `import` blocks in the same way.
+- **Applications** (`applications.tf`), their **providers** (`providers.tf`:
+  OAuth2 for Grafana, Chat and Immich; proxy via the embedded outpost for the
+  rest) and the **access bindings** that restrict who sees them
+  (`policies.tf`). Client secrets are never declared: the attribute is
+  computed, so the imported state carries the live value.
+- **Custom scope mapping** `immich_same_users` (`property_mappings.tf`).
+
+Not managed here: groups and their membership (Multipass and the admin UI own
+those), the two hand-made flows `seqfab-auth-flow` and
+`sequoia-fabrica-member-enrollment-flow`, the embedded outpost, and global
+system settings. `setup-env.sh` warns about any application, provider or
+binding it finds on the instance that this workspace does not know about.
 
 Brand assets referenced by media key (`sequoia_fabrica_lockup.svg`, etc.) are
 deployed by ansible from `ansible/roles/sequoia_fabrica/files/authentik/` into
