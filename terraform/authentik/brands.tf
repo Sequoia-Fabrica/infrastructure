@@ -53,8 +53,13 @@ resource "authentik_brand" "sequoia_fabrica" {
      * login flow, the user library and the admin UI alike.
      */
 
+    /*
+     * Theme-neutral tokens only. Anything that sets a surface colour MUST be
+     * scoped to a colour scheme below: an unscoped light background at :root
+     * outranks authentik's dark theme and leaves light text on a light page.
+     */
     :root {
-      /* Emerald primary: buttons, active nav, focus rings */
+      /* Emerald primary: buttons, active nav, focus rings (light theme values) */
       --ak-accent: #065f46;
       --pf-global--primary-color--100: #065f46;
       --pf-global--primary-color--200: #047857;
@@ -70,30 +75,46 @@ resource "authentik_brand" "sequoia_fabrica" {
       --pf-global--link--Color--dark: #fb923c;
       --pf-global--link--Color--dark--hover: #fdba74;
 
-      /* Light theme: soft white-smoke surfaces */
-      --pf-global--BackgroundColor--100: #ffffff;
-      --pf-global--BackgroundColor--200: #f7f4f3;
-      --pf-global--BackgroundColor--light-300: #f7f4f3;
-
-      /* Dark theme (authentik's own tokens): deep emerald instead of grey */
-      --ak-dark-background: #022c22;
-      --ak-dark-background-darker: #011a14;
-      --ak-dark-background-light: #05231c;
-      --ak-dark-background-light-ish: #073a2e;
-      --ak-dark-background-lighter: #0a4a3b;
-      --ak-dark-foreground: #f3fef3;
-      --ak-dark-foreground-darker: #c3f9c3;
-
-      /* Admin / user interface chrome */
+      /* Header bar is dark in both themes (white text), so this is safe here.
+         The sidebar is deliberately left alone: its nav text is dark in the
+         light theme and would vanish on emerald. */
       --pf-c-page__header--BackgroundColor: #022c22;
-      --pf-c-page__sidebar--BackgroundColor: #064e3b;
-      --pf-c-nav__link--m-current--after--BorderColor: #c3f9c3;
-      --pf-c-nav__link--hover--after--BorderColor: #c3f9c3;
+      --pf-c-nav__link--m-current--after--BorderColor: #10b981;
+      --pf-c-nav__link--hover--after--BorderColor: #10b981;
 
       /* System font stack, matching the landing page (Tailwind default) */
       --pf-global--FontFamily--sans-serif:
         ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
         "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+    }
+
+    /* Light theme: soft white-smoke surfaces */
+    @media (prefers-color-scheme: light) {
+      :root {
+        --pf-global--BackgroundColor--100: #ffffff;
+        --pf-global--BackgroundColor--200: #f7f4f3;
+        --pf-global--BackgroundColor--light-300: #f7f4f3;
+      }
+    }
+
+    /* Dark theme: deep emerald surfaces (authentik's own tokens) and
+       brighter primaries so buttons and active items stay legible on them. */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --ak-dark-background: #022c22;
+        --ak-dark-background-darker: #011a14;
+        --ak-dark-background-light: #05231c;
+        --ak-dark-background-light-ish: #073a2e;
+        --ak-dark-background-lighter: #0a4a3b;
+
+        --ak-accent: #10b981;
+        --pf-global--primary-color--100: #10b981;
+        --pf-global--primary-color--200: #34d399;
+        --pf-global--active-color--100: #34d399;
+        --pf-global--active-color--300: #6ee7b7;
+        --pf-global--link--Color: #fb923c;
+        --pf-global--link--Color--hover: #fdba74;
+      }
     }
 
     /* Login card: room for the wide tree + wordmark lockup */
