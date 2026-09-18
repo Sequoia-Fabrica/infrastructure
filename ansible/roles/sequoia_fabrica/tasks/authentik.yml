@@ -59,17 +59,24 @@
     owner: root
     group: root
     mode: ug=rw,o=
-# Brand logo is referenced from the DB brand record as the bare key
-# "sequoia_fabrica_tree.svg"; authentik serves it from the media "public/"
-# storage prefix via signed /files URLs, so the file must live under public/.
-- name: Place /opt/authentik/data/media/public/sequoia_fabrica_tree.svg
+# Brand assets. The brand record (terraform/authentik/brands.tf) references
+# these by bare media key, e.g. "sequoia_fabrica_lockup.svg"; authentik serves
+# them from the media "public/" storage prefix via signed /files URLs, so the
+# files must live under public/. Add a file here first, then reference it in
+# Terraform. See documentation/brand-style-guide.md for what each one is.
+- name: Place authentik brand assets in /opt/authentik/data/media/public
   become: true
   ansible.builtin.copy:
-    src: sequoia_fabrica_tree.svg
-    dest: /opt/authentik/data/media/public/sequoia_fabrica_tree.svg
+    src: "authentik/{{ item }}"
+    dest: "/opt/authentik/data/media/public/{{ item }}"
     owner: 1000
     group: 1000
     mode: ug=rw,o=r
+  loop:
+    - sequoia_fabrica_tree.svg            # previous logo; kept for rollback
+    - sequoia_fabrica_lockup.svg          # tree + wordmark, self-theming (brand logo)
+    - sequoia_fabrica_favicon.png         # tea-green tree on emerald (brand favicon)
+    - sequoia_fabrica_flow_background.svg # emerald gradient + watermark (flow background)
 - name: Authentik docker-compose
   become: true
   community.docker.docker_compose_v2:
