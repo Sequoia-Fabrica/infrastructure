@@ -97,16 +97,21 @@ resource "authentik_policy_expression" "slack_if_sso" {
   expression = "return ak_is_sso_flow"
 }
 
-# Optional: refuse identities from any Slack workspace but ours. The mapped
-# attributes are in prompt_data when flow policies run.
+# Refuse identities from any Slack workspace but ours, at enrollment and at
+# every later login. authentik's OAuth callback puts Slack's raw userinfo
+# response into the flow context as `oauth_userinfo` before the flow's own
+# policies are evaluated (authentik/sources/oauth/views/callback.py ->
+# core/sources/flow_manager.py::_prepare_flow -> FlowPlanner.plan), so this
+# reads Slack's team claim directly rather than anything we mapped. Missing
+# claim => denied.
 resource "authentik_policy_expression" "slack_team_gate" {
-  count = var.slack_team_id == "" ? 0 : 1
-
   name       = "slack-source-workspace-gate"
   expression = <<-EOT
-    slack = context.get("prompt_data", {}).get("attributes", {}).get("slack", {})
-    if slack.get("team_id") != "${var.slack_team_id}":
-        ak_message("This Slack account is not a member of the Sequoia Fabrica workspace.")
+    info = context.get("oauth_userinfo") or {}
+    team_id = info.get("https://slack.com/team_id")
+    if team_id != "${var.slack_team_id}":
+        ak_message("This Slack account is not in the Sequoia Fabrica workspace.")
+        ak_logger.warning("slack source: refused workspace", team_id=team_id, sub=info.get("sub"))
         return False
     return True
   EOT
@@ -139,10 +144,8 @@ resource "authentik_policy_binding" "slack_enrollment_if_sso" {
 }
 
 resource "authentik_policy_binding" "slack_enrollment_team_gate" {
-  count = var.slack_team_id == "" ? 0 : 1
-
   target = authentik_flow.slack_enrollment.uuid
-  policy = authentik_policy_expression.slack_team_gate[0].id
+  policy = authentik_policy_expression.slack_team_gate.id
   order  = 10
 }
 
@@ -220,10 +223,8 @@ resource "authentik_policy_binding" "slack_authentication_if_sso" {
 }
 
 resource "authentik_policy_binding" "slack_authentication_team_gate" {
-  count = var.slack_team_id == "" ? 0 : 1
-
   target = authentik_flow.slack_authentication.uuid
-  policy = authentik_policy_expression.slack_team_gate[0].id
+  policy = authentik_policy_expression.slack_team_gate.id
   order  = 10
 }
 

@@ -25,12 +25,16 @@ variable "slack_client_secret" {
 
 variable "slack_team_id" {
   description = <<-EOT
-    Slack workspace (team) ID, e.g. T0123ABCD. When set, Slack identities from
-    any other workspace are refused at enrollment and login. Empty relies on
-    the app not being distributed outside the workspace.
+    Slack workspace (team) ID, e.g. T0123ABCD. Required: Slack identities from
+    any other workspace are refused at enrollment and at every login, so the
+    source stays safe even if the Slack app is ever distributed.
   EOT
   type        = string
-  default     = ""
+
+  validation {
+    condition     = can(regex("^T[A-Z0-9]{8,}$", var.slack_team_id))
+    error_message = "slack_team_id must be a Slack team ID like T0123ABCD (set authentik.sources.slack.team_id in the ansible vault group_vars)."
+  }
 }
 
 variable "slack_enrollment_enabled" {

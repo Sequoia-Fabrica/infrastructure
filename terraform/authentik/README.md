@@ -97,8 +97,14 @@ authentik:
       client_secret: !vault | # ansible-vault encrypt_string --vault-password-file ~/.sequoia_fabrica_ansible_vault --stdin-name client_secret
         $ANSIBLE_VAULT;1.1;AES256
         …
-      team_id: "T…"           # optional, enables the workspace gate policy
+      team_id: "T…"           # required: only this workspace may enrol or log in
 ```
+
+**Workspace gate**: both Slack flows carry the `slack-source-workspace-gate`
+policy, which compares the `https://slack.com/team_id` claim in Slack's
+userinfo (exposed to flow policies as `oauth_userinfo`) with `team_id`. Any
+other workspace, or a missing claim, is refused with a message. This holds
+even if the Slack app is later distributed or copied.
 
 **Switching enrollment off** later (existing Slack-linked users keep logging
 in; unknown Slack identities are refused): apply with

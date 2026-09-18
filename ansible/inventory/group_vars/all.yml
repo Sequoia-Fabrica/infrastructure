@@ -144,7 +144,9 @@ authentik:
         6235653665303936650a643230393238303733303332333239646431646565393036393262663935
         37646132616432363536616561336630386639653165386232306134323761333134623033613534
         3864646136633235356661653932646263646635383861303365
-      # team_id: "T..."   # optional: refuse identities from other workspaces
+      # Required. Workspace (team) ID; only this workspace may enrol or log in.
+      # Find it in the browser URL after opening Slack: app.slack.com/client/T.../
+      # team_id: "T..."
 
 cloudflared:
   tunnel_token: !vault |

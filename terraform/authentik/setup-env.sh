@@ -74,8 +74,8 @@ _slack_json=$(ANSIBLE_DEPRECATION_WARNINGS=False ANSIBLE_LOCALHOST_WARNING=False
 if ! _slack_env=$(python3 -c '
 import json, shlex, sys
 d = json.load(sys.stdin).get("authentik.sources.slack")
-if not isinstance(d, dict) or not d.get("client_id") or not d.get("client_secret"):
-    sys.exit("authentik.sources.slack.{client_id,client_secret} missing from the vault")
+if not isinstance(d, dict) or not all(d.get(k) for k in ("client_id", "client_secret", "team_id")):
+    sys.exit("authentik.sources.slack.{client_id,client_secret,team_id} must all be set in group_vars")
 print("export TF_VAR_slack_client_id=" + shlex.quote(str(d["client_id"])))
 print("export TF_VAR_slack_client_secret=" + shlex.quote(str(d["client_secret"])))
 print("export TF_VAR_slack_team_id=" + shlex.quote(str(d.get("team_id") or "")))
@@ -89,7 +89,7 @@ print("export TF_VAR_slack_team_id=" + shlex.quote(str(d.get("team_id") or "")))
 fi
 eval "${_slack_env}"
 unset _slack_json _slack_env
-echo "    client_id=${TF_VAR_slack_client_id} team_id=${TF_VAR_slack_team_id:-<unset, no workspace gate>}"
+echo "    client_id=${TF_VAR_slack_client_id} team_id=${TF_VAR_slack_team_id}"
 
 echo "==> Discovering existing objects and writing imports.generated.tf..."
 _rc=0
@@ -249,7 +249,7 @@ for to, path, key, value in [
     ("authentik_property_mapping_source_oauth.slack", "propertymappings/source/oauth/", "name", "Slack: profile and workspace identity"),
     ("authentik_group.slack_community", "core/groups/", "name", "Slack Community"),
     ("authentik_policy_expression.slack_if_sso", "policies/expression/", "name", "slack-source-if-sso"),
-    ("authentik_policy_expression.slack_team_gate[0]", "policies/expression/", "name", "slack-source-workspace-gate"),
+    ("authentik_policy_expression.slack_team_gate", "policies/expression/", "name", "slack-source-workspace-gate"),
     ("authentik_policy_expression.slack_if_no_username", "policies/expression/", "name", "slack-source-enrollment-if-no-username"),
     ("authentik_stage_prompt_field.slack_username", "stages/prompt/prompts/", "name", "slack-source-enrollment-field-username"),
     ("authentik_stage_prompt.slack_enrollment", "stages/prompt/stages/", "name", "slack-source-enrollment-prompt"),
@@ -269,7 +269,7 @@ SLACK_FLOWS = {  # slug -> (flow resource, {stage name: binding resource}, {poli
         },
         {
             "slack-source-if-sso": "slack_enrollment_if_sso",
-            "slack-source-workspace-gate": "slack_enrollment_team_gate[0]",
+            "slack-source-workspace-gate": "slack_enrollment_team_gate",
         },
     ),
     "sequoia-fabrica-slack-authentication": (
@@ -277,7 +277,7 @@ SLACK_FLOWS = {  # slug -> (flow resource, {stage name: binding resource}, {poli
         {"default-source-authentication-login": "slack_authentication_login"},
         {
             "slack-source-if-sso": "slack_authentication_if_sso",
-            "slack-source-workspace-gate": "slack_authentication_team_gate[0]",
+            "slack-source-workspace-gate": "slack_authentication_team_gate",
         },
     ),
 }
