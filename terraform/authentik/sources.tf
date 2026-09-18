@@ -26,9 +26,16 @@ locals {
 # --- Source ---------------------------------------------------------
 
 resource "authentik_source_oauth" "slack" {
-  name          = "Slack"
+  # The name is the button label: "Continue with Sequoia Fabrica Slack".
+  name          = "Sequoia Fabrica Slack"
   slug          = local.slack_source_slug
   provider_type = "openidconnect"
+
+  # Promoted: rendered as a full-width primary button instead of a small
+  # icon button. The brand CSS (brands.tf) then moves it above the
+  # username/password form so Slack is the suggested way in and email login
+  # is the fallback beneath.
+  promoted = true
 
   consumer_key    = var.slack_client_id
   consumer_secret = var.slack_client_secret

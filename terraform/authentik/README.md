@@ -132,6 +132,7 @@ apply; the branded flow can be deleted afterwards or left in place.
 | Colours, fonts, CSS        | `branding_custom_css` in `brands.tf`                   |
 | Logo / favicon / background| the SVG/PNG in `ansible/.../files/authentik/`, then `make ansible` |
 | Login page heading         | `title` on the flow in `flows.tf`                       |
+| Slack-first login layout   | `promoted` on the source in `sources.tf`; the reordering CSS in `brands.tf` |
 | Footer links               | Admin UI -> System -> Settings (global, not per brand; not in Terraform yet) |
 
 Palette and asset rules live in `documentation/brand-style-guide.md`.

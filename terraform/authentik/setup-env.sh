@@ -241,7 +241,8 @@ def imp_named(to, path, key, value, pk="pk"):
     return obj
 
 n_slack = 0
-src = imp_named("authentik_source_oauth.slack", "sources/oauth/", "slug", "slack")
+# The provider keys OAuth sources by slug, not by pk.
+src = imp_named("authentik_source_oauth.slack", "sources/oauth/", "slug", "slack", pk="slug")
 if src:
     n_slack += 1
     print(f"    slack      source {src['pk']} enrollment_flow={'set' if src.get('enrollment_flow') else 'none'}")
