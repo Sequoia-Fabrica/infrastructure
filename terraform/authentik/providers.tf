@@ -6,10 +6,11 @@
 # the imported state carries the live secret and nothing sensitive lives in
 # git or in TF_VAR_* variables. Rotate a secret in the admin UI, then plan.
 #
-# Values mirror the live instance exactly (import-only first plan). Several
-# providers pin `authentication_flow` to the stock default flow, which means
-# those app logins bypass the branded flow in flows.tf; that is called out
-# per provider and is a deliberate follow-up, not changed here.
+# Login started from an app runs the provider's `authentication_flow`, or
+# the brand's flow when unset. Providers that set it point at the branded
+# flow (flows.tf) so app-initiated logins show the same page, including the
+# Slack button, as login.sequoia.garden itself. To roll one back, point it
+# at data.authentik_flow.default_authentication.
 # -------------------------------------------------------------------
 
 locals {
@@ -40,8 +41,7 @@ resource "authentik_provider_oauth2" "grafana" {
   name      = "Grafana"
   client_id = "m4mO9fx6Yh6iVKxoJBM7wNdrgoblHI2lxWfsvIJr"
 
-  # Pinned to the stock flow (predates the branded flow).
-  authentication_flow = data.authentik_flow.default_authentication.id
+  authentication_flow = authentik_flow.sequoia_fabrica_authentication.uuid
   authorization_flow  = data.authentik_flow.default_implicit_consent.id
   invalidation_flow   = data.authentik_flow.default_provider_invalidation.id
   signing_key         = data.authentik_certificate_key_pair.self_signed.id
@@ -73,8 +73,7 @@ resource "authentik_provider_oauth2" "chat" {
   name      = "Provider for Chat"
   client_id = "5WXNpPqj2OdtqXjki5x2JuhgvDxIXrY2X2P2BHC8"
 
-  # Pinned to the stock flow (predates the branded flow).
-  authentication_flow = data.authentik_flow.default_authentication.id
+  authentication_flow = authentik_flow.sequoia_fabrica_authentication.uuid
   authorization_flow  = data.authentik_flow.default_implicit_consent.id
   invalidation_flow   = data.authentik_flow.default_provider_invalidation.id
   signing_key         = data.authentik_certificate_key_pair.self_signed.id
@@ -106,8 +105,7 @@ resource "authentik_provider_oauth2" "immich" {
   name      = "Provider for Immich"
   client_id = "RaNDw7jmltr5JDx3DlDUtJEcYynmTV4Mw3n5BzUo"
 
-  # Pinned to the stock flow (predates the branded flow).
-  authentication_flow = data.authentik_flow.default_authentication.id
+  authentication_flow = authentik_flow.sequoia_fabrica_authentication.uuid
   authorization_flow  = data.authentik_flow.default_implicit_consent.id
   invalidation_flow   = data.authentik_flow.default_provider_invalidation.id
   signing_key         = data.authentik_certificate_key_pair.self_signed.id
@@ -169,8 +167,7 @@ resource "authentik_provider_proxy" "adminer" {
   external_host = "https://adminer.sequoia.garden"
   internal_host = "${local.nursery_internal}:3006"
 
-  # Pinned to the stock flow (predates the branded flow).
-  authentication_flow = data.authentik_flow.default_authentication.id
+  authentication_flow = authentik_flow.sequoia_fabrica_authentication.uuid
   authorization_flow  = data.authentik_flow.default_explicit_consent.id
   invalidation_flow   = data.authentik_flow.default_provider_invalidation.id
 
@@ -201,8 +198,7 @@ resource "authentik_provider_proxy" "frigate" {
   external_host = "https://frigate.sequoia.garden"
   internal_host = "${local.nursery_internal}:5000"
 
-  # Pinned to the stock flow (predates the branded flow).
-  authentication_flow = data.authentik_flow.default_authentication.id
+  authentication_flow = authentik_flow.sequoia_fabrica_authentication.uuid
   authorization_flow  = data.authentik_flow.default_implicit_consent.id
   invalidation_flow   = data.authentik_flow.default_provider_invalidation.id
 
@@ -268,8 +264,7 @@ resource "authentik_provider_proxy" "utilities" {
   external_host = "https://utilities.sequoia.garden"
   internal_host = "${local.nursery_internal}:8000"
 
-  # Pinned to the stock flow (predates the branded flow).
-  authentication_flow = data.authentik_flow.default_authentication.id
+  authentication_flow = authentik_flow.sequoia_fabrica_authentication.uuid
   authorization_flow  = data.authentik_flow.default_explicit_consent.id
   invalidation_flow   = data.authentik_flow.default_provider_invalidation.id
 
