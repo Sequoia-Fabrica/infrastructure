@@ -20,6 +20,13 @@ resource "authentik_policy_binding" "frigate_security_system_operators" {
   timeout = 30
 }
 
+resource "authentik_policy_binding" "multipass_members" {
+  target  = authentik_application.multipass.uuid
+  group   = data.authentik_group.members.id
+  order   = 0
+  timeout = 30
+}
+
 resource "authentik_policy_binding" "utilities_members" {
   target  = authentik_application.utilities.uuid
   group   = data.authentik_group.members.id
