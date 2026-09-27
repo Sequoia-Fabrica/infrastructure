@@ -182,6 +182,11 @@ resource "authentik_stage_user_write" "slack_enrollment" {
   user_creation_mode = "always_create"
   create_users_group = authentik_group.slack_community.id
   user_type          = "internal"
+
+  # The provider defaults this to true, which would leave every new Slack
+  # account disabled until an admin enables it. Slack-bootstrapped users
+  # should be able to work right away; access is limited by group instead.
+  create_users_as_inactive = false
 }
 
 resource "authentik_flow_stage_binding" "slack_enrollment_prompt" {
