@@ -180,6 +180,7 @@ PROVIDERS = {  # provider name -> (resource type, terraform resource name)
 BINDINGS = {  # app slug -> terraform resource name of its single order-0 binding
     "adminer": "adminer_authentik_admins",
     "frigate": "frigate_security_system_operators",
+    "multipass": "multipass_members",
     "utilities": "utilities_members",
     "multipass-test": "multipass_test_jof",
 }
