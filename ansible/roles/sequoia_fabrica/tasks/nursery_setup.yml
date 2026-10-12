@@ -6,24 +6,17 @@
     state: directory
     mode: '0755'
 
-- name: Download Google Cloud GPG key
-  become: true
-  ansible.builtin.get_url:
-    url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
-    dest: "/etc/apt/keyrings/google-cloud.asc"
-    mode: '0644'
-
-- name: Install core-edgetpu-stable apt repo
+# Google retired the coral-edgetpu-stable apt repo (403, unsigned), which
+# broke every apt cache update on nursery. gasket-dkms and libedgetpu1-std
+# stay installed from it; Frigate's image ships its own libedgetpu.
+- name: Remove the retired coral-edgetpu-stable apt repo
   become: true
   ansible.builtin.apt_repository:
     repo: "deb [signed-by=/etc/apt/keyrings/google-cloud.asc] https://packages.cloud.google.com/apt coral-edgetpu-stable main"
-    state: present
+    state: absent
 
-- name: Install the coral edgetpu packages
+- name: Remove the Google Cloud apt key used by that repo
   become: true
-  ansible.builtin.apt:
-    name:
-      - gasket-dkms
-      - libedgetpu1-std
-    state: present
-    update_cache: true
+  ansible.builtin.file:
+    path: /etc/apt/keyrings/google-cloud.asc
+    state: absent
