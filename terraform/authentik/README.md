@@ -13,7 +13,7 @@ Infrastructure-as-code for the Sequoia Fabrica look and feel of
   the stock identification / MFA / login stages, so behaviour is unchanged.
 
 - **Applications** (`applications.tf`), their **providers** (`providers.tf`:
-  OAuth2 for Grafana, Chat and Immich; proxy via the embedded outpost for the
+  OAuth2 for Grafana and Immich; proxy via the embedded outpost for the
   rest) and the **access bindings** that restrict who sees them
   (`policies.tf`). Client secrets are never declared: the attribute is
   computed, so the imported state carries the live value.

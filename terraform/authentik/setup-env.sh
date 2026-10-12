@@ -161,13 +161,12 @@ else:
 # Applications, their providers and access bindings (applications.tf,
 # providers.tf, policies.tf). Keyed by the live slug / provider name.
 APPS = {  # slug -> terraform resource name
-    "adminer": "adminer", "chat": "chat", "etherpad": "etherpad", "frigate": "frigate",
+    "adminer": "adminer", "etherpad": "etherpad", "frigate": "frigate",
     "grafana": "grafana", "immich": "immich", "multipass": "multipass",
     "multipass-test": "multipass_test", "uptime-kuma": "uptime_kuma", "utilities": "utilities",
 }
 PROVIDERS = {  # provider name -> (resource type, terraform resource name)
     "Grafana": ("authentik_provider_oauth2", "grafana"),
-    "Provider for Chat": ("authentik_provider_oauth2", "chat"),
     "Provider for Immich": ("authentik_provider_oauth2", "immich"),
     "Provider for Adminer": ("authentik_provider_proxy", "adminer"),
     "Provider for Etherpad": ("authentik_provider_proxy", "etherpad"),

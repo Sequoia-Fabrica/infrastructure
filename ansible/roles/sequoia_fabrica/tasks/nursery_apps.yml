@@ -1,10 +1,4 @@
 ---
-- name: NVIDIA Container Toolkit
-  ansible.builtin.include_role:
-    name: sequoia_fabrica
-    tasks_from: nvidia_container_toolkit.yml
-  tags: nvidia_container_toolkit
-
 - name: Authentik
   ansible.builtin.include_role:
     name: sequoia_fabrica
@@ -81,23 +75,11 @@
     tasks_from: adminer.yml
   tags: adminer
 
-- name: Open WebUI
-  ansible.builtin.include_role:
-    name: sequoia_fabrica
-    tasks_from: open_webui.yml
-  tags: open_webui
-
 - name: Uptime Kuma
   ansible.builtin.include_role:
     name: sequoia_fabrica
     tasks_from: uptime_kuma.yml
   tags: uptime_kuma
-
-- name: Double Take
-  ansible.builtin.include_role:
-    name: sequoia_fabrica
-    tasks_from: double_take.yml
-  tags: double_take
 
 - name: Multipass
   ansible.builtin.include_role:

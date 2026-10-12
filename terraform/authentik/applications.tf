@@ -14,15 +14,6 @@ resource "authentik_application" "adminer" {
   policy_engine_mode = "any"
 }
 
-resource "authentik_application" "chat" {
-  name               = "Chat"
-  slug               = "chat"
-  protocol_provider  = authentik_provider_oauth2.chat.id
-  meta_launch_url    = "https://chat.sequoia.garden/"
-  open_in_new_tab    = false
-  policy_engine_mode = "any"
-}
-
 resource "authentik_application" "etherpad" {
   name               = "Etherpad"
   slug               = "etherpad"

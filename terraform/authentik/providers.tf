@@ -69,38 +69,6 @@ resource "authentik_provider_oauth2" "grafana" {
   property_mappings = local.oidc_scopes
 }
 
-resource "authentik_provider_oauth2" "chat" {
-  name      = "Provider for Chat"
-  client_id = "5WXNpPqj2OdtqXjki5x2JuhgvDxIXrY2X2P2BHC8"
-
-  authentication_flow = authentik_flow.sequoia_fabrica_authentication.uuid
-  authorization_flow  = data.authentik_flow.default_implicit_consent.id
-  invalidation_flow   = data.authentik_flow.default_provider_invalidation.id
-  signing_key         = data.authentik_certificate_key_pair.self_signed.id
-
-  client_type = "confidential"
-  grant_types = local.oauth2_default_grant_types
-
-  allowed_redirect_uris = [
-    {
-      matching_mode     = "strict"
-      url               = "https://chat.sequoia.garden/oauth/oidc/callback"
-      redirect_uri_type = "authorization"
-    },
-  ]
-
-  access_code_validity       = "minutes=1"
-  access_token_validity      = "minutes=5"
-  refresh_token_validity     = "days=30"
-  refresh_token_threshold    = "seconds=0"
-  include_claims_in_id_token = true
-  logout_method              = "backchannel"
-  sub_mode                   = "user_email"
-  issuer_mode                = "global"
-
-  property_mappings = local.oidc_scopes
-}
-
 resource "authentik_provider_oauth2" "immich" {
   name      = "Provider for Immich"
   client_id = "RaNDw7jmltr5JDx3DlDUtJEcYynmTV4Mw3n5BzUo"

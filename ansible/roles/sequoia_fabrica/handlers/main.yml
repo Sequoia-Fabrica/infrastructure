@@ -28,12 +28,6 @@
     name: cloudflared.service
     state: restarted
 
-- name: Restart double-take
-  community.docker.docker_container:
-    name: double-take
-    restart: true
-  ignore_errors: true
-
 - name: Apply fan curve
   become: true
   ansible.builtin.systemd_service:
