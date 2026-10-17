@@ -1,0 +1,50 @@
+---
+## gate_watcher: front roll-up gate state from Frigate's front_door camera, published to Home Assistant via MQTT
+- name: Ensure /opt/gate_watcher
+  become: true
+  ansible.builtin.file:
+    path: /opt/gate_watcher
+    state: directory
+    owner: root
+    group: root
+    mode: u=rwx,go=rx
+- name: Place gate_watcher build context
+  become: true
+  ansible.builtin.copy:
+    src: "gate_watcher/{{ item }}"
+    dest: "/opt/gate_watcher/{{ item }}"
+    owner: root
+    group: root
+    mode: u=rw,go=r
+  loop:
+    - Dockerfile
+    - gate_watcher.py
+  register: gate_watcher_files
+- name: Build gate_watcher Docker image
+  become: true
+  when: gate_watcher_files.changed
+  community.docker.docker_image:
+    name: gate_watcher
+    tag: latest
+    source: build
+    force_source: true
+    force_tag: true
+    build:
+      path: /opt/gate_watcher
+  register: gate_watcher_image
+- name: Run gate_watcher
+  become: true
+  community.docker.docker_container:
+    name: gate_watcher
+    image: gate_watcher:latest
+    state: started
+    recreate: "{{ gate_watcher_image.changed | default(false) }}"
+    restart_policy: unless-stopped
+    network_mode: host
+    env:
+      FRIGATE_URL: http://127.0.0.1:5000
+      CAMERA: front_door
+      INTERVAL: "30"
+      MQTT_HOST: 192.168.88.254
+      MQTT_USER: mqtt
+      MQTT_PASSWORD: "{{ frigate_mqtt_password }}"

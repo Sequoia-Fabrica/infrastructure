@@ -37,6 +37,14 @@
     tasks_from: frigate_exporter.yml
   tags: frigate_exporter
 
+- name: Gate Watcher
+  ansible.builtin.include_role:
+    name: sequoia_fabrica
+    tasks_from: gate_watcher.yml
+    apply:
+      tags: gate_watcher
+  tags: gate_watcher
+
 - name: Aruba Exporter
   ansible.builtin.include_role:
     name: sequoia_fabrica
