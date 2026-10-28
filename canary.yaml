@@ -95,33 +95,49 @@ text_sensor:
       name: IP Address
       entity_category: diagnostic
 
+# The SSD1306 is 1-bit, so fonts render without anti-aliasing: small TrueType
+# sizes come out jagged. Keep everything big and use the condensed cut so a
+# full-height CO2 reading still fits next to the temp/RH column.
 font:
-  - file: "gfonts://Roboto@700"
+  - file: "gfonts://Roboto Condensed@700"
     id: font_big
-    size: 20
+    size: 40
     glyphs: "0123456789- "
-  - file: "gfonts://Roboto"
+  - file: "gfonts://Roboto Condensed"
     id: font_small
-    size: 10
+    size: 16
+    glyphs: "0123456789.-% °"
 
+# Layout (128x32):  [ 1234 ] [ 21.3° ]
+#                   [ 1234 ] [   45% ]
+# Big CO2 digits fill the left side; temp over RH on the right. A small dot
+# just right of the CO2 reading means MQTT is disconnected.
 display:
   - platform: ssd1306_i2c
     model: "SSD1306 128x32"
     address: 0x3C
     update_interval: 2s
     lambda: |-
+      char co2_buf[8];
       if (id(co2).has_state()) {
-        it.printf(0, 0, id(font_big), "%.0f", id(co2).state);
-        it.print(127, 0, id(font_small), TextAlign::TOP_RIGHT, "ppm");
-        it.print(127, 10, id(font_small), TextAlign::TOP_RIGHT, "CO2");
+        snprintf(co2_buf, sizeof(co2_buf), "%.0f", id(co2).state);
       } else {
-        it.print(0, 0, id(font_big), "----");
+        snprintf(co2_buf, sizeof(co2_buf), "----");
       }
-      if (id(temperature).has_state() && id(humidity).has_state()) {
-        it.printf(0, 22, id(font_small), "%.1f C   %.0f%% rH",
-                  id(temperature).state, id(humidity).state);
+      it.print(0, 31, id(font_big), TextAlign::BASELINE_LEFT, co2_buf);
+
+      if (id(temperature).has_state()) {
+        it.printf(127, 13, id(font_small), TextAlign::BASELINE_RIGHT, "%.1f°",
+                  id(temperature).state);
       }
-      // Tiny WiFi/MQTT link indicator, bottom right
+      if (id(humidity).has_state()) {
+        it.printf(127, 31, id(font_small), TextAlign::BASELINE_RIGHT, "%.0f%%",
+                  id(humidity).state);
+      }
+
       if (!mqtt::global_mqtt_client->is_connected()) {
-        it.print(127, 22, id(font_small), TextAlign::TOP_RIGHT, "offline");
+        int x, y, w, h;
+        it.get_text_bounds(0, 31, co2_buf, id(font_big), TextAlign::BASELINE_LEFT,
+                           &x, &y, &w, &h);
+        it.filled_circle(x + w + 3, 4, 2);
       }
