@@ -1,0 +1,143 @@
+# Canary: Sequoia Fabrica CO2 sensor
+#
+# Hardware (verified from the original CircuitPython firmware + I2C scan):
+#   - WEMOS/LOLIN S2 Mini (ESP32-S2FN4R2, 4MB flash, 2MB PSRAM)
+#   - Sensirion SCD30 CO2/temp/humidity sensor  @ I2C 0x61
+#   - SSD1306 128x32 OLED                        @ I2C 0x3C
+#   - Shared I2C bus: SDA = GPIO12, SCL = GPIO11, 50kHz (SCD30 clock-stretches)
+#
+# Reports to Home Assistant through the existing Mosquitto broker using
+# MQTT discovery, so the device appears in HA automatically with no HA-side setup.
+
+substitutions:
+  name: canary
+  friendly_name: Canary
+
+esphome:
+  name: ${name}
+  friendly_name: ${friendly_name}
+  comment: Sequoia Fabrica SCD30 CO2 monitor (LOLIN S2 Mini)
+
+esp32:
+  board: lolin_s2_mini
+  variant: esp32s2
+  framework:
+    type: arduino
+
+logger:
+  hardware_uart: USB_CDC
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+  # If the hackerspace WiFi changes, the board opens this AP so it can be reconfigured.
+  ap:
+    ssid: ${name}-setup
+
+captive_portal:
+
+ota:
+  - platform: esphome
+    password: !secret ota_password
+
+mqtt:
+  broker: !secret mqtt_broker
+  username: !secret mqtt_username
+  password: !secret mqtt_password
+  topic_prefix: ${name}
+  discovery: true
+  discovery_prefix: homeassistant
+  discovery_retain: true
+  # MAC-based unique IDs so a second sensor won't collide; entity IDs like sensor.co2_sensor_co2
+  discovery_unique_id_generator: mac
+  discovery_object_id_generator: device_name
+
+# Local status page at http://canary.local/
+web_server:
+  port: 80
+
+i2c:
+  sda: GPIO12
+  scl: GPIO11
+  frequency: 50kHz
+  scan: true
+
+sensor:
+  - platform: scd30
+    address: 0x61
+    update_interval: 10s
+    co2:
+      name: CO2
+      id: co2
+      accuracy_decimals: 0
+    temperature:
+      name: Temperature
+      id: temperature
+      accuracy_decimals: 1
+    humidity:
+      name: Humidity
+      id: humidity
+      accuracy_decimals: 0
+
+  - platform: wifi_signal
+    name: WiFi Signal
+    update_interval: 60s
+    entity_category: diagnostic
+
+  - platform: uptime
+    name: Uptime
+    update_interval: 60s
+    entity_category: diagnostic
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: IP Address
+      entity_category: diagnostic
+
+# The SSD1306 is 1-bit, so fonts render without anti-aliasing: small TrueType
+# sizes come out jagged. Keep everything big and use the condensed cut so a
+# full-height CO2 reading still fits next to the temp/RH column.
+font:
+  - file: "gfonts://Roboto Condensed@700"
+    id: font_big
+    size: 40
+    glyphs: "0123456789- "
+  - file: "gfonts://Roboto Condensed"
+    id: font_small
+    size: 16
+    glyphs: "0123456789.-% °"
+
+# Layout (128x32):  [ 1234 ] [ 21.3° ]
+#                   [ 1234 ] [   45% ]
+# Big CO2 digits fill the left side; temp over RH on the right. A small dot
+# just right of the CO2 reading means MQTT is disconnected.
+display:
+  - platform: ssd1306_i2c
+    model: "SSD1306 128x32"
+    address: 0x3C
+    update_interval: 2s
+    lambda: |-
+      char co2_buf[8];
+      if (id(co2).has_state()) {
+        snprintf(co2_buf, sizeof(co2_buf), "%.0f", id(co2).state);
+      } else {
+        snprintf(co2_buf, sizeof(co2_buf), "----");
+      }
+      it.print(0, 31, id(font_big), TextAlign::BASELINE_LEFT, co2_buf);
+
+      if (id(temperature).has_state()) {
+        it.printf(127, 13, id(font_small), TextAlign::BASELINE_RIGHT, "%.1f°",
+                  id(temperature).state);
+      }
+      if (id(humidity).has_state()) {
+        it.printf(127, 31, id(font_small), TextAlign::BASELINE_RIGHT, "%.0f%%",
+                  id(humidity).state);
+      }
+
+      if (!mqtt::global_mqtt_client->is_connected()) {
+        int x, y, w, h;
+        it.get_text_bounds(0, 31, co2_buf, id(font_big), TextAlign::BASELINE_LEFT,
+                           &x, &y, &w, &h);
+        it.filled_circle(x + w + 3, 4, 2);
+      }
