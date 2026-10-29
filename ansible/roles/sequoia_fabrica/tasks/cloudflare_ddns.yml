@@ -13,8 +13,13 @@
   ansible.builtin.package:
     name: cron
     state: present
-- name: Run cloudflare_ddns_update.sh with a cron
+- name: Drop the old cron from the deploy user's crontab (it could never run the root-only script)
   ansible.builtin.cron:
     name: cloudflare_ddns_update
-    minute: "*/15"
+    state: absent
+- name: Run cloudflare_ddns_update.sh with a cron
+  become: true
+  ansible.builtin.cron:
+    name: cloudflare_ddns_update
+    minute: "*/5"
     job: /opt/cloudflare_ddns_update.sh
