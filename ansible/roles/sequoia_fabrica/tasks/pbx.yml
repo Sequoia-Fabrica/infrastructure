@@ -1,0 +1,121 @@
+---
+## pbx: Asterisk for the red phones (Grandstream HT801 ATAs) and the Twilio line 415-TRE-EEEZ.
+## Plain config files, no FreePBX. The clever bits live in the switchboard container (tasks/switchboard.yml).
+- name: Retire the hand-installed Asterisk on the host (2024 experiment, never managed)
+  become: true
+  ansible.builtin.apt:
+    name: [asterisk, asterisk-config, asterisk-modules, asterisk-core-sounds-en, asterisk-core-sounds-en-gsm,
+           asterisk-moh-opsound-gsm]
+    state: absent
+- name: Ensure /opt/pbx
+  become: true
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: u=rwx,go=rx
+  loop:
+    - /opt/pbx
+    - /opt/pbx/build
+- name: Ensure /opt/pbx/asterisk readable only by the container's asterisk user
+  become: true
+  ansible.builtin.file:
+    path: /opt/pbx/asterisk
+    state: directory
+    owner: "{{ pbx.container_uid }}"
+    group: root
+    mode: u=rx,go=
+- name: Place pbx build context
+  become: true
+  ansible.builtin.copy:
+    src: pbx/Dockerfile
+    dest: /opt/pbx/build/Dockerfile
+    owner: root
+    group: root
+    mode: u=rw,go=r
+  register: pbx_build
+- name: Build pbx Docker image
+  become: true
+  when: pbx_build.changed
+  community.docker.docker_image:
+    name: pbx
+    tag: latest
+    source: build
+    force_source: true
+    force_tag: true
+    build:
+      path: /opt/pbx/build
+  register: pbx_image
+- name: Place static Asterisk config
+  become: true
+  ansible.builtin.copy:
+    src: "pbx/etc/{{ item }}"
+    dest: "/opt/pbx/asterisk/{{ item }}"
+    owner: "{{ pbx.container_uid }}"
+    group: root
+    mode: u=r,go=
+  loop:
+    - asterisk.conf
+    - indications.conf
+    - logger.conf
+    - modules.conf
+    - musiconhold.conf
+    - rtp.conf
+  register: pbx_static_config
+- name: Template Asterisk config
+  become: true
+  ansible.builtin.template:
+    src: "pbx/{{ item }}.j2"
+    dest: "/opt/pbx/asterisk/{{ item }}"
+    owner: "{{ pbx.container_uid }}"
+    group: root
+    mode: u=r,go=
+  loop:
+    - pjsip.conf
+    - extensions.conf
+  register: pbx_config
+- name: Run pbx
+  become: true
+  community.docker.docker_container:
+    name: pbx
+    image: pbx:latest
+    state: started
+    recreate: "{{ pbx_image.changed | default(false) }}"
+    restart_policy: unless-stopped
+    network_mode: host  # SIP and a 200-port RTP range; NAT through docker-proxy only gets in the way
+    mounts:
+      - type: bind
+        source: /opt/pbx/asterisk
+        target: /etc/asterisk
+        read_only: true
+- name: Reload Asterisk config  # a reload keeps calls up; only an image change recreates the container
+  become: true
+  when: (pbx_config.changed or pbx_static_config.changed) and not (pbx_image.changed | default(false))
+  ansible.builtin.command: docker exec pbx asterisk -rx "core reload"
+  changed_when: true
+- name: Place follow_public_ip.sh
+  become: true
+  ansible.builtin.copy:
+    dest: /opt/pbx/follow_public_ip.sh
+    owner: root
+    group: root
+    mode: u=rwx,go=
+    content: |
+      #!/bin/bash
+      # Asterisk resolves external_media_address once, at startup. When DDNS moves {{ pbx.public_hostname }},
+      # restart the pbx so Twilio's audio keeps finding its way back to the new address.
+      ip=$(getent ahostsv4 {{ pbx.public_hostname }} | awk 'NR==1 {print $1}')
+      [ -n "$ip" ] || exit 0
+      last=$(cat /opt/pbx/public_ip 2>/dev/null)
+      [ "$ip" = "$last" ] && exit 0
+      echo "$ip" > /opt/pbx/public_ip
+      [ -z "$last" ] && exit 0
+      logger "pbx: public address moved $last -> $ip, restarting Asterisk"
+      docker restart pbx
+- name: Follow the public address with a cron
+  become: true
+  ansible.builtin.cron:
+    name: pbx_follow_public_ip
+    minute: "*/5"
+    job: /opt/pbx/follow_public_ip.sh

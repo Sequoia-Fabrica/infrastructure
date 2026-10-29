@@ -1,0 +1,80 @@
+; {{ ansible_managed }}
+[global]
+type = global
+user_agent = Sequoia Fabrica red phones
+keep_alive_interval = 30  ; keeps the NAT binding to Twilio open between calls
+
+[transport-udp]
+type = transport
+protocol = udp
+bind = 0.0.0.0:5060
+{% for net in pbx.local_nets %}
+local_net = {{ net }}
+{% endfor %}
+; Twilio sees us from behind the MikroTik; advertise the public address in SDP so its media finds its way back.
+external_media_address = {{ pbx.public_hostname }}
+external_signaling_address = {{ pbx.public_hostname }}
+
+;; The red phones: Grandstream HT801 ATAs, one analog line each
+[phone](!)
+type = endpoint
+context = phones
+disallow = all
+allow = ulaw
+direct_media = no
+dtmf_mode = rfc4733
+
+[line](!)
+type = aor
+max_contacts = 1
+remove_existing = yes
+qualify_frequency = 30
+
+{% for line in pbx.lines %}
+[{{ line.extension }}](phone)
+auth = {{ line.extension }}
+aors = {{ line.extension }}
+callerid = "{{ line.name }}" <{{ line.extension }}>
+
+[{{ line.extension }}](line)
+
+[{{ line.extension }}]
+type = auth
+auth_type = userpass
+username = {{ line.extension }}
+password = {{ pbx_line_password }}
+
+{% endfor %}
+{% if pbx_twilio_password is defined %}
+;; Twilio Elastic SIP Trunk. Outbound: we authenticate to the termination URI. Inbound (origination): Twilio's
+;; signaling ranges are matched by IP below; they only reach us if the MikroTik forwards SIP and RTP to nursery.
+[twilio]
+type = auth
+auth_type = userpass
+username = {{ pbx.twilio.username }}
+password = {{ pbx_twilio_password }}
+
+[twilio]
+type = aor
+contact = sip:{{ pbx.twilio.termination }}
+
+[twilio]
+type = endpoint
+context = from-twilio
+disallow = all
+allow = ulaw
+aors = twilio
+outbound_auth = twilio
+direct_media = no
+rtp_symmetric = yes
+force_rport = yes
+rewrite_contact = yes
+dtmf_mode = rfc4733
+
+[twilio]
+type = identify
+endpoint = twilio
+{% for net in pbx.twilio.signaling_nets %}
+match = {{ net }}
+{% endfor %}
+{% endif %}

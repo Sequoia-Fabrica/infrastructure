@@ -45,6 +45,22 @@
       tags: gate_watcher
   tags: gate_watcher
 
+- name: PBX (red phones)
+  ansible.builtin.include_role:
+    name: sequoia_fabrica
+    tasks_from: pbx.yml
+    apply:
+      tags: pbx
+  tags: pbx
+
+- name: Switchboard (red phone AI and gags)
+  ansible.builtin.include_role:
+    name: sequoia_fabrica
+    tasks_from: switchboard.yml
+    apply:
+      tags: switchboard
+  tags: switchboard
+
 - name: Aruba Exporter
   ansible.builtin.include_role:
     name: sequoia_fabrica
@@ -67,6 +83,8 @@
   ansible.builtin.include_role:
     name: sequoia_fabrica
     tasks_from: cloudflare_ddns.yml
+    apply:
+      tags: cloudflare_ddns
   tags: cloudflare_ddns
 
 - name: Sequoia Fabrica Utilities

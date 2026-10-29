@@ -1,0 +1,116 @@
+; {{ ansible_managed }}
+;
+; What the red phones can dial. Adding a gag: an extension here, and (if it needs a brain) an app in switchboard/apps.py.
+;
+; Red phones dial from [phones]; remote callers (trusted cells over Twilio) get [internal] only.
+;
+;   0          the operator: talk to Sequoia Fabrica itself (AI)
+;   100, 101   the other red phone
+;   200        ring every red phone
+;   411        the space reads out its vitals
+;   600        echo test
+;   610        talking clock
+;   620        hold music
+;   1NXXNXXXXXX / NXXNXXXXXX   out to the world via Twilio, showing 415-TRE-EEEZ
+;   911        emergency, via Twilio
+[general]
+static = yes
+writeprotect = yes
+
+[globals]
+SWITCHBOARD = 127.0.0.1:{{ switchboard.audio_port }}
+SWITCHBOARD_API = http://127.0.0.1:{{ switchboard.api_port }}
+ALL_LINES = {{ pbx.lines | map(attribute='extension') | map('regex_replace', '^', 'PJSIP/') | join('&') }}
+DID = {{ pbx.twilio.did }}
+
+;; Hand the call to a switchboard app: Gosub(switchboard,s,1(<app>))
+[switchboard]
+; Ubuntu's Asterisk has no UUID() function; the kernel hands out one per read
+exten => s,1,Set(CALL_ID=${FILTER(0-9a-f-,${SHELL(cat /proc/sys/kernel/random/uuid)})})
+ ; "internal" (Home Assistant and other in-the-shop powers) only for the red phones' own endpoints, never Twilio
+ same => n,Set(INTERNAL=0)
+{% for line in pbx.lines %}
+ same => n,ExecIf($["${CHANNEL(channeltype)}" = "PJSIP" & "${CHANNEL(endpoint)}" = "{{ line.extension }}"]?Set(INTERNAL=1))
+{% endfor %}
+ same => n,Set(OK=${CURL(${SWITCHBOARD_API}/calls/${CALL_ID}?app=${ARG1}&caller=${URIENCODE(${CALLERID(num)})}&internal=${INTERNAL})})
+ same => n,GotoIf($["${OK}" != "ok"]?down)
+ same => n,Answer()
+ same => n,AudioSocket(${CALL_ID},${SWITCHBOARD})
+ same => n,Return()
+ same => n(down),Answer()
+ same => n,Playback(ss-noservice)
+ same => n,Return()
+
+[phones]
+include => internal
+
+{% if pbx_twilio_password is defined %}
+exten => _NXXNXXXXXX,1,Goto(1${EXTEN},1)
+exten => _1NXXNXXXXXX,1,Set(CALLERID(all)="Sequoia Fabrica" <${DID}>)
+ same => n,Dial(PJSIP/+${EXTEN}@twilio,90)
+ same => n,Hangup()
+
+exten => 911,1,Set(CALLERID(all)="Sequoia Fabrica" <${DID}>)
+ same => n,Dial(PJSIP/911@twilio)
+ same => n,Hangup()
+{% endif %}
+
+exten => i,1,Playback(ss-noservice)
+ same => n,Hangup()
+
+;; Everything in the space that isn't an outside line. Remote callers (below) only get this.
+[internal]
+exten => 0,1,Gosub(switchboard,s,1(operator))
+ same => n,Hangup()
+
+{% for line in pbx.lines %}
+exten => {{ line.extension }},1,Dial(PJSIP/{{ line.extension }},40)
+ same => n,Hangup()
+{% endfor %}
+
+exten => 200,1,Dial(${ALL_LINES},40)
+ same => n,Hangup()
+
+exten => 411,1,Gosub(switchboard,s,1(status))
+ same => n,Hangup()
+
+exten => 600,1,Answer()
+ same => n,Playback(demo-echotest)
+ same => n,Echo()
+ same => n,Hangup()
+
+exten => 610,1,Answer()
+ same => n(again),Playback(at-tone-time-exactly)
+ same => n,SayUnixTime(,America/Los_Angeles,IMp)
+ same => n,Wait(2)
+ same => n,Goto(again)
+
+exten => 620,1,Answer()
+ same => n,MusicOnHold(default,600)
+ same => n,Hangup()
+
+exten => i,1,Playback(ss-noservice)
+ same => n,Hangup()
+
+;; 415-TRE-EEEZ from outside: trusted cells get a red phone's dial tone; everyone else rings the red phones,
+;; and if nobody in the shop picks up, the space answers itself.
+[from-twilio]
+exten => _[+0-9a-zA-Z].,1,Set(CALLER=${CALLERID(num)})
+{% for number in (pbx_remote_callers | default('')).split(',') | map('trim') | select %}
+ same => n,GotoIf($["${CALLER}" = "{{ number }}"]?remote,s,1)
+{% endfor %}
+ same => n,Goto(inbound,s,1)
+
+;; Dial tone into the internal extensions. Caller ID can be spoofed, so no outside lines from here.
+;; A European (425 Hz) dial tone, so it's obvious you're on the remote menu and not a red phone.
+[remote]
+exten => s,1,Answer()
+ same => n,Set(CHANNEL(tonezone)=de)
+ same => n,Wait(1)
+ same => n,DISA(no-password,internal)
+ same => n,Hangup()
+
+[inbound]
+exten => s,1,Dial(${ALL_LINES},20)
+ same => n,Gosub(switchboard,s,1(operator))
+ same => n,Hangup()
