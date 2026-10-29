@@ -484,7 +484,7 @@ switchboard:
   api_port: 9093
   claude_model: anthropic/claude-opus-5.5  # OpenRouter's name; claude-opus-5-5 if talking to Anthropic directly
   claude_effort: low  # phone latency: the operator answers in a sentence or two
-  cartesia_voice: 21b81c14-f85b-436d-aff5-43f2e788ecf8  # Cartesia "Riley"; empty means Piper speaks, offline
+  cartesia_voice: db408a93-859c-4a0a-b6a2-220c074cc90d  # Cartesia "Hana" (English); empty means Piper speaks, offline
   # the public feeds the website already uses
   calendars:
     - https://feeds.bookwhen.com/ical/x3ixm04f5wj7/yf23z4/public.ics
