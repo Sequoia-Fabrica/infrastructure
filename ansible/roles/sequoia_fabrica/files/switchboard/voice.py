@@ -115,12 +115,41 @@ def make_stt(session):
                        version=os.environ.get('CARTESIA_STT_VERSION', '2026-03-01'))
 
 
+class FallbackTTS:
+    """Cartesia while it works; Piper when it doesn't (out of credits, outage), so a call never goes silent.
+
+    After a failure Cartesia sits out for a while rather than adding a failed request to every sentence.
+    """
+
+    def __init__(self, primary, fallback, cooldown=600):
+        self.primary, self.fallback, self.cooldown = primary, fallback, cooldown
+        self._down_until = 0.0
+
+    async def stream(self, text):
+        loop = asyncio.get_running_loop()
+        if loop.time() >= self._down_until:
+            started = False
+            try:
+                async for pcm in self.primary.stream(text):
+                    started = True
+                    yield pcm
+                return
+            except aiohttp.ClientError as e:
+                log.warning('Cartesia TTS failed (%s); speaking with Piper for %d s', e, self.cooldown)
+                self._down_until = loop.time() + self.cooldown
+                if started:
+                    return  # half a sentence already went out; don't repeat it in another voice
+        async for pcm in self.fallback.stream(text):
+            yield pcm
+
+
 def make_tts(session):
     key, voice = os.environ.get('CARTESIA_API_KEY'), os.environ.get('CARTESIA_VOICE')
     if key and voice:
-        return CartesiaTTS(session, key, voice,
-                           model=os.environ.get('CARTESIA_MODEL', 'sonic-3.6'),
-                           version=os.environ.get('CARTESIA_VERSION', '2026-08-14'))
+        return FallbackTTS(CartesiaTTS(session, key, voice,
+                                       model=os.environ.get('CARTESIA_MODEL', 'sonic-3.6'),
+                                       version=os.environ.get('CARTESIA_VERSION', '2026-08-14')),
+                           local_tts())
     return local_tts()
 
 

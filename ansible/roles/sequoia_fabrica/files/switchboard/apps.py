@@ -10,6 +10,7 @@ import logging
 import os
 import re
 
+import aiohttp
 import anthropic
 
 from knowledge import TZ
@@ -18,8 +19,9 @@ from voice import make_stt, say
 log = logging.getLogger('apps')
 
 PERSONA = open(os.path.join(os.path.dirname(__file__), 'persona.md')).read()
-MAX_CALL_SECONDS = 15 * 60
-IDLE_SECONDS = 40
+# (red phone, outside caller): outside calls are kept short because every minute spends Cartesia and Claude credit
+MAX_CALL_SECONDS = {True: 15 * 60, False: 3 * 60}
+IDLE_SECONDS = {True: 40, False: 20}
 SENTENCE_END = re.compile(r'(?<=[.!?…])\s+')
 
 TOOLS = [
@@ -107,24 +109,33 @@ class Operator:
         # Red phones read all of Home Assistant; anything over Twilio (strangers, and trusted cells with a remote dial
         # tone alike) only the public sensors. Asterisk decides which from the channel, not the caller ID. Nobody
         # can switch anything: the switchboard only ever reads states.
-        self.ha_scope = None if call.meta.get('internal') else self.ctx.remote_entities
+        self.internal = bool(call.meta.get('internal'))
+        self.ha_scope = None if self.internal else self.ctx.remote_entities
 
     async def run(self):
         if not (self.ctx.claude and self.ctx.cartesia_key):
             await say(self.call, self.ctx.tts, "Sequoia Tel here, but I'm not quite awake yet: nobody has given me my "
                                                 'ears and brain. Try again soon.')
             return
-        async with make_stt(self.ctx.session) as stt:
-            pump = asyncio.create_task(self._pump(stt))
-            try:
-                self._answer(None)  # greet
-                await asyncio.wait_for(self._listen(stt), MAX_CALL_SECONDS)
-            except asyncio.TimeoutError:
-                await say(self.call, self.ctx.tts, "We've been talking a while and I have a shop to run. Bye!")
-            finally:
-                pump.cancel()
-                if self.reply:
-                    self.reply.cancel()
+        try:
+            stt = await make_stt(self.ctx.session).__aenter__()
+        except (aiohttp.ClientError, asyncio.TimeoutError) as e:  # out of Cartesia credit, or Cartesia is down
+            log.error('%s: Cartesia STT unavailable: %s', self.call.id, e)
+            await say(self.call, self.ctx.tts, "Sequoia Tel here. I'm afraid my ears are out of order right now, "
+                                                "so I can't take your call. Please try again later, or email "
+                                                'info at sequoia fabrica dot org. Bye!')
+            return
+        pump = asyncio.create_task(self._pump(stt))
+        try:
+            self._answer(None)  # greet
+            await asyncio.wait_for(self._listen(stt), MAX_CALL_SECONDS[self.internal])
+        except asyncio.TimeoutError:
+            await say(self.call, self.ctx.tts, "We've been talking a while and I have a shop to run. Bye!")
+        finally:
+            pump.cancel()
+            if self.reply:
+                self.reply.cancel()
+            await stt.__aexit__(None, None, None)
 
     async def _pump(self, stt):
         while True:
@@ -133,7 +144,7 @@ class Operator:
     async def _listen(self, stt):
         while not self.call.closed.is_set():
             try:
-                ev = await asyncio.wait_for(stt.events.get(), IDLE_SECONDS)
+                ev = await asyncio.wait_for(stt.events.get(), IDLE_SECONDS[self.internal])
             except asyncio.TimeoutError:
                 if self.call.playing or (self.reply and not self.reply.done()):
                     continue
