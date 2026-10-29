@@ -490,8 +490,22 @@ switchboard:
     - https://feeds.bookwhen.com/ical/x3ixm04f5wj7/yf23z4/public.ics
     - https://calendar.google.com/calendar/ical/sequoiafabrica%40gmail.com/public/basic.ics
   ha_url: http://192.168.88.254:8123
-  # what 411 reads out, as entity_id=Label
-  status_entities: []
+  # what 411 reads out, as entity_id=Label (outside callers only hear the ones in remote_entities)
+  status_entities:
+    - sensor.front_gate_position=The front gate is
+    - sensor.canary_temperature=Inside it's
+    - sensor.canary_humidity=Humidity
+    - sensor.canary_co2=Carbon dioxide
+    - sensor.front_room_pm_2_5=Fine dust, in micrograms per cubic meter,
+  # Home Assistant entities outside callers (anything over Twilio) may read; the red phones read everything.
+  # Nothing that says whether the shop is empty (motion, occupancy, doors). Nobody can switch anything.
+  remote_entities:
+    - sensor.canary_temperature
+    - sensor.canary_humidity
+    - sensor.canary_co2
+    - sensor.front_room_pm_2_5
+    - sensor.front_gate_position
+    - weather.forecast_home
 # (vault) switchboard_openrouter_api_key (or switchboard_anthropic_api_key): Claude, the operator's brain
 switchboard_openrouter_api_key: !vault |
           $ANSIBLE_VAULT;1.1;AES256
@@ -511,4 +525,20 @@ switchboard_cartesia_api_key: !vault |
           34383239393765373361636538353536333935613636613666623265393461366161393332373234
           3964663532363066380a343932356334336163303331613462643764613235663830346333326566
           32323963646562623630653639306634373063663630396536323339303366623166
-# (vault) switchboard_ha_token: read-only Home Assistant for the operator and 411
+# (vault) switchboard_ha_token: long-lived HA token. HA tokens can't be read-only, so the switchboard enforces it: it
+# only ever GETs /api/states.
+switchboard_ha_token: !vault |
+          $ANSIBLE_VAULT;1.1;AES256
+          61313931373062393364343732333936313566313863303766333562636337356233373239623434
+          6233323835393366333134613437303661623464306134610a393463313662316233353334393939
+          30386261613239353736313330393139356632396433393630653033393136373334346262373636
+          3834663062333934390a623430323537343033343739633061623037306433393363636435353135
+          35343463323063343165363761343433353739363531346666613933376434366363373936623532
+          61313761343266643963313637303065646263326564376230653233346363653130623864306661
+          66376532346639653731643665653436326531346535323135346661346530643066656233323730
+          32643964626433323033373239393839616564386132376264633131653737316434646262663436
+          66303633386632336433323534336331333962363565646339323832336134616531323164363739
+          36653538343738613466386263383730373838646636366263356235613436303739626636623266
+          31656161346362373333313232623732333263663064393930616463353739646334373833333832
+          61623532393865376534336335343036323536616431313637396634383863343536623036383130
+          35323933313962386561366530383362363034323365303538343665656261316139

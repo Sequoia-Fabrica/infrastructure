@@ -58,6 +58,7 @@
       CALENDARS: "{{ switchboard.calendars | join(' ') }}"
       HA_URL: "{{ switchboard.ha_url }}"
       STATUS_ENTITIES: "{{ switchboard.status_entities | join(';') }}"
+      REMOTE_ENTITIES: "{{ switchboard.remote_entities | join(',') }}"
       OPENROUTER_API_KEY: "{{ switchboard_openrouter_api_key | default('') }}"
       ANTHROPIC_API_KEY: "{{ switchboard_anthropic_api_key | default('') }}"
       CARTESIA_API_KEY: "{{ switchboard_cartesia_api_key | default('') }}"

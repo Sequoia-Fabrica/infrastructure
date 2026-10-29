@@ -37,10 +37,13 @@ class HomeAssistant:
         name = attrs.get('friendly_name', s['entity_id'])
         return f"{s['entity_id']} ({name}): {s['state']}{' ' + unit if unit else ''}"
 
-    async def search(self, query='', domain=''):
+    async def search(self, query='', domain='', allowed=None):
+        """Entities matching every word of `query`; `allowed` (a set of entity ids) narrows what may be seen at all."""
         words = [w for w in re.split(r'\W+', query.lower()) if w]
         hits = []
         for s in await self.states():
+            if allowed is not None and s['entity_id'] not in allowed:
+                continue
             if domain and not s['entity_id'].startswith(domain + '.'):
                 continue
             if s['state'] in ('unavailable', 'unknown'):

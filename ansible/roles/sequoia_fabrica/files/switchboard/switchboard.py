@@ -64,6 +64,8 @@ class Context:
         self.calendars = Calendars(session, env('CALENDARS', '').split())
         # STATUS_ENTITIES="sensor.foo=Inside temperature;binary_sensor.bar=Front gate"
         self.status_entities = [tuple(pair.split('=', 1)) for pair in env('STATUS_ENTITIES', '').split(';') if '=' in pair]
+        # what outside callers may read; red phones see everything
+        self.remote_entities = {e.strip() for e in env('REMOTE_ENTITIES', '').split(',') if e.strip()}
 
 
 class Switchboard:

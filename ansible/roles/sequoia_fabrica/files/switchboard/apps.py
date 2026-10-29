@@ -25,9 +25,10 @@ SENTENCE_END = re.compile(r'(?<=[.!?…])\s+')
 TOOLS = [
     {
         'name': 'home_assistant',
-        'description': "Read the space's live sensors and devices from Home Assistant: temperatures, CO2, doors, "
-                       'the front roll-up gate, smart plugs on the 3D printers and laser, and so on. Returns matching '
-                       "entities with their current state. Leave both fields empty to list everything.",
+        'description': "Read (never change) the space's live sensors and devices from Home Assistant: temperature, "
+                       'CO2, air quality, the front roll-up gate, and on red-phone calls also doors, motion and the '
+                       "smart plugs on the 3D printers and laser. Returns matching entities with their current state. "
+                       'Leave both fields empty to list everything you can see.',
         'input_schema': {
             'type': 'object',
             'properties': {
@@ -76,11 +77,12 @@ TOOLS = [
 ]
 
 
-async def run_tool(ctx, name, args):
+async def run_tool(ctx, name, args, scope=None):
+    """`scope`: the Home Assistant entities this call may read; None means all of them (a red phone)."""
     if name == 'home_assistant':
         if not ctx.ha:
             return 'Home Assistant is not connected yet.'
-        hits = await ctx.ha.search(args.get('query', ''), args.get('domain', ''))
+        hits = await ctx.ha.search(args.get('query', ''), args.get('domain', ''), allowed=scope)
         return '\n'.join(hits[:60]) or 'No matching entities.'
     if name == 'wiki_search':
         hits = await ctx.wiki.search(args['query'])
@@ -102,9 +104,10 @@ class Operator:
         self.reply = None       # the task currently answering, if any
         self.hang_up = False
         self.said = collections.deque(maxlen=20)  # (when, sentence) recently spoken, to spot our own echo
-        # Home Assistant only for the red phones themselves. Anything over Twilio (strangers, and trusted cells with
-        # a remote dial tone alike) is an outside call; Asterisk decides that from the channel, not the caller ID.
-        self.tools = TOOLS if call.meta.get('internal') else [t for t in TOOLS if t['name'] != 'home_assistant']
+        # Red phones read all of Home Assistant; anything over Twilio (strangers, and trusted cells with a remote dial
+        # tone alike) only the public sensors. Asterisk decides which from the channel, not the caller ID. Nobody
+        # can switch anything: the switchboard only ever reads states.
+        self.ha_scope = None if call.meta.get('internal') else self.ctx.remote_entities
 
     async def run(self):
         if not (self.ctx.claude and self.ctx.cartesia_key):
@@ -190,7 +193,7 @@ class Operator:
                     model=self.ctx.model,
                     max_tokens=8000,
                     system=PERSONA,
-                    tools=self.tools,
+                    tools=TOOLS,
                     messages=self.messages + turn,
                     output_config={'effort': self.ctx.effort},
                     cache_control={'type': 'ephemeral'},
@@ -241,7 +244,7 @@ class Operator:
             result = 'Hanging up after you finish speaking.'
         else:
             try:
-                result = await run_tool(self.ctx, block.name, block.input)
+                result = await run_tool(self.ctx, block.name, block.input, self.ha_scope)
             except Exception as e:  # a flaky sensor or wiki shouldn't drop the call
                 log.warning('%s: tool %s failed: %s', self.call.id, block.name, e)
                 return {'type': 'tool_result', 'tool_use_id': block.id, 'content': f'Failed: {e}', 'is_error': True}
@@ -268,10 +271,10 @@ async def status(call, ctx):
     """411: the space reads out its vitals. No AI involved; a template over Home Assistant entities."""
     now = datetime.datetime.now(TZ)
     lines = [f"Sequoia Tel here with the shop report. It's {now:%-I:%M %p} on {now:%A}."]
-    if not call.meta.get('internal'):
-        lines.append("My sensors are only for the red phones in the shop; come by and pick one up.")
-    elif ctx.ha:
+    if ctx.ha:
         for entity_id, label in ctx.status_entities:
+            if not call.meta.get('internal') and entity_id not in ctx.remote_entities:
+                continue
             s = await ctx.ha.get(entity_id)
             if s and s['state'] not in ('unavailable', 'unknown'):
                 unit = s.get('attributes', {}).get('unit_of_measurement', '')
