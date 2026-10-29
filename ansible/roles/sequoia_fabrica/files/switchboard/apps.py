@@ -94,7 +94,7 @@ async def run_tool(ctx, name, args):
 
 
 class Operator:
-    """The voice of the space: Cartesia ears, Claude brain, Cartesia (or Piper) mouth. Callers can talk over it."""
+    """Sequoia Tel, the voice of the space: Cartesia ears, Claude brain, Cartesia (or Piper) mouth. Callers can talk over it."""
 
     def __init__(self, call, ctx):
         self.call, self.ctx = call, ctx
@@ -108,7 +108,7 @@ class Operator:
 
     async def run(self):
         if not (self.ctx.claude and self.ctx.cartesia_key):
-            await say(self.call, self.ctx.tts, "Sequoia Fabrica. I'm not quite awake yet: nobody has given me my "
+            await say(self.call, self.ctx.tts, "Sequoia Tel here, but I'm not quite awake yet: nobody has given me my "
                                                 'ears and brain. Try again soon.')
             return
         async with make_stt(self.ctx.session) as stt:
@@ -267,7 +267,7 @@ async def operator(call, ctx):
 async def status(call, ctx):
     """411: the space reads out its vitals. No AI involved; a template over Home Assistant entities."""
     now = datetime.datetime.now(TZ)
-    lines = [f"Sequoia Fabrica status. It's {now:%-I:%M %p} on {now:%A}."]
+    lines = [f"Sequoia Tel here with the shop report. It's {now:%-I:%M %p} on {now:%A}."]
     if not call.meta.get('internal'):
         lines.append("My sensors are only for the red phones in the shop; come by and pick one up.")
     elif ctx.ha:
@@ -279,7 +279,7 @@ async def status(call, ctx):
                 lines.append(f'{label}: {s["state"].replace("_", " ")} {unit}.'.replace(' .', '.'))
     else:
         lines.append('My sensors are not connected yet.')
-    lines.append('That is all. Keep making things.')
+    lines.append("That's the report. Keep making things.")
     await say(call, ctx.tts, ' '.join(lines))
 
 
