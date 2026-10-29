@@ -92,8 +92,8 @@ exten => 620,1,Answer()
 exten => i,1,Playback(ss-noservice)
  same => n,Hangup()
 
-;; 415-TRE-EEEZ from outside: trusted cells get a red phone's dial tone; everyone else rings the red phones,
-;; and if nobody in the shop picks up, the space answers itself.
+;; 415-TRE-EEEZ from outside: trusted cells get a red phone's dial tone; everyone else goes straight to the
+;; operator (Sequoia Tel). The red phones don't ring for outside calls.
 [from-twilio]
 exten => _[+0-9a-zA-Z].,1,Set(CALLER=${CALLERID(num)})
 {% for number in (pbx_remote_callers | default('')).split(',') | map('trim') | select %}
@@ -111,6 +111,5 @@ exten => s,1,Answer()
  same => n,Hangup()
 
 [inbound]
-exten => s,1,Dial(${ALL_LINES},20)
- same => n,Gosub(switchboard,s,1(operator))
+exten => s,1,Gosub(switchboard,s,1(operator))
  same => n,Hangup()
