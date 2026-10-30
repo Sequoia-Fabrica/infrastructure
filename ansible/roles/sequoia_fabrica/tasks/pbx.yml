@@ -26,6 +26,22 @@
     owner: "{{ pbx.container_uid }}"
     group: root
     mode: u=rx,go=
+- name: Ensure /opt/pbx/astdb, Asterisk's database, so the red phones' registrations survive a recreated container
+  become: true
+  ansible.builtin.file:
+    path: /opt/pbx/astdb
+    state: directory
+    owner: "{{ pbx.container_uid }}"
+    group: root
+    mode: u=rwx,go=
+- name: Ensure /opt/pbx/moh (620's hold music, placed by hand; see files/pbx/etc/musiconhold.conf)
+  become: true
+  ansible.builtin.file:
+    path: /opt/pbx/moh
+    state: directory
+    owner: root
+    group: root
+    mode: u=rwx,go=rx
 - name: Place pbx build context
   become: true
   ansible.builtin.copy:
@@ -88,6 +104,13 @@
       - type: bind
         source: /opt/pbx/asterisk
         target: /etc/asterisk
+        read_only: true
+      - type: bind
+        source: /opt/pbx/astdb
+        target: /var/lib/asterisk/astdb
+      - type: bind
+        source: /opt/pbx/moh
+        target: /var/lib/asterisk/moh-hold
         read_only: true
 - name: Reload Asterisk config  # a reload keeps calls up; only an image change recreates the container
   become: true

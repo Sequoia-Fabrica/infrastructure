@@ -106,9 +106,10 @@ class Operator:
         self.reply = None       # the task currently answering, if any
         self.hang_up = False
         self.said = collections.deque(maxlen=20)  # (when, sentence) recently spoken, to spot our own echo
-        # Red phones read all of Home Assistant; anything over Twilio (strangers, and trusted cells with a remote dial
-        # tone alike) only the public sensors. Asterisk decides which from the channel, not the caller ID. Nobody
-        # can switch anything: the switchboard only ever reads states.
+        # Red phones, and owners' cells that passed the PIN, read all of Home Assistant; anything else over Twilio
+        # (strangers, and trusted cells with a remote dial tone alike) only the public sensors. Asterisk decides which
+        # from the channel and the PIN, never the caller ID alone. Nobody can switch anything: the switchboard only
+        # ever reads states.
         self.internal = bool(call.meta.get('internal'))
         self.ha_scope = None if self.internal else self.ctx.remote_entities
 
