@@ -44,8 +44,10 @@ TOOLS = [
     },
     {
         'name': 'wiki_search',
-        'description': "Search the Sequoia Fabrica wiki (policies, equipment, membership, groves, how-tos, history). "
-                       'Returns page titles and snippets; read a page with wiki_page for detail.',
+        'description': "Search the Sequoia Fabrica wiki (policies, equipment, membership, groves, how-tos, history, "
+                       'the network and its devices). Matches whole words only, so try a word as written on the page '
+                       "('telephones', 'network'). Returns titles and snippets, or every page title if nothing "
+                       'matched; read a page with wiki_page for detail.',
         'input_schema': {
             'type': 'object',
             'properties': {'query': {'type': 'string'}},
@@ -88,7 +90,10 @@ async def run_tool(ctx, name, args, scope=None):
         return '\n'.join(hits[:60]) or 'No matching entities.'
     if name == 'wiki_search':
         hits = await ctx.wiki.search(args['query'])
-        return json.dumps(hits) if hits else 'Nothing on the wiki matches that.'
+        if hits:
+            return json.dumps(hits)
+        # the wiki's search only matches whole words; hand over the (short) list of pages so a likely one can be read
+        return 'Nothing matched those words. Every page on the wiki: ' + json.dumps(await ctx.wiki.titles())
     if name == 'wiki_page':
         return await ctx.wiki.page(args['title']) or 'No page with that title.'
     if name == 'upcoming_events':

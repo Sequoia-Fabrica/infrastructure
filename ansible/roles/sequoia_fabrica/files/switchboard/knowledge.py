@@ -75,7 +75,11 @@ class Wiki:
         return [{'title': r['title'], 'snippet': html.unescape(re.sub(r'<[^>]+>', '', r['snippet']))}
                 for r in data['query']['search']]
 
-    async def page(self, title, max_chars=6000):
+    async def titles(self):
+        data = await self._query(action='query', list='allpages', aplimit='500')
+        return [p['title'] for p in data['query']['allpages']]
+
+    async def page(self, title, max_chars=20000):
         data = await self._query(action='query', prop='revisions', rvprop='content', rvslots='main',
                                  titles=title, redirects='1')
         page = data['query']['pages'][0]
