@@ -21,6 +21,8 @@ log = logging.getLogger('apps')
 PERSONA = open(os.path.join(os.path.dirname(__file__), 'persona.md')).read()
 # (red phone, outside caller): outside calls are kept short because every minute spends Cartesia and Claude credit
 MAX_CALL_SECONDS = {True: 15 * 60, False: 3 * 60}
+WRAP_UP_SECONDS = 30   # this long before the limit, Sequoia Tel starts saying goodbye in its own words
+OVERTIME_SECONDS = 60  # and this long after it, the line is cut regardless
 IDLE_SECONDS = {True: 40, False: 20}
 SENTENCE_END = re.compile(r'(?<=[.!?…])\s+')
 
@@ -110,6 +112,7 @@ class Operator:
         self.messages = []
         self.reply = None       # the task currently answering, if any
         self.hang_up = False
+        self.wrapping_up = False  # time's nearly up: every answer from here on ends the call
         self.said = collections.deque(maxlen=20)  # (when, sentence) recently spoken, to spot our own echo
         # Red phones, and owners' cells that passed the PIN, read all of Home Assistant; anything else over Twilio
         # (strangers, and trusted cells with a remote dial tone alike) only the public sensors. Asterisk decides which
@@ -132,16 +135,32 @@ class Operator:
                                                 'info at sequoia fabrica dot org. Bye!')
             return
         pump = asyncio.create_task(self._pump(stt))
+        limit = MAX_CALL_SECONDS[self.internal]
+        wrap_up = asyncio.create_task(self._wrap_up(limit - WRAP_UP_SECONDS))
         try:
             self._answer(None)  # greet
-            await asyncio.wait_for(self._listen(stt), MAX_CALL_SECONDS[self.internal])
-        except asyncio.TimeoutError:
+            await asyncio.wait_for(self._listen(stt), limit + OVERTIME_SECONDS)
+        except asyncio.TimeoutError:  # they kept talking through the goodbye
             await say(self.call, self.ctx.tts, "We've been talking a while and I have a shop to run. Bye!")
         finally:
+            wrap_up.cancel()
             pump.cancel()
             if self.reply:
                 self.reply.cancel()
             await stt.__aexit__(None, None, None)
+
+    async def _wrap_up(self, after):
+        """Near the time limit, wait for a pause in the conversation and let Sequoia Tel say goodbye gracefully."""
+        await asyncio.sleep(after)
+        self.wrapping_up = True
+        while self.call.playing or (self.reply and not self.reply.done()):
+            await asyncio.sleep(0.5)
+        log.info('%s: wrapping up', self.call.id)
+        now = datetime.datetime.now(TZ)
+        self.reply = asyncio.create_task(self._respond(
+            f'[{now:%-I:%M %p}] [The time for this call is nearly up. Without being abrupt, wrap up in your own words: '
+            'let them know you need to get back to the shop, invite them to call again or come visit, say goodbye, '
+            'and use end_call.]'))
 
     async def _pump(self, stt):
         while True:
@@ -195,6 +214,8 @@ class Operator:
                     'said anything yet.]')
         else:
             text = f'[{now:%-I:%M %p}] {text}'
+            if self.wrapping_up:
+                text += ' [Time is up on this call: answer briefly, then say a warm goodbye and use end_call.]'
         self.reply = asyncio.create_task(self._respond(text))
 
     async def _respond(self, text):
