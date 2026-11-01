@@ -1,0 +1,188 @@
+; {{ ansible_managed }}
+;
+; What the red phones can dial. Adding a gag: an extension here, and (if it needs a brain) an app in switchboard/apps.py.
+;
+; Red phones dial from [phones]; remote callers (trusted cells over Twilio) get [internal] only.
+; Owners' cells get the same after a PIN, plus an operator that reads all of Home Assistant.
+;
+;   0          the operator: talk to Sequoia Fabrica itself (AI)
+;   100, 101   the other red phone
+;   200        ring every red phone
+;   411        the space reads out its vitals
+;   600        echo test
+;   610        talking clock (# for a dial tone again)
+;   620        hold music (# for a dial tone again)
+;   1NXXNXXXXXX / NXXNXXXXXX   out to the world via Twilio, showing 415-TRE-EEEZ
+;   911        emergency, via Twilio
+[general]
+static = yes
+writeprotect = yes
+
+[globals]
+SWITCHBOARD = 127.0.0.1:{{ switchboard.audio_port }}
+SWITCHBOARD_API = http://127.0.0.1:{{ switchboard.api_port }}
+ALL_LINES = {{ pbx.lines | map(attribute='extension') | map('regex_replace', '^', 'PJSIP/') | join('&') }}
+DID = {{ pbx.twilio.did }}
+
+;; Is this call coming from one of the red phones' own (password-registered) endpoints? GOSUB_RETVAL is 1 or 0.
+;; Decided by the channel, never the caller ID: Twilio calls arrive on the twilio endpoint whatever number they show.
+[red-phone]
+exten => s,1,Set(LOCAL(red)=0)
+{% for line in pbx.lines %}
+ same => n,ExecIf($["${CHANNEL(channeltype)}" = "PJSIP" & "${CHANNEL(endpoint)}" = "{{ line.extension }}"]?Set(LOCAL(red)=1))
+{% endfor %}
+ same => n,Return(${red})
+
+;; Outside lines are for the red phones only, even if some other context ends up including [phones]
+[outside-only-red-phones]
+exten => s,1,Gosub(red-phone,s,1)
+ same => n,GotoIf($[${GOSUB_RETVAL}]?ok)
+ same => n,Log(WARNING,refused outside line ${ARG1} for ${CHANNEL(name)} showing ${CALLERID(num)})
+ same => n,Hangup()
+ same => n(ok),Return()
+
+;; Hand the call to a switchboard app: Gosub(switchboard,s,1(<app>))
+[switchboard]
+; Ubuntu's Asterisk has no UUID() function; the kernel hands out one per read
+exten => s,1,Set(CALL_ID=${FILTER(0-9a-f-,${SHELL(cat /proc/sys/kernel/random/uuid)})})
+ ; "internal" (all of Home Assistant) for the red phones' own endpoints, and owners who got their PIN right in [owner]
+ same => n,Gosub(red-phone,s,1)
+ same => n,Set(INTERNAL=${IF($[${GOSUB_RETVAL} = 1 | "${OWNER_VERIFIED}" = "1"]?1:0)})
+ same => n,Set(OK=${CURL(${SWITCHBOARD_API}/calls/${CALL_ID}?app=${ARG1}&caller=${URIENCODE(${CALLERID(num)})}&internal=${INTERNAL})})
+ same => n,GotoIf($["${OK}" != "ok"]?down)
+ same => n,Answer()
+ same => n,AudioSocket(${CALL_ID},${SWITCHBOARD})
+ same => n,Return()
+ same => n(down),Answer()
+ same => n,Playback(ss-noservice)
+ same => n,Return()
+
+[phones]
+include => internal
+
+{% if pbx_twilio_password is defined %}
+exten => _NXXNXXXXXX,1,Goto(1${EXTEN},1)
+exten => _1NXXNXXXXXX,1,Gosub(outside-only-red-phones,s,1(${EXTEN}))
+ same => n,Set(CALLERID(all)="Sequoia Fabrica" <${DID}>)
+ same => n,Dial(PJSIP/+${EXTEN}@twilio,90)
+ same => n,Hangup()
+
+exten => 911,1,Gosub(outside-only-red-phones,s,1(911))
+ same => n,Set(CALLERID(all)="Sequoia Fabrica" <${DID}>)
+ same => n,Dial(PJSIP/911@twilio)
+ same => n,Hangup()
+{% endif %}
+
+exten => i,1,Playback(ss-noservice)
+ same => n,Hangup()
+
+;; Everything in the space that isn't an outside line. Remote callers (below) only get this.
+[internal]
+exten => 0,1,Gosub(switchboard,s,1(operator))
+ same => n,Hangup()
+
+{% for line in pbx.lines %}
+exten => {{ line.extension }},1,Dial(PJSIP/{{ line.extension }},40)
+ same => n,Hangup()
+{% endfor %}
+
+exten => 200,1,Dial(${ALL_LINES},40)
+ same => n,Hangup()
+
+exten => 411,1,Gosub(switchboard,s,1(status))
+ same => n,Hangup()
+
+exten => 600,1,Answer()
+ same => n,Playback(demo-echotest)
+ same => n,Echo()
+ same => n,Hangup()
+
+exten => 610,1,Goto(clock,s,1)
+
+exten => 620,1,Goto(hold,s,1)
+
+exten => i,1,Playback(ss-noservice)
+ same => n,Hangup()
+
+;; The talking clock: announce the next 10-second mark, then beep right on it. # gives a dial tone again.
+[clock]
+exten => s,1,Answer()
+ same => n(again),Set(T=$[${EPOCH} - ${EPOCH} % 10 + 20])
+ same => n,Background(at-tone-time-exactly)
+ same => n,SayUnixTime(${T},America/Los_Angeles,IMp)
+ same => n,Set(SEC=$[${T} % 60])
+ same => n,GotoIf($[${SEC} = 0]?wait)
+ same => n,Background(vm-and)
+ same => n,SayNumber(${SEC})
+ same => n,Background(seconds)
+ same => n(wait),WaitExten($[${T} - ${STRFTIME(,,%s.%3q)}])
+
+exten => t,1,Playback(beep)
+ same => n,Goto(s,again)
+
+exten => i,1,Goto(s,again)
+
+exten => #,1,Goto(dial-tone,s,1)
+
+;; Hold music, ten minutes of it; # gives a dial tone again
+[hold]
+exten => s,1,Answer()
+ same => n,WaitExten(600,m(hold))
+ same => n,Hangup()
+
+exten => #,1,Goto(dial-tone,s,1)
+
+exten => i,1,Goto(s,1)
+
+;; Back to the dial tone the caller came from: the red phone's own, or the remote one (keeping a verified owner's PIN)
+[dial-tone]
+exten => s,1,Gosub(red-phone,s,1)
+ same => n,GotoIf($[${GOSUB_RETVAL}]?red)
+ same => n,Goto(remote,s,1)
+ same => n(red),DISA(no-password,phones)
+ same => n,Hangup()
+
+;; 415-TRE-EEEZ from outside: owners are asked for a PIN, trusted cells get a red phone's dial tone; everyone else
+;; goes straight to the operator (Sequoia Tel). The red phones don't ring for outside calls.
+[from-twilio]
+exten => _[+0-9a-zA-Z].,1,Set(CALLER=${CALLERID(num)})
+{% if pbx_owner_pin is defined %}
+{% for number in (pbx_owner_callers | default('')).split(',') | map('trim') | select %}
+ same => n,GotoIf($["${CALLER}" = "{{ number }}"]?owner,s,1)
+{% endfor %}
+{% endif %}
+{% for number in (pbx_remote_callers | default('')).split(',') | map('trim') | select %}
+ same => n,GotoIf($["${CALLER}" = "{{ number }}"]?remote,s,1)
+{% endfor %}
+ same => n,Goto(inbound,s,1)
+
+{% if pbx_owner_pin is defined %}
+;; An owner's caller ID, which can be spoofed, so it must be backed by the PIN. Right: the remote dial tone, and the
+;; operator reads all of Home Assistant. Wrong three times: just an outside caller. Never outside lines or 911.
+[owner]
+exten => s,1,Answer()
+ same => n,Set(TRIES=0)
+ same => n(ask),Read(PIN,agent-pass,10,,1,10)
+ same => n,GotoIf($["${PIN}" = "{{ pbx_owner_pin }}"]?ok)
+ same => n,Set(TRIES=$[${TRIES} + 1])
+ same => n,Log(WARNING,wrong owner PIN from ${CALLER} (try ${TRIES}))
+ same => n,GotoIf($[${TRIES} >= 3]?inbound,s,1)
+ same => n,Playback(auth-incorrect)
+ same => n,Goto(ask)
+ same => n(ok),Set(OWNER_VERIFIED=1)
+ same => n,Playback(auth-thankyou)
+ same => n,Goto(remote,s,1)
+
+{% endif %}
+;; Dial tone into the internal extensions. Caller ID can be spoofed, so no outside lines from here.
+;; A European (425 Hz) dial tone, so it's obvious you're on the remote menu and not a red phone.
+[remote]
+exten => s,1,Answer()
+ same => n,Set(CHANNEL(tonezone)=de)
+ same => n,Wait(1)
+ same => n,DISA(no-password,internal)
+ same => n,Hangup()
+
+[inbound]
+exten => s,1,Gosub(switchboard,s,1(operator))
+ same => n,Hangup()

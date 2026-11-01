@@ -1,0 +1,65 @@
+---
+## switchboard: AI operator and gags behind the red phones. Asterisk (tasks/pbx.yml) hands calls over via AudioSocket.
+- name: Ensure /opt/switchboard
+  become: true
+  ansible.builtin.file:
+    path: /opt/switchboard
+    state: directory
+    owner: root
+    group: root
+    mode: u=rwx,go=rx
+- name: Place switchboard build context
+  become: true
+  ansible.builtin.copy:
+    src: "switchboard/{{ item }}"
+    dest: "/opt/switchboard/{{ item }}"
+    owner: root
+    group: root
+    mode: u=rw,go=r
+  loop:
+    - Dockerfile
+    - apps.py
+    - audiosocket.py
+    - knowledge.py
+    - persona.md
+    - switchboard.py
+    - voice.py
+  register: switchboard_files
+- name: Build switchboard Docker image
+  become: true
+  when: switchboard_files.changed
+  community.docker.docker_image:
+    name: switchboard
+    tag: latest
+    source: build
+    force_source: true
+    force_tag: true
+    build:
+      path: /opt/switchboard
+  register: switchboard_image
+- name: Run switchboard
+  become: true
+  community.docker.docker_container:
+    name: switchboard
+    image: switchboard:latest
+    state: started
+    recreate: "{{ switchboard_image.changed | default(false) }}"
+    restart_policy: unless-stopped
+    network_mode: host  # listens on 127.0.0.1 only, next to Asterisk
+    # unset secrets stay out of the environment entirely; each one switches on part of the operator
+    env: "{{ switchboard_env | dict2items | rejectattr('value', 'equalto', '') | items2dict }}"
+  vars:
+    switchboard_env:
+      AUDIO_PORT: "{{ switchboard.audio_port | string }}"
+      API_PORT: "{{ switchboard.api_port | string }}"
+      CLAUDE_MODEL: "{{ switchboard.claude_model }}"
+      CLAUDE_EFFORT: "{{ switchboard.claude_effort }}"
+      CARTESIA_VOICE: "{{ switchboard.cartesia_voice }}"
+      CALENDARS: "{{ switchboard.calendars | join(' ') }}"
+      HA_URL: "{{ switchboard.ha_url }}"
+      STATUS_ENTITIES: "{{ switchboard.status_entities | join(';') }}"
+      REMOTE_ENTITIES: "{{ switchboard.remote_entities | join(',') }}"
+      OPENROUTER_API_KEY: "{{ switchboard_openrouter_api_key | default('') }}"
+      ANTHROPIC_API_KEY: "{{ switchboard_anthropic_api_key | default('') }}"
+      CARTESIA_API_KEY: "{{ switchboard_cartesia_api_key | default('') }}"
+      HA_TOKEN: "{{ switchboard_ha_token | default('') }}"
