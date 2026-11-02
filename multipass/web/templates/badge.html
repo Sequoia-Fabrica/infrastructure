@@ -1,0 +1,110 @@
+{{define "content"}}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-md mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden md:max-w-3xl">
+        <div class="p-8 md:flex md:space-x-8">
+            <div class="md:w-2/5 flex flex-col items-center">
+                {{if .active}}
+                <img src="/badges/{{.active.Serial}}/front.svg" alt="Badge {{.active.Serial}} for {{.member.FullName}}"
+                     class="w-full max-w-xs border border-gray-200 rounded-lg bg-white">
+                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Badge {{.active.Serial}}, front</p>
+                {{else}}
+                <img src="/badge/preview.svg?member={{.member.MemberID}}" alt="Preview of a badge for {{.member.FullName}}"
+                     class="w-full max-w-xs border border-gray-200 rounded-lg bg-white opacity-60">
+                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Preview: the real codes are made when you make the badge</p>
+                {{end}}
+            </div>
+
+            <div class="md:w-3/5 mt-6 md:mt-0">
+                <div class="uppercase tracking-wide text-sm text-green-600 font-semibold">Wooden Badge</div>
+                <h1 class="mt-2 text-xl font-bold text-gray-900 dark:text-white">{{.member.FullName}}</h1>
+                <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">Member {{.member.MemberID}}</p>
+
+                {{if .error}}
+                <div class="mt-4 bg-red-50 text-red-700 text-sm rounded-lg p-3">{{.error}}</div>
+                {{end}}
+
+                {{if .active}}
+                {{if eq (print .active.Serial) .just_made}}
+                <div class="mt-4 bg-green-50 text-green-800 text-sm rounded-lg p-3">
+                    Badge {{.active.Serial}} is made and already works. Download its files and take them to the laser.
+                </div>
+                {{end}}
+                <div class="mt-6 space-y-3">
+                    <a href="/badges/{{.active.Serial}}/front.svg?download=1"
+                       class="block text-center bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700">
+                        Download front
+                    </a>
+                    <div class="flex space-x-3">
+                        <a href="/badges/{{.active.Serial}}/front.svg?download=1&slot=0"
+                           class="flex-1 text-center bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-200">
+                            Front, no lanyard slot
+                        </a>
+                        <a href="/badges/{{.active.Serial}}/back.svg?download=1"
+                           class="flex-1 text-center bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-semibold hover:bg-gray-200">
+                            Back (optional)
+                        </a>
+                    </div>
+                </div>
+
+                <div class="mt-6 border-t border-gray-200 dark:border-gray-700 pt-4 space-y-3">
+                    <form method="post" action="/badges/{{.active.Serial}}/failed"
+                          onsubmit="return confirm('Mark badge {{.active.Serial}} as a failed laser job? Its code stops working, and you can make a new badge.')">
+                        <button type="submit" class="w-full text-left text-sm text-gray-700 dark:text-gray-300 hover:underline">
+                            The laser job failed &rarr; void this badge and start over
+                        </button>
+                    </form>
+                    <form method="post" action="/badges/{{.active.Serial}}/lost"
+                          onsubmit="return confirm('Report badge {{.active.Serial}} lost? Its code stops working for good, even if you find it again.')">
+                        <button type="submit" class="w-full text-left text-sm text-red-600 hover:underline">
+                            I lost this badge &rarr; void it so nobody else can use it
+                        </button>
+                    </form>
+                </div>
+                {{else}}
+                <form method="post" action="/badge" class="mt-6">
+                    <input type="hidden" name="member" value="{{.member.MemberID}}">
+                    <button type="submit" class="w-full bg-green-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-green-700">
+                        Make the badge
+                    </button>
+                    <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">
+                        This issues a badge with its own code, which works as soon as it's made.
+                        If the laser job goes wrong, come back and say so.
+                    </p>
+                </form>
+                {{end}}
+
+                <div class="mt-6 text-sm text-gray-600 dark:text-gray-300 space-y-2">
+                    <p>A portrait 54&times;85.6&nbsp;mm card, laid out for the xTool P2. Each color is its own layer in xTool Creative Space:</p>
+                    <ul class="list-disc ml-5">
+                        <li><span class="font-mono" style="color:#0000ff">blue</span> guilloche: score, lowest power that marks</li>
+                        <li><span class="font-mono" style="color:#00a000">green</span> lettering: score</li>
+                        <li><span class="font-mono">black</span> QR code and PDF417: fill engrave</li>
+                        <li><span class="font-mono" style="color:#ff0000">red</span> outline and slot: cut, last</li>
+                        <li><span class="font-mono" style="color:#808080">grey</span> (back only): outline for lining up; don't output</li>
+                    </ul>
+                    <p>For the back, flip the cut card over in the hole it left in the stock, left to right, and engrave the back file in the same place.</p>
+                    <p>The back's barcode is the kind ID scanners read, signed by {{.makerspace_name}} rather than a state. It shows your name and member number, and no date of birth.</p>
+                </div>
+
+                {{if .badges}}
+                <div class="mt-6">
+                    <h2 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-2">Badges</h2>
+                    <table class="w-full text-sm text-gray-700 dark:text-gray-300">
+                        {{range .badges}}
+                        <tr class="border-t border-gray-100 dark:border-gray-700">
+                            <td class="py-1 font-mono">#{{.Serial}}</td>
+                            <td class="py-1">{{.IssuedAt.Format "Jan 2, 2006"}}</td>
+                            <td class="py-1">
+                                {{if .Active}}<span class="text-green-600 font-semibold">active</span>
+                                {{else}}{{.Status}}{{if .VoidedAt}} {{.VoidedAt.Format "Jan 2, 2006"}}{{end}}{{end}}
+                            </td>
+                        </tr>
+                        {{end}}
+                    </table>
+                </div>
+                {{end}}
+            </div>
+        </div>
+    </div>
+</div>
+{{end}}

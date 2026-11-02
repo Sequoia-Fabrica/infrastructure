@@ -2,6 +2,7 @@ package main
 
 import (
 	"html/template"
+	"multipass/internal/badge"
 	"multipass/internal/config"
 	"multipass/internal/handlers"
 	"multipass/internal/middleware"
@@ -80,6 +81,13 @@ func main() {
 		gin.SetMode(gin.ReleaseMode)
 	}
 
+	// Open the record of issued wooden badges
+	badgeStore, err := badge.OpenStore(cfg.BadgeDB)
+	if err != nil {
+		logger.Fatal("Failed to open badge store: %v", err)
+	}
+	badgeHandlers := &handlers.BadgeHandlers{Store: badgeStore}
+
 	// Create Gin router
 	r := gin.Default()
 
@@ -137,6 +145,13 @@ func main() {
 		{
 			publicToken.GET("/card", handlers.PublicCardHandler)
 		}
+
+		// Wooden badges: the QR code is engraved in uppercase, so take both
+		public.GET("/B/:serial/:sig", middleware.BadgeAuthMiddleware(badgeStore), handlers.PublicCardHandler)
+		public.GET("/b/:serial/:sig", middleware.BadgeAuthMiddleware(badgeStore), handlers.PublicCardHandler)
+		// The DID that signs badge barcodes, and its list of voided badges
+		public.GET("/.well-known/did.json", handlers.DIDDocument)
+		public.GET("/badge-status/revocation/:list", badgeHandlers.StatusList)
 	}
 
 	// Protected routes (require authentication)
@@ -158,6 +173,18 @@ func main() {
 		// Token generation route
 		protected.GET("/generate-token", middleware.GenerateTokenHandler)
 		protected.GET("/share", handlers.GenerateTokenLinkHandler)
+
+		// Wooden badges: make one, download its laser files, report it
+		// failed or lost
+		badges := protected.Group("/")
+		badges.Use(middleware.SameOriginMiddleware())
+		badges.GET("/badge", badgeHandlers.Page)
+		badges.POST("/badge", badgeHandlers.Issue)
+		badges.GET("/badge/preview.svg", badgeHandlers.Preview)
+		badges.GET("/badges/:serial/front.svg", badgeHandlers.Front)
+		badges.GET("/badges/:serial/back.svg", badgeHandlers.Back)
+		badges.POST("/badges/:serial/failed", badgeHandlers.Void(badge.Failed))
+		badges.POST("/badges/:serial/lost", badgeHandlers.Void(badge.Lost))
 	}
 
 	// API routes

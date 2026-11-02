@@ -38,6 +38,11 @@ type Config struct {
 	CSRFEnabled bool
 	RateLimit   int
 	TokenSecret string // Secret key for HMAC token generation and verification
+
+	// Engraved badges
+	BadgeSecret string // Signs the never-expiring codes on wooden badges; kept apart from TokenSecret so rotating that doesn't void every badge
+	PublicURL   string // Scheme and host engraved into badge QR codes
+	BadgeDB     string // Path of the record of issued badges
 }
 
 // Load loads configuration from environment variables
@@ -59,6 +64,10 @@ func Load() *Config {
 		CSRFEnabled: getBoolEnv("CSRF_ENABLED", true),
 		RateLimit:   getIntEnv("RATE_LIMIT", 100),
 		TokenSecret: getEnv("TOKEN_SECRET", ""),
+
+		BadgeSecret: getEnv("BADGE_SECRET", ""),
+		PublicURL:   getEnv("PUBLIC_URL", "https://multipass.sequoia.garden"),
+		BadgeDB:     getEnv("BADGE_DB", "./data/badges.json"),
 	}
 
 	// Check if Authentik API token is specified

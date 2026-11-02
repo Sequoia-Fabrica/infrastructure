@@ -16,6 +16,15 @@
     owner: root
     group: root
     mode: ug=rwx,o=rx
+- name: Create multipass badge store directory
+  become: true
+  ansible.builtin.file:
+    path: "{{ multipass.data_location }}/data"
+    state: directory
+    # The container runs as uid 1001 and keeps the record of badges here
+    owner: "1001"
+    group: "1001"
+    mode: u=rwx,go=
 - name: Template multipass group mapping config
   become: true
   ansible.builtin.template:
@@ -44,8 +53,14 @@
       TRUSTED_PROXY_HEADERS: "{{ multipass.trusted_proxy_headers | string | lower }}"
       GROUP_MAPPING_CONFIG: "/config/group_mapping.yaml"
       TOKEN_SECRET: "{{ multipass.multipass_token_secret }}"
+      BADGE_SECRET: "{{ multipass.multipass_badge_secret }}"
+      BADGE_DB: "/data/badges.json"
+      PUBLIC_URL: "https://multipass.sequoia.garden"
     mounts:
       - type: bind
         source: "{{ multipass.data_location }}/config"
         target: /config
         read_only: true
+      - type: bind
+        source: "{{ multipass.data_location }}/data"
+        target: /data

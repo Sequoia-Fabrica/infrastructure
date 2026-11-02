@@ -33,3 +33,14 @@ func GenerateQRCodeBase64(data string, size int) (string, error) {
 	// Return the base64 encoded image with the data URI scheme
 	return "data:image/png;base64," + encoded, nil
 }
+
+// GenerateQRMatrix returns the QR code for data as rows of modules, true for
+// dark, without a quiet zone, for drawing as vectors rather than pixels
+func GenerateQRMatrix(data string, level qrcode.RecoveryLevel) ([][]bool, error) {
+	qr, err := qrcode.New(data, level)
+	if err != nil {
+		return nil, fmt.Errorf("failed to generate QR code: %w", err)
+	}
+	qr.DisableBorder = true
+	return qr.Bitmap(), nil
+}

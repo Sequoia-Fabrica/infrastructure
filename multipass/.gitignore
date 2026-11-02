@@ -82,3 +82,6 @@ package-lock.json
 web/static/css/tailwind.css
 
 bin/
+
+# Local badge store
+data/

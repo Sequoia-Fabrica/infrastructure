@@ -162,6 +162,43 @@ To enable token-based authentication:
 - The token signature is verified using HMAC to prevent tampering
 - The server-side secret key should be kept secure and rotated periodically
 
+## Wooden Badges
+
+Members make their own wooden ID badges at `/badge`: one click issues a badge and gives them laser files for the xTool P2. Staff can work on anyone's with `/badge?member=<id>`.
+
+- **The front**: a portrait CR80 (54 × 85.6 mm) SVG in millimetres, with a guilloche border, a rosette whose pattern is seeded by the badge's code, microtext (a straight line and a ring around the rosette carrying the member's name, number, badge serial and code), and a QR code.
+- **The back** (optional): a return address and a signed PDF417 that ID scanners read. Engrave it after cutting the front by flipping the card left to right in the hole it left; the grey outline is there to line it up.
+- **Layers by color**, for xTool Creative Space: blue guilloche and green lettering are scored, the black QR and PDF417 are fill-engraved, the red outline and lanyard slot are cut, and the grey outline is not output. Lettering uses a built-in single-stroke font, which stays legible on wood far smaller than filled outlines.
+
+### Badge lifecycle
+
+Every badge has a serial, recorded in the badge store (`BADGE_DB`, a JSON file). Making a badge records it as **lasered**, and its QR code works at once. A member holds one active badge at a time. From `/badge` they can mark it:
+
+- **failed**, when the laser job went wrong, or
+- **lost**, which stops it working for good. Scanning a lost badge asks the finder to return it, and it appears in the published revocation list, so offline verifiers learn of it too.
+
+Either way they can then make a new one. Voiding can't be undone; a badge found again is replaced, not revived.
+
+### What the codes say
+
+- **QR code** (front): `HTTPS://<host>/B/<serial>/<code>`, where the code is 13 characters of an HMAC over the serial and member. It never expires; it opens the member's card with their live status from Authentik (email hidden) for as long as the badge is active. It's uppercase so the QR can use alphanumeric mode and fewer, larger modules.
+- **PDF417** (back): an AAMVA DL/ID barcode, the format licence scanners and libraries read, signed as a [W3C Verifiable Credential Barcode](https://w3c.github.io/vc-barcodes/), the scheme California's DMV signs its licences with. Here the signer is the makerspace, `did:web:<host>`, with its key at `/.well-known/did.json`, derived from `BADGE_SECRET`.
+  - **What scanners read**: an `ID` subfile with the member's name, member number (`DAQ`), issue date, and a document number (`DCF`) of `B<serial>-<code>` that traces a found card to its record. The issuer number (IIN) is the makerspace's own: a `9` and five digits from its DID, where every AAMVA jurisdiction's begins with `6`.
+  - **What they don't**: no date of birth, expiry, height or address (all `unavl`), jurisdiction `XX`, no driving privileges. An age check fails rather than pass on a badge; it is not a government ID and doesn't claim to be one.
+  - **The signature** (`ecdsa-xi-2023`, in the `ZZ` subfile's `ZZA` field) covers all 22 mandatory fields. A verifier that checks it sees the makerspace's DID as issuer, so it can't be mistaken for a state's.
+  - **Status**: each badge holds a random index in the revocation lists at `/badge-status/revocation/<n>`, signed `BitstringStatusListCredential`s. Badges marked lost or failed are set there.
+  - The CBOR-LD encoding and signing in `internal/vcb` reproduce the spec's test vectors byte for byte. `internal/pdf417` is a copy of boombuler/barcode's encoder that picks the symbol's shape, so the barcode, turned to run down the card, gets modules of about 0.25 mm.
+
+Configuration:
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `BADGE_SECRET` | - | Signs badge codes and derives the barcode signing key. Required for badges. Separate from `TOKEN_SECRET` so rotating that doesn't void every badge; changing this one does. |
+| `BADGE_DB` | `./data/badges.json` | The record of issued badges. Needs a writable, persistent volume. |
+| `PUBLIC_URL` | `https://multipass.sequoia.garden` | Scheme and host engraved into badge codes; also the issuer's `did:web` |
+
+The Authentik proxy must let `/B/…`, `/b/…`, `/.well-known/did.json` and `/badge-status/revocation/…` through without login; see `skip_path_regex` in `terraform/authentik/providers.tf`.
+
 ### Group Mapping
 
 Configure these groups in Authentik to control user access levels:

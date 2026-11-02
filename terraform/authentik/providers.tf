@@ -185,8 +185,9 @@ resource "authentik_provider_proxy" "multipass" {
   authorization_flow = data.authentik_flow.default_implicit_consent.id
   invalidation_flow  = data.authentik_flow.default_provider_invalidation.id
 
-  # Public card page and static assets need no login.
-  skip_path_regex = "/public/card\n/static/css/.*\n/static/js/.*"
+  # Public card page, wooden badge scans, the DID document and status lists
+  # badge barcodes are verified against, and static assets need no login.
+  skip_path_regex = "/public/card\n^/[Bb]/[0-9]+/[A-Za-z2-7]+$\n^/\\.well-known/did\\.json$\n^/badge-status/revocation/[0-9]+$\n/static/css/.*\n/static/js/.*"
 
   internal_host_ssl_validation = false
   intercept_header_auth        = true
@@ -203,7 +204,7 @@ resource "authentik_provider_proxy" "multipass_test" {
   authorization_flow = data.authentik_flow.default_implicit_consent.id
   invalidation_flow  = data.authentik_flow.default_provider_invalidation.id
 
-  skip_path_regex = "/public/card\n/static/css/.*\n/static/js/.*"
+  skip_path_regex = "/public/card\n^/[Bb]/[0-9]+/[A-Za-z2-7]+$\n^/\\.well-known/did\\.json$\n^/badge-status/revocation/[0-9]+$\n/static/css/.*\n/static/js/.*"
 
   internal_host_ssl_validation = false
   intercept_header_auth        = true
