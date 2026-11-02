@@ -40,12 +40,21 @@
       owner: root
       group: root
       mode: u=rw,go=
+- name: Place compose override that keeps the retired Ollama sidecar from running
+  become: true
+  ansible.builtin.copy:
+      src: seqfab_utilities.no-ollama.compose.yml
+      dest: /opt/seqfab_utilities/no-ollama.compose.yml
+      owner: root
+      group: root
+      mode: u=rw,go=r
 - name: Deploy seqfab_utilities with docker-compose
   become: true
   community.docker.docker_compose_v2:
       project_src: "{{ seqfab_utilities.docker_compose_location }}"
       files:
         - compose.yml
+        - /opt/seqfab_utilities/no-ollama.compose.yml
       remove_orphans: true
       build: always
       state: present

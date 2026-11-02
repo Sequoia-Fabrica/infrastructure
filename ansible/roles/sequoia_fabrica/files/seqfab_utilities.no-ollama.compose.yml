@@ -1,0 +1,10 @@
+# Layered over the upstream sequoia-fabrica/utilities compose.yml, which still
+# defines an Ollama sidecar. Ollama was retired along with the GPU (2026-10/11);
+# the app's LLM features are off (OLLAMA_MODEL_NAME unset) and degrade gracefully.
+# Parking the service behind a never-activated profile keeps it from starting,
+# and resetting depends_on stops seqfab_utilities from pulling it back in.
+services:
+  ollama:
+    profiles: ["retired"]
+  seqfab_utilities:
+    depends_on: !reset []
