@@ -58,36 +58,27 @@ type UserFromHeaders struct {
 // Group mapping will be loaded from config file
 var GroupMapping = map[string]UserLevel{}
 
-// DetermineUserLevel determines user level from Authentik groups
+// DetermineUserLevel determines user level from Authentik groups: the
+// highest level any of them maps to, or the configured default if none do.
 func DetermineUserLevel(groups []string) UserLevel {
-	// Import config package
 	cfg := config.Load()
 
-	// Check for highest privilege level first
+	level, matched := NoAccess, false
 	for _, group := range groups {
 		if levelStr, exists := cfg.GroupMappingConfig.Mappings[group]; exists {
-			// Convert string level to UserLevel enum
-			switch levelStr {
-			case "NoAccess":
-				return NoAccess
-			case "LimitedVolunteer":
-				return LimitedVolunteer
-			case "FullMember":
-				return FullMember
-			case "Staff":
-				return Staff
-			case "Admin":
-				return Admin
-			default:
-				return NoAccess
+			if l := parseUserLevel(levelStr); !matched || l > level {
+				level, matched = l, true
 			}
 		}
 	}
+	if matched {
+		return level
+	}
+	return parseUserLevel(cfg.GroupMappingConfig.DefaultLevel)
+}
 
-	// Use default level from config
-	switch cfg.GroupMappingConfig.DefaultLevel {
-	case "NoAccess":
-		return NoAccess
+func parseUserLevel(s string) UserLevel {
+	switch s {
 	case "LimitedVolunteer":
 		return LimitedVolunteer
 	case "FullMember":

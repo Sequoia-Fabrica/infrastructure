@@ -86,6 +86,21 @@ func main() {
 	if err != nil {
 		logger.Fatal("Failed to open badge store: %v", err)
 	}
+	r := newRouter(cfg, logger, badgeStore)
+
+	// Start server
+	logger.Info("Starting Multipass server on %s", cfg.GetServerAddress())
+	logger.Info("Environment: %s", cfg.Environment)
+	logger.Info("Makerspace: %s", cfg.MakerspaceName)
+
+	if err := r.Run(cfg.GetServerAddress()); err != nil {
+		logger.Fatal("Failed to start server: %v", err)
+	}
+}
+
+// newRouter sets up every route: public pages, the Authentik-protected app,
+// and the API.
+func newRouter(cfg *config.Config, logger *services.Logger, badgeStore *badge.Store) *gin.Engine {
 	badgeHandlers := &handlers.BadgeHandlers{Store: badgeStore}
 
 	// Create Gin router
@@ -101,8 +116,13 @@ func main() {
 	// Load HTML templates with proper inheritance
 	r.HTMLRender = createTemplateRenderer(logger)
 
-	// Serve static files
-	r.Static("/static", "./web/static")
+	// Serve static files. Browsers must check back before reusing one (a 304
+	// when unchanged): without this they guess a freshness from the file's
+	// age and keep serving stale CSS and JS for weeks after a deploy
+	static := r.Group("/static", func(c *gin.Context) {
+		c.Header("Cache-Control", "no-cache")
+	})
+	static.Static("/", "./web/static")
 
 	// Apply middleware
 	r.Use(gin.Logger())
@@ -181,6 +201,7 @@ func main() {
 		badges.GET("/badge", badgeHandlers.Page)
 		badges.POST("/badge", badgeHandlers.Issue)
 		badges.GET("/badge/preview.svg", badgeHandlers.Preview)
+		badges.GET("/badge/preview-back.svg", badgeHandlers.PreviewBack)
 		badges.GET("/badges/:serial/front.svg", badgeHandlers.Front)
 		badges.GET("/badges/:serial/back.svg", badgeHandlers.Back)
 		badges.POST("/badges/:serial/failed", badgeHandlers.Void(badge.Failed))
@@ -217,12 +238,5 @@ func main() {
 		})
 	})
 
-	// Start server
-	logger.Info("Starting Multipass server on %s", cfg.GetServerAddress())
-	logger.Info("Environment: %s", cfg.Environment)
-	logger.Info("Makerspace: %s", cfg.MakerspaceName)
-
-	if err := r.Run(cfg.GetServerAddress()); err != nil {
-		logger.Fatal("Failed to start server: %v", err)
-	}
+	return r
 }
