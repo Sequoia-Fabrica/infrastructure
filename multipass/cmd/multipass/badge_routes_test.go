@@ -196,28 +196,42 @@ func TestCardLinksOwnerToBadges(t *testing.T) {
 	r, _ := setup(t)
 	w := do(r, member42, "GET", "/card", nil, "")
 	loc := w.Header().Get("Location")
-	if w.Code != http.StatusTemporaryRedirect || !strings.Contains(loc, "&mine=1") {
+	if w.Code != http.StatusTemporaryRedirect || !strings.HasPrefix(loc, "/public/card?token=") {
 		t.Fatalf("/card: %d %s", w.Code, loc)
 	}
-
-	// The owner, arriving from /card, gets the link; the QR code doesn't
-	// carry mine=1
-	page := do(r, anonymous, "GET", loc, nil, "none").Body.String()
-	if !strings.Contains(page, `href="/badge"`) {
-		t.Error("owner's card has no link to /badge")
-	}
-	if strings.Contains(page, "mine=1") && !strings.Contains(page, "searchParams.has('mine')") {
-		t.Error("mine=1 leaked into the page")
-	}
-	for _, line := range strings.Split(page, "\n") {
-		if strings.Contains(line, "data-qr") && strings.Contains(line, "mine") {
-			t.Errorf("QR data carries mine: %s", strings.TrimSpace(line))
+	var owner *http.Cookie
+	for _, c := range w.Result().Cookies() {
+		if c.Name == "multipass_card_owner" {
+			owner = c
 		}
 	}
+	if owner == nil || owner.Value != "42" || !owner.HttpOnly {
+		t.Fatalf("/card set owner cookie %+v", owner)
+	}
 
-	// Anyone with the plain shared link doesn't
-	shared := strings.Replace(loc, "&mine=1", "", 1)
-	if strings.Contains(do(r, anonymous, "GET", shared, nil, "none").Body.String(), `href="/badge"`) {
-		t.Error("shared card links to /badge")
+	view := func(cookie *http.Cookie) bool {
+		req := httptest.NewRequest("GET", loc, nil)
+		if cookie != nil {
+			req.AddCookie(cookie)
+		}
+		w := httptest.NewRecorder()
+		r.ServeHTTP(w, req)
+		if w.Code != http.StatusOK {
+			t.Fatalf("card page: %d", w.Code)
+		}
+		return strings.Contains(w.Body.String(), `href="/badge"`)
+	}
+	// The owner sees the link, reload after reload
+	for i := 0; i < 2; i++ {
+		if !view(owner) {
+			t.Error("owner's card has no link to /badge")
+		}
+	}
+	// Anyone else looking at the card doesn't
+	if view(nil) {
+		t.Error("a stranger's view links to /badge")
+	}
+	if view(&http.Cookie{Name: "multipass_card_owner", Value: "43"}) {
+		t.Error("another member's view links to /badge")
 	}
 }

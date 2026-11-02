@@ -10,6 +10,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// ownerCookie holds the member ID of whoever last opened their card from
+// /card in this browser.
+const ownerCookie = "multipass_card_owner"
+
 // CardHandler handles requests for the digital ID card by generating a public share URL and redirecting to it
 func CardHandler(c *gin.Context) {
 	user, exists := c.Get("user")
@@ -44,10 +48,15 @@ func CardHandler(c *gin.Context) {
 		return
 	}
 
-	// Create public card URL with properly encoded token. mine=1 tells the
-	// card page its owner is looking, to offer links like the wooden badge;
-	// the page drops it from the address bar and its QR code
-	publicCardURL := "/public/card?token=" + url.QueryEscape(token) + "&mine=1"
+	// Remember whose card this browser opened from /card, the signed-in
+	// route, so the card page can offer its owner their own links, like the
+	// wooden badge. It only decides whether to show a link: what it links
+	// to checks sign-in itself.
+	c.SetSameSite(http.SameSiteLaxMode)
+	c.SetCookie(ownerCookie, userID, 30*24*3600, "/", "", c.Request.TLS != nil || c.GetHeader("X-Forwarded-Proto") == "https", true)
+
+	// Create public card URL with properly encoded token
+	publicCardURL := "/public/card?token=" + url.QueryEscape(token)
 
 	// Redirect to the public card URL
 	c.Redirect(http.StatusTemporaryRedirect, publicCardURL)
