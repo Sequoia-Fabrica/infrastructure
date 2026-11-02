@@ -287,17 +287,15 @@
             <button onclick="downloadCard()" class="hidden md:block bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors">
                 Download PDF
             </button>
-        </div>
 
-        {{if .mine}}
-        <!-- Only for the owner, who opened their card from /card -->
-        <div class="mt-6 text-center">
-            <a href="/badge" class="inline-flex items-center px-6 py-3 rounded-lg font-semibold text-amber-900 bg-amber-100 hover:bg-amber-200 dark:text-amber-100 dark:bg-amber-900/40 dark:hover:bg-amber-900/60 transition-colors">
-                Make a wooden badge
+            {{if .mine}}
+            <!-- Only for the owner, who opened their card from /card -->
+            <a href="/badge"
+               class="card-action text-center bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-6 py-3 rounded-lg font-semibold hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors">
+                Make a Wooden Badge
             </a>
-            <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Laser-engrave your card into wood, with a QR code that never expires</p>
+            {{end}}
         </div>
-        {{end}}
     </div>
 </div>
 
@@ -380,7 +378,8 @@
         box-shadow: none;
     }
 
-    button {
+    button,
+    .card-action {
         display: none;
     }
 }
