@@ -66,7 +66,14 @@ func PublicCardHandler(c *gin.Context) {
 	baseURL := scheme + "://" + c.Request.Host
 
 	// The card links back to however it was reached: a token link or a badge
-	fullURL := baseURL + c.Request.URL.RequestURI()
+	// The card's own address, for its QR code, without mine=1: that only
+	// says its owner followed /card here
+	shown := *c.Request.URL
+	query := shown.Query()
+	mine := query.Get("mine") == "1"
+	query.Del("mine")
+	shown.RawQuery = query.Encode()
+	fullURL := baseURL + shown.RequestURI()
 
 	// A wooden badge can be read by anyone who sees it, for years; keep the
 	// member's email off the card it opens
@@ -105,6 +112,7 @@ func PublicCardHandler(c *gin.Context) {
 		"qr_data":         fullURL,             // Keep the URL as data attribute for backward compatibility
 		"public_view":     true,                // Flag to indicate this is a public view
 		"badge_view":      badgeView,           // Reached by scanning a wooden badge
+		"mine":            mine && !badgeView,  // The owner came from /card; offer their links
 		"current_time":    time.Now().Format("Jan 2, 2006 15:04:05"),  // Current time for reference
 		"join_date":       joinDateStr,         // Member since date
 		"expiry_date":     expiryDateStr,       // Membership expiry date

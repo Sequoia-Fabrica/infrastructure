@@ -4,14 +4,23 @@
         <div class="p-8 md:flex md:space-x-8">
             <div class="md:w-2/5 flex flex-col items-center">
                 {{if .active}}
-                <img src="/badges/{{.active.Serial}}/front.svg" alt="Badge {{.active.Serial}} for {{.member.FullName}}"
-                     class="w-full max-w-xs border border-gray-200 rounded-lg bg-white">
-                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Badge {{.active.Serial}}, front</p>
+                <div class="badge3d" role="button" tabindex="0" data-seed="{{.active.Serial}}"
+                     data-front="/badges/{{.active.Serial}}/front.svg" data-back="/badges/{{.active.Serial}}/back.svg"
+                     aria-label="Badge {{.active.Serial}} for {{.member.FullName}}, as engraved in wood. Activate to flip it over.">
+                    <div class="badge3d-loading">Loading badge…</div>
+                </div>
+                <p class="badge3d-caption mt-2 text-xs text-gray-500 dark:text-gray-400">Badge {{.active.Serial}}</p>
                 {{else}}
-                <img src="/badge/preview.svg?member={{.member.MemberID}}" alt="Preview of a badge for {{.member.FullName}}"
-                     class="w-full max-w-xs border border-gray-200 rounded-lg bg-white opacity-60">
-                <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Preview: the real codes are made when you make the badge</p>
+                <div class="badge3d" role="button" tabindex="0" data-seed="{{.member.MemberID}}"
+                     data-front="/badge/preview.svg?member={{.member.MemberID}}" data-back="/badge/preview-back.svg?member={{.member.MemberID}}"
+                     aria-label="Preview of a badge for {{.member.FullName}}, as engraved in wood. Activate to flip it over.">
+                    <div class="badge3d-loading">Loading preview…</div>
+                </div>
+                <p class="badge3d-caption mt-2 text-xs text-gray-500 dark:text-gray-400">Preview</p>
+                <p class="mt-1 text-xs text-gray-400 text-center">The real codes are made when you make the badge</p>
                 {{end}}
+                <link rel="stylesheet" href="/static/css/badge3d.css">
+                <script src="/static/js/badge3d.js" defer></script>
             </div>
 
             <div class="md:w-3/5 mt-6 md:mt-0">

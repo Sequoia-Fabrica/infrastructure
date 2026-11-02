@@ -44,8 +44,10 @@ func CardHandler(c *gin.Context) {
 		return
 	}
 
-	// Create public card URL with properly encoded token
-	publicCardURL := "/public/card?token=" + url.QueryEscape(token)
+	// Create public card URL with properly encoded token. mine=1 tells the
+	// card page its owner is looking, to offer links like the wooden badge;
+	// the page drops it from the address bar and its QR code
+	publicCardURL := "/public/card?token=" + url.QueryEscape(token) + "&mine=1"
 
 	// Redirect to the public card URL
 	c.Redirect(http.StatusTemporaryRedirect, publicCardURL)

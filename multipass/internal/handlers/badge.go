@@ -139,9 +139,22 @@ func (h *BadgeHandlers) Back(c *gin.Context) {
 		c.JSON(code, gin.H{"error": err.Error()})
 		return
 	}
-	host, err := badge.Host(cfg.PublicURL)
+	iss, err := badge.Issuer(cfg.BadgeSecret, cfg.PublicURL)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	h.writeBack(c, cfg, iss, rec, badge.Sign(rec.Serial, rec.MemberID, cfg.BadgeSecret))
+}
+
+// PreviewBack draws the back of a badge as it would come out, without
+// issuing one. Its barcode is signed with a throwaway key, so it is the
+// right size but verifies as nothing.
+func (h *BadgeHandlers) PreviewBack(c *gin.Context) {
+	cfg := config.Load()
+	member, status, err := h.member(c, cfg, c.Query("member"))
+	if err != nil {
+		c.JSON(status, gin.H{"error": err.Error()})
 		return
 	}
 	iss, err := badge.Issuer(cfg.BadgeSecret, cfg.PublicURL)
@@ -149,7 +162,18 @@ func (h *BadgeHandlers) Back(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
-	text, err := badge.BarcodeText(iss, cfg.PublicURL, rec, badge.Sign(rec.Serial, rec.MemberID, cfg.BadgeSecret))
+	iss.Key = vcb.GenerateKey()
+	rec := badge.Record{MemberID: member.MemberID, Name: member.FullName, IssuedAt: time.Now(), StatusIndex: vcb.RandomStatusIndex()}
+	h.writeBack(c, cfg, iss, rec, "PREVIEW")
+}
+
+func (h *BadgeHandlers) writeBack(c *gin.Context, cfg *config.Config, iss vcb.Issuer, rec badge.Record, sig string) {
+	host, err := badge.Host(cfg.PublicURL)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	text, err := badge.BarcodeText(iss, cfg.PublicURL, rec, sig)
 	if err != nil {
 		services.NewLogger(cfg).Error("Badge %d: signing barcode: %v", rec.Serial, err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to sign the barcode"})

@@ -288,6 +288,26 @@
                 Download PDF
             </button>
         </div>
+
+        {{if .mine}}
+        <!-- Only for the owner, who came here from /card -->
+        <div class="mt-6 text-center">
+            <a href="/badge" class="inline-flex items-center px-6 py-3 rounded-lg font-semibold text-amber-900 bg-amber-100 hover:bg-amber-200 dark:text-amber-100 dark:bg-amber-900/40 dark:hover:bg-amber-900/60 transition-colors">
+                Make a wooden badge
+            </a>
+            <p class="mt-2 text-xs text-gray-500 dark:text-gray-400">Laser-engrave your card into wood, with a QR code that never expires</p>
+        </div>
+        <script>
+            // Keep mine=1 out of anything copied or shared from the address bar
+            (() => {
+                const u = new URL(window.location.href);
+                if (u.searchParams.has('mine')) {
+                    u.searchParams.delete('mine');
+                    history.replaceState(null, '', u);
+                }
+            })();
+        </script>
+        {{end}}
     </div>
 </div>
 
