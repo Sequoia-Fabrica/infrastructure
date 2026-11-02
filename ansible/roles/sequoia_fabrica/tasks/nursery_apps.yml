@@ -111,6 +111,8 @@
   ansible.builtin.include_role:
     name: sequoia_fabrica
     tasks_from: multipass.yml
+    apply:
+      tags: multipass
   tags: multipass
 
 # Restic Backup
