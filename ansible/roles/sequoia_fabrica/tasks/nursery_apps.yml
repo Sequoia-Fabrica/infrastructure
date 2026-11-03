@@ -11,30 +11,40 @@
   ansible.builtin.include_role:
     name: sequoia_fabrica
     tasks_from: install_prometheus.yml
+    apply:
+      tags: prometheus
   tags: prometheus
 
 - name: Node Exporter
   ansible.builtin.include_role:
     name: sequoia_fabrica
     tasks_from: node_exporter.yml
+    apply:
+      tags: node_exporter
   tags: node_exporter
 
 - name: Grafana
   ansible.builtin.include_role:
     name: sequoia_fabrica
     tasks_from: grafana.yml
+    apply:
+      tags: grafana
   tags: grafana
 
 - name: Frigate
   ansible.builtin.include_role:
     name: sequoia_fabrica
     tasks_from: frigate.yml
+    apply:
+      tags: frigate
   tags: frigate
 
 - name: Frigate Exporter
   ansible.builtin.include_role:
     name: sequoia_fabrica
     tasks_from: frigate_exporter.yml
+    apply:
+      tags: frigate_exporter
   tags: frigate_exporter
 
 - name: Gate Watcher
@@ -65,18 +75,24 @@
   ansible.builtin.include_role:
     name: sequoia_fabrica
     tasks_from: aruba_exporter.yml
+    apply:
+      tags: aruba_exporter
   tags: aruba_exporter
 
 - name: Immich
   ansible.builtin.include_role:
     name: sequoia_fabrica
     tasks_from: immich.yml
+    apply:
+      tags: immich
   tags: immich
 
 - name: Docuseal
   ansible.builtin.include_role:
     name: sequoia_fabrica
     tasks_from: docuseal.yml
+    apply:
+      tags: docuseal
   tags: docuseal
 
 - name: Cloudflare DDNS
@@ -99,12 +115,16 @@
   ansible.builtin.include_role:
     name: sequoia_fabrica
     tasks_from: adminer.yml
+    apply:
+      tags: adminer
   tags: adminer
 
 - name: Uptime Kuma
   ansible.builtin.include_role:
     name: sequoia_fabrica
     tasks_from: uptime_kuma.yml
+    apply:
+      tags: uptime_kuma
   tags: uptime_kuma
 
 - name: Multipass
