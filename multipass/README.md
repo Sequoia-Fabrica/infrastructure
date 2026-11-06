@@ -254,7 +254,7 @@ multipass/
 │       ├── css/
 │       │   └── styles.css     # Custom styles
 │       ├── js/
-│       │   └── card.js        # Card interactions
+│       │   └── seal.js        # The card's live seal of authenticity
 │       └── images/
 │           └── logo.png       # Makerspace logo
 ├── Dockerfile

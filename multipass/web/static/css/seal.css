@@ -1,0 +1,232 @@
+/* The seal of authenticity on the member's card. seal.js draws the
+   engraving and sets --tx and --ty, the light's direction, from -1 to 1. */
+
+.mp-seal-panel {
+    background:
+        radial-gradient(ellipse at 50% 40%, rgba(22, 163, 74, 0.10), transparent 70%),
+        #f7f8f6;
+}
+@media (prefers-color-scheme: dark) {
+    .mp-seal-panel {
+        background:
+            radial-gradient(ellipse at 50% 40%, rgba(34, 197, 94, 0.12), transparent 70%),
+            #111827;
+    }
+}
+
+.mp-seal {
+    --tx: 0;
+    --ty: 0;
+    position: relative;
+    width: min(78vw, 300px);
+    aspect-ratio: 1;
+    color: #1f3b2b; /* engraving ink */
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+.mp-seal-tilt {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    overflow: hidden;
+    transform: perspective(800px)
+        rotateX(calc(var(--ty) * -9deg))
+        rotateY(calc(var(--tx) * 9deg));
+    box-shadow:
+        calc(var(--tx) * -10px) calc(10px + var(--ty) * -8px) 28px rgba(16, 40, 24, 0.35),
+        0 0 0 1px rgba(60, 80, 60, 0.35),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+    clip-path: circle(50%);
+    isolation: isolate;
+    will-change: transform;
+}
+.mp-seal-tilt > * {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+}
+
+/* Spun silver-green metal: fine concentric brushing under a bow-tie
+   highlight that turns with the light, as on a polished disc */
+.mp-seal-metal {
+    background:
+        repeating-radial-gradient(circle at 50% 50%,
+            rgba(255, 255, 255, 0) 0 0.6px,
+            rgba(30, 50, 35, 0.05) 0.6px 1.2px,
+            rgba(255, 255, 255, 0.07) 1.2px 1.8px),
+        radial-gradient(circle at 50% 50%, #f2f6ef 0%, #d6dfd2 55%, #a9b8a7 88%, #8a9a88 100%);
+}
+.mp-seal-metal::after {
+    content: "";
+    position: absolute;
+    inset: -20%;
+    background: conic-gradient(from 0deg,
+        rgba(255, 255, 255, 0.75), rgba(40, 60, 45, 0.18) 12%, rgba(255, 255, 255, 0) 25%,
+        rgba(40, 60, 45, 0.18) 38%, rgba(255, 255, 255, 0.75) 50%, rgba(40, 60, 45, 0.18) 62%,
+        rgba(255, 255, 255, 0) 75%, rgba(40, 60, 45, 0.18) 88%, rgba(255, 255, 255, 0.75));
+    mix-blend-mode: overlay;
+    transform: rotate(calc(var(--tx) * 70deg + var(--ty) * 35deg));
+}
+
+.mp-seal-ink {
+    width: 100%;
+    height: 100%;
+    opacity: 0.72;
+}
+
+/* The foil: a rainbow sheet seen only through the engraved lines, sliding
+   as the light moves so the colours run along them */
+.mp-seal-holo {
+    overflow: hidden;
+    -webkit-mask-size: 100% 100%;
+    mask-size: 100% 100%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    opacity: 0.92;
+}
+.mp-seal-holo-sheet {
+    position: absolute;
+    left: -100%;
+    top: -100%;
+    width: 300%;
+    height: 300%;
+    background: repeating-linear-gradient(118deg,
+        rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0) 7%,
+        rgba(235, 255, 245, 0.6) 10.5%,
+        #ff6a88 12.5%, #ffb36b 13.8%, #f6ef7a 15.1%, #7ef0a0 16.4%, #4fd8e0 17.7%,
+        #6c8cff 19%, #c879ef 20.3%,
+        rgba(235, 255, 245, 0.6) 22.5%, rgba(255, 255, 255, 0) 26%,
+        rgba(255, 255, 255, 0) 33.333%);
+    transform: translate3d(calc(var(--tx) * 26%), calc(var(--ty) * 26%), 0)
+        rotate(calc(var(--tx) * 8deg));
+    will-change: transform;
+}
+
+/* Diffraction over the whole plate: a fine rainbow fan centred where the
+   light falls */
+.mp-seal-diffract {
+    background: repeating-conic-gradient(
+        from calc(var(--tx) * 40deg) at calc(50% + var(--tx) * 30%) calc(50% + var(--ty) * 30%),
+        rgba(255, 90, 140, 0.55) 0deg, rgba(255, 220, 110, 0.55) 3deg, rgba(110, 240, 160, 0.55) 6deg,
+        rgba(90, 170, 255, 0.55) 9deg, rgba(200, 110, 255, 0.55) 12deg, rgba(255, 90, 140, 0.55) 15deg);
+    mix-blend-mode: overlay;
+    opacity: 0.2;
+}
+
+/* Where the light glints off the foil */
+.mp-seal-glare {
+    background: radial-gradient(circle at calc(50% - var(--tx) * 45%) calc(50% - var(--ty) * 45%),
+        rgba(255, 255, 255, 0.85) 0%, rgba(255, 255, 255, 0.25) 18%, rgba(255, 255, 255, 0) 45%);
+    mix-blend-mode: soft-light;
+}
+
+/* The second hand: a bead of light orbiting on the microtext ring */
+.mp-seal-sweep {
+    inset: 0;
+    animation: mp-seal-sweep 60s linear infinite;
+    pointer-events: none;
+}
+.mp-seal-sweep::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 31.1%; /* on the microtext ring, 37.8 of the seal's 100 radius */
+    width: 2.4%;
+    height: 2.4%;
+    margin: -1.2% 0 0 -1.2%;
+    border-radius: 50%;
+    background: radial-gradient(circle, #fff 0%, #b8ffd0 45%, rgba(80, 220, 140, 0) 70%);
+    box-shadow: 0 0 6px 2px rgba(120, 255, 180, 0.65);
+}
+@keyframes mp-seal-sweep {
+    to { transform: rotate(360deg); }
+}
+
+.mp-seal-center {
+    inset: 18%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: #1d3a29;
+    line-height: 1.1;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+.mp-seal-check {
+    width: 12%;
+    height: auto;
+    margin-bottom: 1%;
+    fill: none;
+    stroke: #15803d;
+    stroke-width: 2.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    filter: drop-shadow(0 1px 0 rgba(255, 255, 255, 0.8));
+}
+.mp-seal-word {
+    font-size: clamp(9px, 3.2vw, 12px);
+    font-weight: 800;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    margin-right: -0.24em; /* the tracking after the last letter */
+}
+.mp-seal-word--void {
+    color: #b91c1c;
+}
+.mp-seal-clock {
+    margin-top: 3%;
+    font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+    font-variant-numeric: tabular-nums;
+    font-size: clamp(13px, 4.6vw, 17px);
+    font-weight: 700;
+    letter-spacing: 0.04em;
+}
+.mp-seal-date {
+    margin-top: 2%;
+    font-size: clamp(7px, 2.3vw, 9px);
+    font-weight: 600;
+    letter-spacing: 0.18em;
+    margin-right: -0.18em;
+    opacity: 0.75;
+}
+
+/* A membership that isn't valid gets a dead, grey seal */
+.mp-seal--void .mp-seal-metal,
+.mp-seal--void .mp-seal-ink {
+    filter: grayscale(1) contrast(0.9);
+}
+.mp-seal--void .mp-seal-holo,
+.mp-seal--void .mp-seal-diffract,
+.mp-seal--void .mp-seal-sweep {
+    display: none;
+}
+@media (prefers-reduced-motion: reduce) {
+    .mp-seal-sweep {
+        animation: none;
+        display: none;
+    }
+    .mp-seal-tilt {
+        transform: none;
+    }
+}
+
+/* A printout proves nothing */
+.mp-print-note {
+    display: none;
+}
+@media print {
+    .mp-card,
+    .card-action {
+        display: none !important;
+    }
+    .mp-print-note {
+        display: block;
+        text-align: center;
+        font-size: 14pt;
+        margin-top: 2in;
+    }
+}

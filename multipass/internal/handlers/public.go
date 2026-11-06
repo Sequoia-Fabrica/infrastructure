@@ -1,6 +1,8 @@
 package handlers
 
 import (
+	"crypto/sha256"
+	"encoding/hex"
 	"html/template"
 	"multipass/internal/config"
 	"multipass/internal/models"
@@ -58,29 +60,16 @@ func PublicCardHandler(c *gin.Context) {
 		}
 	}
 
-	// Get the full URL for QR code generation
-	scheme := "https"
-	if c.Request.TLS == nil {
-		scheme = "http"
-	}
-	baseURL := scheme + "://" + c.Request.Host
-
-	// The card links back to however it was reached: a token link or a badge
-	fullURL := baseURL + c.Request.URL.RequestURI()
-
 	// A wooden badge can be read by anyone who sees it, for years; keep the
 	// member's email off the card it opens
 	_, badgeView := c.Get("badge_view")
 
-	// Generate QR code as base64 data URI
-	qrCodeBase64, err := utils.GenerateQRCodeBase64(fullURL, 250)
-	if err != nil {
-		logger.Error("Failed to generate QR code: %v", err)
-		qrCodeBase64 = ""
-	}
+	// The seal's guilloche is drawn in the browser from this seed, so each
+	// member's seal is their own and stays the same from visit to visit
+	seed := sha256.Sum256([]byte("seal:" + user.MemberID + ":" + user.AuthentikID))
 
-	// Convert to template.HTML to prevent escaping
-	qrCodeHTML := template.HTML("<img src=\"" + qrCodeBase64 + "\" alt=\"QR Code\" class=\"qr-code\">")
+	// The seal only certifies a member in good standing
+	verified := membershipInfo.IsActive() && user.AccessLevel != models.NoAccess
 
 	// Format dates for display
 	joinDateStr := "Unknown"
@@ -101,8 +90,8 @@ func PublicCardHandler(c *gin.Context) {
 		"membership":      membershipInfo,
 		"makerspace_name": cfg.MakerspaceName,
 		"logo_url":        cfg.LogoURL,
-		"qr_code_html":    qrCodeHTML,          // Add QR code HTML
-		"qr_data":         fullURL,             // Keep the URL as data attribute for backward compatibility
+		"seal_seed":       hex.EncodeToString(seed[:8]),
+		"verified":        verified,
 		"public_view":     true,                // Flag to indicate this is a public view
 		"badge_view":      badgeView,           // Reached by scanning a wooden badge
 		"mine":            isOwner(c, user),    // The owner is looking; offer their links
