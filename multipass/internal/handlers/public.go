@@ -10,6 +10,7 @@ import (
 	"multipass/internal/utils"
 	"net/http"
 	"net/url"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -60,13 +61,16 @@ func PublicCardHandler(c *gin.Context) {
 		}
 	}
 
-	// A wooden badge can be read by anyone who sees it, for years; keep the
-	// member's email off the card it opens
-	_, badgeView := c.Get("badge_view")
-
 	// The seal's guilloche is drawn in the browser from this seed, so each
 	// member's seal is their own and stays the same from visit to visit
 	seed := sha256.Sum256([]byte("seal:" + user.MemberID + ":" + user.AuthentikID))
+
+	// Anyone can open this page. A Gravatar URL is a hash of the member's
+	// email, which can be matched back to it, so those members get their
+	// initials here; a Slack photo, or Authentik's initials, show as is.
+	if user.Avatar != nil && strings.Contains(strings.ToLower(*user.Avatar), "gravatar.com") {
+		user.Avatar = nil
+	}
 
 	// The seal only certifies a member in good standing
 	verified := membershipInfo.IsActive() && user.AccessLevel != models.NoAccess
@@ -93,7 +97,6 @@ func PublicCardHandler(c *gin.Context) {
 		"seal_seed":       hex.EncodeToString(seed[:8]),
 		"verified":        verified,
 		"public_view":     true,                // Flag to indicate this is a public view
-		"badge_view":      badgeView,           // Reached by scanning a wooden badge
 		"mine":            isOwner(c, user),    // The owner is looking; offer their links
 		"current_time":    time.Now().Format("Jan 2, 2006 15:04:05"),  // Current time for reference
 		"join_date":       joinDateStr,         // Member since date

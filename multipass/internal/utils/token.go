@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -24,10 +25,19 @@ type TokenData struct {
 }
 
 // GenerateToken creates a secure token for a user that can be used in public URLs
-// The token format is: base64(userID:email:timestamp):hmac
+// The token format is: base64(userID:email:timestamp):hmac, the email
+// empty when userID is numeric
 func GenerateToken(userID, email, secret string) (string, error) {
 	if userID == "" || email == "" || secret == "" {
 		return "", errors.New("userID, email, and secret are required")
+	}
+
+	// The token travels in a link anyone may see, and its payload is only
+	// encoded, not encrypted. A member with a numeric ID is looked up by it,
+	// so leave their email out; it rides along only for the rare account
+	// without one, which has no other way to be found.
+	if _, err := strconv.Atoi(userID); err == nil {
+		email = ""
 	}
 
 	// Create timestamp

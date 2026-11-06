@@ -80,12 +80,6 @@
                             <dt class="text-gray-600 dark:text-gray-300 font-medium">Member ID</dt>
                             <dd class="font-mono bg-gray-100 dark:bg-gray-700 dark:text-gray-300 px-2 py-1 rounded">{{.user.MemberID}}</dd>
                         </div>
-                        {{if not .badge_view}}
-                        <div class="flex justify-between items-center gap-4 py-2 border-b border-gray-100 dark:border-gray-700">
-                            <dt class="text-gray-600 dark:text-gray-300 font-medium">Email</dt>
-                            <dd class="dark:text-gray-300 break-all text-right">{{.user.Email}}</dd>
-                        </div>
-                        {{end}}
                         <div class="flex justify-between items-center gap-4 py-2 border-b border-gray-100 dark:border-gray-700">
                             <dt class="text-gray-600 dark:text-gray-300 font-medium">Status</dt>
                             <dd class="font-semibold {{if .verified}}text-green-600 dark:text-green-400{{else}}text-red-600 dark:text-red-400{{end}}">{{.membership.Status.String}}</dd>
@@ -94,12 +88,6 @@
                             <dt class="text-gray-600 dark:text-gray-300 font-medium">Access</dt>
                             <dd class="text-gray-800 dark:text-gray-300 text-right">{{.membership.GetAccessLevel}}</dd>
                         </div>
-                        {{if .user.Phone}}
-                        <div class="flex justify-between items-center gap-4 py-2 border-b border-gray-100 dark:border-gray-700">
-                            <dt class="text-gray-600 dark:text-gray-300 font-medium">Phone</dt>
-                            <dd class="dark:text-gray-300">{{.user.Phone}}</dd>
-                        </div>
-                        {{end}}
                     </dl>
 
                     <p class="mt-6 text-xs text-gray-500 dark:text-gray-400">Valid {{.join_date}} to {{.expiry_date}}</p>
