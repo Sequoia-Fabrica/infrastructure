@@ -49,6 +49,9 @@
       ansible.builtin.include_role:
         name: sequoia_fabrica
         tasks_from: cloudflare_tunnel.yml
+        apply:
+          tags: cloudflared
+      tags: cloudflared
 - name: Setup nursery with apps
   hosts: nursery
   tasks:
